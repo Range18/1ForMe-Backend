@@ -16,6 +16,18 @@ export namespace AllExceptions {
     UserAlreadyExists = 'User already exists',
   }
 
+  export enum RolesExceptions {
+    NotFound = 'Role is not found',
+  }
+
+  export enum StudioExceptions {
+    NotFound = 'Studio is not found',
+  }
+
+  export enum StorageExceptions {
+    NotFound = 'File is not found',
+  }
+
   export enum PermissionExceptions {
     NotTheSameUser = 'Action is forbidden because user is not owner',
     NoRequiredRole = 'You are not allowed to do that action, because of your role',

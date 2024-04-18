@@ -3,7 +3,7 @@ import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-
 
 const allExceptions = AllExceptions;
 
-type CustomExceptions = typeof allExceptions;
+export type CustomExceptions = typeof allExceptions;
 
 export type ExceptionType<T extends keyof CustomExceptions> =
   keyof CustomExceptions[T];

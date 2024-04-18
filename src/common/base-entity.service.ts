@@ -1,4 +1,4 @@
-import { NotFoundException, Type } from '@nestjs/common';
+import { Type } from '@nestjs/common';
 import {
   DeepPartial,
   FindManyOptions,
@@ -7,11 +7,16 @@ import {
   Repository,
 } from 'typeorm';
 import deepEqual from 'deep-equal';
+import {
+  ApiException,
+  CustomExceptions,
+} from '#src/common/exception-handler/api-exception';
 
 type ExtractTypeOrNever<T, K> = T extends undefined ? never : K;
 
 export interface IBaseEntityService<
   Entity extends object,
+  EntityNotFoundException extends keyof CustomExceptions,
   EntityDto = undefined,
 > {
   findOne(
@@ -46,16 +51,22 @@ export interface IBaseEntityService<
 
 export abstract class BaseEntityService<
   Entity extends object,
+  EntityNotFoundException extends keyof CustomExceptions,
   EntityDto = undefined,
-> implements IBaseEntityService<Entity, EntityDto>
+> implements IBaseEntityService<Entity, EntityNotFoundException, EntityDto>
 {
-  protected constructor(entityRepository: Repository<Entity>);
   protected constructor(
     entityRepository: Repository<Entity>,
+    notFoundException: ApiException<EntityNotFoundException>,
+  );
+  protected constructor(
+    entityRepository: Repository<Entity>,
+    notFoundException: ApiException<EntityNotFoundException>,
     entityDto: ExtractTypeOrNever<EntityDto, Type<EntityDto>>,
   );
   protected constructor(
     private readonly entityRepository: Repository<Entity>,
+    private readonly notFoundException: ApiException<EntityNotFoundException>,
     private readonly entityDto: ExtractTypeOrNever<
       EntityDto,
       Type<EntityDto>
@@ -64,7 +75,7 @@ export abstract class BaseEntityService<
 
   async find(
     options: FindManyOptions<Entity>,
-    throwError = false,
+    throwError = true,
   ): Promise<Entity[]> {
     if (options.where && deepEqual(options.where, {})) {
       throw new Error('Properties in the options.where must be defined');
@@ -73,7 +84,7 @@ export abstract class BaseEntityService<
     const entities: Entity[] = await this.entityRepository.find(options);
 
     if (!entities && throwError) {
-      throw new NotFoundException();
+      throw this.notFoundException;
     }
 
     return entities;
@@ -81,7 +92,7 @@ export abstract class BaseEntityService<
 
   async findOne(
     options: FindOneOptions<Entity>,
-    throwError = false,
+    throwError = true,
   ): Promise<Entity> {
     if (options.where && deepEqual(options.where, {})) {
       throw new Error('Properties in the options.where must be defined');
@@ -90,7 +101,7 @@ export abstract class BaseEntityService<
     const entity: Entity = await this.entityRepository.findOne(options);
 
     if (!entity && throwError) {
-      throw new NotFoundException();
+      throw this.notFoundException;
     }
 
     return entity;
@@ -110,7 +121,7 @@ export abstract class BaseEntityService<
 
   async remove(
     optionsOrEntities: FindManyOptions<Entity> | Entity[],
-    throwError = false,
+    throwError = true,
   ): Promise<void> {
     const entities: Entity[] =
       'where' in <object>optionsOrEntities
@@ -120,7 +131,7 @@ export abstract class BaseEntityService<
         : (optionsOrEntities as Entity[]);
 
     if (!entities && throwError) {
-      throw new NotFoundException();
+      throw this.notFoundException;
     }
 
     await this.entityRepository.remove(entities);
@@ -128,7 +139,7 @@ export abstract class BaseEntityService<
 
   async removeOne(
     optionsOrEntity: FindOneOptions<Entity> | Entity,
-    throwError = false,
+    throwError = true,
   ): Promise<void> {
     const entity: Entity =
       'where' in <object>optionsOrEntity
@@ -136,7 +147,7 @@ export abstract class BaseEntityService<
         : (optionsOrEntity as Entity);
 
     if (!entity && throwError) {
-      throw new NotFoundException();
+      throw this.notFoundException;
     }
 
     await this.entityRepository.remove(entity);
@@ -145,7 +156,7 @@ export abstract class BaseEntityService<
   async updateOne(
     optionsOrEntity: FindOneOptions<Entity> | Entity,
     toUpdate: DeepPartial<Entity>,
-    throwError = false,
+    throwError = true,
   ): Promise<Entity> {
     const entity: Entity =
       'where' in <object>optionsOrEntity
@@ -153,7 +164,7 @@ export abstract class BaseEntityService<
         : (optionsOrEntity as Entity);
 
     if (!entity && throwError) {
-      throw new NotFoundException();
+      throw this.notFoundException;
     }
 
     this.entityRepository.merge(entity, toUpdate);
