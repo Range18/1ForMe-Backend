@@ -28,7 +28,7 @@ export class UserService extends BaseEntityService<
 
   async signUp(link: string, clientId: number, isUserExists: boolean) {
     const coach = await this.findOne({
-      where: { personalLink: link },
+      where: { link: link },
       relations: { role: true, studio: true },
     });
 

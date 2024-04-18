@@ -36,7 +36,7 @@ export class AuthService {
     }
 
     const userEntity = await this.userService.save({
-      firstname: createUserDto.firstname,
+      name: createUserDto.name,
       surname: createUserDto.surname,
       //TODO Enable
       // password: await bcrypt.hash(createUserDto.password, passwordSaltRounds),
@@ -45,9 +45,9 @@ export class AuthService {
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },
       }),
-      personalLink: createUserDto.role === 'coach' ? uid(8) : null,
+      link: createUserDto.role === 'coach' ? uid(8) : null,
       studio: createUserDto.studio ? { id: createUserDto.studio } : null,
-      coaches: [{ id: createUserDto.coachId }],
+      trainers: [{ id: createUserDto.trainer }],
     });
 
     const session = await this.sessionService.createSession({

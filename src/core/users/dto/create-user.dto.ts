@@ -5,7 +5,7 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  readonly firstname: string;
+  readonly name: string;
 
   @IsString()
   @IsNotEmpty()
@@ -23,17 +23,34 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @ApiProperty()
+  readonly role: string;
+
+  //If registered by trainer
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ nullable: true, required: false })
+  readonly trainer?: number;
+
+  //only for trainers
+  @IsString()
+  @IsNotEmpty()
   @IsOptional()
   @ApiProperty({ nullable: true, required: false })
   readonly studio?: number;
 
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly role: string;
-
-  @IsNumber()
-  @IsOptional()
   @ApiProperty({ nullable: true, required: false })
-  readonly coachId?: number;
+  readonly whatsApp?: string;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly link?: string;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly experience?: number;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly description?: string;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly category?: number;
 }

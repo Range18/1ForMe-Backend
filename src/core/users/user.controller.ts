@@ -97,7 +97,7 @@ export class UserController {
   async signUpToCoach(@Param('link') link: string) {
     return new GetUserRdo(
       await this.userService.findOne({
-        where: { personalLink: link },
+        where: { link: link },
         relations: { role: true, avatar: true, studio: true },
       }),
     );

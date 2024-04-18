@@ -9,6 +9,7 @@ import { SessionModule } from '#src/core/session/session.module';
 import { RolesModule } from '#src/core/roles/roles.module';
 import { AssetsModule } from '#src/core/assets/assets.module';
 import { StudiosModule } from '#src/core/studios/studios.module';
+import { CategoriesModule } from '#src/core/categories/categories.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { StudiosModule } from '#src/core/studios/studios.module';
     RolesModule,
     AssetsModule,
     StudiosModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

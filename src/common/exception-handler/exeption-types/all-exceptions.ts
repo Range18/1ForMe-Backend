@@ -24,6 +24,10 @@ export namespace AllExceptions {
     NotFound = 'Studio is not found',
   }
 
+  export enum EntityExceptions {
+    NotFound = 'Entity is not found',
+  }
+
   export enum StorageExceptions {
     NotFound = 'File is not found',
   }

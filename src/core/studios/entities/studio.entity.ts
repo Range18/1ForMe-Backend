@@ -10,6 +10,12 @@ export class Studio extends BaseEntity {
   @Column({ nullable: false })
   name: string;
 
-  @OneToMany(() => UserEntity, (user) => user.studio, { nullable: true })
-  coaches: UserEntity[];
+  @Column({ nullable: false })
+  tax: number;
+
+  @Column({ nullable: false })
+  address: string;
+
+  @OneToMany(() => UserEntity, (trainer) => trainer.studio, { nullable: true })
+  trainers?: UserEntity[];
 }
