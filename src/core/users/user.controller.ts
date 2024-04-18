@@ -84,7 +84,7 @@ export class UserController {
           relations: { role: true, avatar: true, studio: true },
         },
         {
-          firstname: updateUserDto.firstname,
+          name: updateUserDto.name,
           phone: updateUserDto.phone,
           role: { id: updateUserDto.role },
           password: updateUserDto.password,

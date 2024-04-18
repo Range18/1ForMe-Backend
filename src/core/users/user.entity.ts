@@ -15,6 +15,7 @@ import { RolesEntity } from '#src/core/roles/entity/roles.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { AssetEntity } from '#src/core/assets/entities/asset.entity';
 import { Category } from '#src/core/categories/entity/categories.entity';
+import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -80,6 +81,9 @@ export class UserEntity extends BaseEntity {
     onDelete: 'SET NULL',
   })
   studio?: Studio;
+
+  @OneToMany(() => Tariff, (tariff) => tariff.user, { nullable: true })
+  tariffs?: Tariff[];
 
   @ManyToMany(() => UserEntity, (client) => client.trainers, {
     nullable: true,
