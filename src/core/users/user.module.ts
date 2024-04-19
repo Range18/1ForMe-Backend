@@ -10,6 +10,8 @@ import { TokenService } from '#src/core/token/token.service';
 import { JwtService } from '@nestjs/jwt';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { AssetEntity } from '#src/core/assets/entities/asset.entity';
+import { RolesModule } from '#src/core/roles/roles.module';
+import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Module({
   imports: [
@@ -19,7 +21,9 @@ import { AssetEntity } from '#src/core/assets/entities/asset.entity';
       SessionEntity,
       Studio,
       AssetEntity,
+      Tariff,
     ]),
+    RolesModule,
   ],
   providers: [SessionService, TokenService, JwtService, UserService],
   controllers: [UserController],

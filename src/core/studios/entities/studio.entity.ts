@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -29,11 +30,9 @@ export class Studio extends BaseEntity {
   trainers?: UserEntity[];
 
   @ManyToOne(() => City, (city) => city.studios, { nullable: false })
+  @JoinColumn({ name: 'city' })
   city: City;
 
-  @ManyToMany(() => Sport, (sport) => sport.studios, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
+  @ManyToMany(() => Sport, (sport) => sport.studios, { nullable: false })
   sports?: Sport[];
 }

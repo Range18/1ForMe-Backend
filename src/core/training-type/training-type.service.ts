@@ -1,23 +1,23 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ApiException } from '#src/common/exception-handler/api-exception';
 import { BaseEntityService } from '#src/common/base-entity.service';
-import { Training } from '#src/core/trainings/entities/training.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { ApiException } from '#src/common/exception-handler/api-exception';
+import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
-export class TrainingsService extends BaseEntityService<
-  Training,
+export class TrainingTypeService extends BaseEntityService<
+  TrainingType,
   'EntityExceptions'
 > {
   constructor(
-    @InjectRepository(Training)
-    private readonly trainingRepository: Repository<Training>,
+    @InjectRepository(TrainingType)
+    private readonly trainingTypeRepository: Repository<TrainingType>,
   ) {
     super(
-      trainingRepository,
+      trainingTypeRepository,
       new ApiException<'EntityExceptions'>(
         HttpStatus.NOT_FOUND,
         'EntityExceptions',

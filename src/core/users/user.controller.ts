@@ -1,11 +1,20 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { UserService } from '#src/core/users/user.service';
-import { ApiHeader, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
+import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 
 @ApiTags('users')
 @Controller('api/users')
@@ -93,13 +102,23 @@ export class UserController {
     );
   }
 
-  @Get('/sign-up/:link')
-  async signUpToCoach(@Param('link') link: string) {
+  @ApiQuery({ name: 'link' })
+  @Post('/trainers')
+  async signUpToCoachSelf(
+    @Query('link') link: string,
+    @User('id') userId: number,
+  ) {
+    return new GetUserRdo(await this.userService.signUp(link, userId));
+  }
+
+  @AuthGuard()
+  @Post('/trainers/sign-up')
+  async signUpToCoach(
+    @User('id') trainerId: number,
+    @Body() createClientDto: CreateClientDto,
+  ) {
     return new GetUserRdo(
-      await this.userService.findOne({
-        where: { link: link },
-        relations: { role: true, avatar: true, studio: true },
-      }),
+      await this.userService.signUpByTrainer(createClientDto, trainerId),
     );
   }
 }

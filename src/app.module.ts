@@ -10,6 +10,8 @@ import { RolesModule } from '#src/core/roles/roles.module';
 import { AssetsModule } from '#src/core/assets/assets.module';
 import { StudiosModule } from '#src/core/studios/studios.module';
 import { CategoriesModule } from '#src/core/categories/categories.module';
+import { TrainingTypeModule } from '#src/core/training-type/training-type.module';
+import { TrainingsModule } from '#src/core/trainings/trainings.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { CategoriesModule } from '#src/core/categories/categories.module';
     AssetsModule,
     StudiosModule,
     CategoriesModule,
+    TrainingTypeModule,
+    TrainingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

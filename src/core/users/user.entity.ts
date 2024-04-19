@@ -16,6 +16,7 @@ import { Studio } from '#src/core/studios/entities/studio.entity';
 import { AssetEntity } from '#src/core/assets/entities/asset.entity';
 import { Category } from '#src/core/categories/entity/categories.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
+import { Training } from '#src/core/trainings/entities/training.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -47,10 +48,7 @@ export class UserEntity extends BaseEntity {
   @JoinColumn({ name: 'avatar' })
   avatar?: AssetEntity;
 
-  @ManyToMany(() => UserEntity, (trainer) => trainer.clients, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
+  @ManyToMany(() => UserEntity, (trainer) => trainer.clients)
   trainers?: UserEntity[];
 
   @OneToMany(() => SessionEntity, (session) => session.user, {
@@ -85,14 +83,17 @@ export class UserEntity extends BaseEntity {
   @OneToMany(() => Tariff, (tariff) => tariff.user, { nullable: true })
   tariffs?: Tariff[];
 
-  @ManyToMany(() => UserEntity, (client) => client.trainers, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
+  @ManyToMany(() => UserEntity, (client) => client.trainers)
   @JoinTable({
     name: 'clients-to-trainers',
     joinColumn: { name: 'client' },
     inverseJoinColumn: { name: 'trainer' },
   })
   clients?: UserEntity[];
+
+  @OneToMany(() => Training, (training) => training.client, { nullable: true })
+  trainingsAsClient?: Training[];
+
+  @OneToMany(() => Training, (training) => training.trainer, { nullable: true })
+  trainingsAsTrainer?: Training[];
 }
