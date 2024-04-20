@@ -9,8 +9,8 @@ export class TrainingType extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;
 
-  @ApiProperty({ uniqueItems: true })
-  @Column({ nullable: false, unique: true })
+  @ApiProperty()
+  @Column({ nullable: false })
   name: string;
 
   @OneToMany(() => Training, (training) => training.type, { nullable: true })

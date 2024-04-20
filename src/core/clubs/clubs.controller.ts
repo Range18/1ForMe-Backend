@@ -40,7 +40,12 @@ export class ClubsController {
   @ApiOkResponse({ type: GetClubRdo })
   @Get(':id')
   async get(@Param('id') id: number) {
-    return new GetClubRdo(await this.clubsService.findOne({ where: { id } }));
+    return new GetClubRdo(
+      await this.clubsService.findOne({
+        where: { id },
+        relations: { city: true, studio: { city: true } },
+      }),
+    );
   }
 
   // TODO PERMS
@@ -49,7 +54,10 @@ export class ClubsController {
   @Patch(':id')
   async update(@Param('id') id: number, @Body() updateClubDto: UpdateClubDto) {
     return new GetClubRdo(
-      await this.clubsService.updateOne({ where: { id } }, updateClubDto),
+      await this.clubsService.updateOne(
+        { where: { id }, relations: { city: true, studio: { city: true } } },
+        updateClubDto,
+      ),
     );
   }
 }

@@ -21,13 +21,24 @@ export class StudiosController {
   @ApiCreatedResponse({ type: GetStudioRdo })
   @Post()
   async create(@Body() createStudioDto: CreateStudioDto) {
-    return new GetStudioRdo(await this.studiosService.save(createStudioDto));
+    return new GetStudioRdo(
+      await this.studiosService.save({
+        ...createStudioDto,
+        city: { id: createStudioDto.city },
+      }),
+    );
   }
 
   @ApiOkResponse({ type: [GetStudioRdo] })
   @Get()
   async findAll() {
-    const studios = await this.studiosService.find({});
+    const studios = await this.studiosService.find({
+      relations: {
+        trainers: { category: true, avatar: true, role: true, tariffs: true },
+        clubs: { city: true },
+        city: true,
+      },
+    });
 
     return studios.map((studio) => new GetStudioRdo(studio));
   }
@@ -36,7 +47,14 @@ export class StudiosController {
   @Get(':id')
   async findOne(@Param('id') id: number) {
     return new GetStudioRdo(
-      await this.studiosService.findOne({ where: { id } }),
+      await this.studiosService.findOne({
+        where: { id },
+        relations: {
+          trainers: { category: true, avatar: true, role: true, tariffs: true },
+          clubs: { city: true },
+          city: true,
+        },
+      }),
     );
   }
 
@@ -47,7 +65,22 @@ export class StudiosController {
     @Body() updateStudioDto: UpdateStudioDto,
   ) {
     return new GetStudioRdo(
-      await this.studiosService.updateOne({ where: { id } }, updateStudioDto),
+      await this.studiosService.updateOne(
+        {
+          where: { id },
+          relations: {
+            trainers: {
+              category: true,
+              avatar: true,
+              role: true,
+              tariffs: true,
+            },
+            clubs: { city: true },
+            city: true,
+          },
+        },
+        updateStudioDto,
+      ),
     );
   }
 

@@ -1,7 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '#src/common/base.entity';
-import { Exclude } from 'class-transformer';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 
@@ -11,11 +10,10 @@ export class City extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;
 
-  @ApiProperty({ uniqueItems: true })
-  @Column({ nullable: false, unique: true })
+  @ApiProperty()
+  @Column({ nullable: false })
   name: string;
 
-  @Exclude()
   @OneToMany(() => Studio, (studio) => studio.city, {
     nullable: true,
     onDelete: 'SET NULL',

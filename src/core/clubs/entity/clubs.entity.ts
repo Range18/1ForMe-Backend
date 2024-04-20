@@ -20,7 +20,7 @@ export class Clubs extends BaseEntity {
   @Column({ nullable: false })
   address: string;
 
-  @ManyToOne(() => Studio, (studio) => studio.sports, {
+  @ManyToOne(() => Studio, (studio) => studio.clubs, {
     nullable: true,
     onDelete: 'SET NULL',
   })

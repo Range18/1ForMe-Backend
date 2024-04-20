@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import {
   ApiBody,
   ApiCreatedResponse,
+  ApiHeader,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -9,28 +10,59 @@ import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { UpdateTariffDto } from '#src/core/tariffs/dto/update-tariff.dto';
 import { CreateTariffDto } from '#src/core/tariffs/dto/create-tariff.dto';
+import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
+import { type UserRequest } from '#src/common/types/user-request.type';
+import { User } from '#src/common/decorators/User.decorator';
+import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 
 @ApiTags('Tariffs')
 @Controller('api/trainers/tariffs')
 export class TariffsController {
   constructor(private readonly tariffsService: TariffsService) {}
 
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
   @ApiCreatedResponse({ type: Tariff })
   @Post()
-  async create(@Body() body: CreateTariffDto) {
-    return await this.tariffsService.save(body);
+  async create(@Body() body: CreateTariffDto, @User() user: UserRequest) {
+    return new GetTariffRdo(
+      await this.tariffsService.save({ ...body, user: { id: user.id } }),
+    );
   }
 
   @ApiOkResponse({ type: [Tariff] })
   @Get()
   async getAll() {
-    return await this.tariffsService.find({});
+    const tariffs = await this.tariffsService.find({
+      relations: {
+        user: {
+          studio: { city: true },
+          role: true,
+          avatar: true,
+          category: true,
+        },
+      },
+    });
+
+    return tariffs.map((entity) => new GetTariffRdo(entity));
   }
 
   @ApiOkResponse({ type: Tariff })
   @Get(':id')
   async get(@Param('id') id: number) {
-    return await this.tariffsService.findOne({ where: { id } });
+    return new GetTariffRdo(
+      await this.tariffsService.findOne({
+        where: { id },
+        relations: {
+          user: {
+            studio: { city: true },
+            role: true,
+            avatar: true,
+            category: true,
+          },
+        },
+      }),
+    );
   }
 
   // TODO PERMS
@@ -41,9 +73,21 @@ export class TariffsController {
     @Param('id') id: number,
     @Body() updateTariffDto: UpdateTariffDto,
   ) {
-    return await this.tariffsService.updateOne(
-      { where: { id } },
-      updateTariffDto,
+    return new GetTariffRdo(
+      await this.tariffsService.updateOne(
+        {
+          where: { id },
+          relations: {
+            user: {
+              studio: { city: true },
+              role: true,
+              avatar: true,
+              category: true,
+            },
+          },
+        },
+        updateTariffDto,
+      ),
     );
   }
 }

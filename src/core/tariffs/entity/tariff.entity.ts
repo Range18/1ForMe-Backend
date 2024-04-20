@@ -17,7 +17,7 @@ export class Tariff extends BaseEntity {
   name: string;
 
   @Column({ nullable: false })
-  cost: string;
+  cost: number;
 
   @ManyToOne(() => UserEntity, (user) => user.tariffs, {
     nullable: false,

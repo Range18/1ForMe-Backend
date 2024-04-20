@@ -1,25 +1,35 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { TrainingsService } from './trainings.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
-import { UpdateTrainingDto } from './dto/update-training.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
+import { User } from '#src/common/decorators/User.decorator';
+import { type UserRequest } from '#src/common/types/user-request.type';
 
 @ApiTags('Trainings')
 @Controller('api/trainings')
 export class TrainingsController {
   constructor(private readonly trainingsService: TrainingsService) {}
 
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
   @Post()
-  async create(@Body() createTrainingDto: CreateTrainingDto) {
-    return await this.trainingsService.save(createTrainingDto);
+  async create(
+    @Body() createTrainingDto: CreateTrainingDto,
+    @User() user: UserRequest,
+  ) {
+    return await this.trainingsService.save({
+      sport: { id: createTrainingDto.sport },
+      status: createTrainingDto.status,
+      isFinished: createTrainingDto.isFinished,
+      type: { id: createTrainingDto.type },
+      date: createTrainingDto.date,
+      startTime: createTrainingDto.startTime,
+      client: { id: createTrainingDto.client },
+      trainer: { id: user.id },
+      //TODO
+      endTime: createTrainingDto.startTime,
+    });
   }
 
   @Get()
@@ -32,16 +42,16 @@ export class TrainingsController {
     return await this.trainingsService.findOne({ where: { id } });
   }
 
-  @Patch(':id')
-  async update(
-    @Param('id') id: number,
-    @Body() updateTrainingDto: UpdateTrainingDto,
-  ) {
-    return await this.trainingsService.updateOne(
-      { where: { id } },
-      updateTrainingDto,
-    );
-  }
+  // @Patch(':id')
+  // async update(
+  //   @Param('id') id: number,
+  //   @Body() updateTrainingDto: UpdateTrainingDto,
+  // ) {
+  //   return await this.trainingsService.updateOne(
+  //     { where: { id } },
+  //     updateTrainingDto,
+  //   );
+  // }
 
   @Delete(':id')
   async remove(@Param('id') id: number) {

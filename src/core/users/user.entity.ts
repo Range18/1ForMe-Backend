@@ -35,6 +35,9 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: false })
   password: string;
 
+  @Column({ nullable: false, default: false })
+  isVerified: boolean;
+
   @ManyToOne(() => RolesEntity, (role) => role.users, {
     nullable: false,
   })
