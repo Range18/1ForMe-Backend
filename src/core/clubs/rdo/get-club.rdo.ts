@@ -12,7 +12,7 @@ export class GetClubRdo {
   @ApiProperty()
   address: string;
 
-  @ApiProperty({ type: GetStudioRdo })
+  @ApiProperty({ type: () => GetStudioRdo })
   studio?: GetStudioRdo;
 
   @ApiProperty()

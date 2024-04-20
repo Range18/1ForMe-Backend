@@ -1,4 +1,4 @@
-import { UserEntity } from '#src/core/users/user.entity';
+import { UserEntity } from '#src/core/users/entity/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { RolesEntity } from '#src/core/roles/entity/roles.entity';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
@@ -31,7 +31,7 @@ export class GetUserRdo {
   readonly createdAt: Date;
 
   //Only for trainers
-  @ApiProperty({ nullable: true, type: GetStudioRdo })
+  @ApiProperty({ nullable: true, type: () => GetStudioRdo })
   readonly studio?: GetStudioRdo;
 
   @ApiProperty({ nullable: true, type: Category })

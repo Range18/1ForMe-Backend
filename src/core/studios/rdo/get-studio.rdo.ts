@@ -18,10 +18,10 @@ export class GetStudioRdo {
   @ApiProperty({ nullable: true })
   readonly address?: string;
 
-  @ApiProperty({ nullable: true, type: [GetUserRdo] })
+  @ApiProperty({ nullable: true, type: () => [GetUserRdo] })
   readonly trainers?: GetUserRdo[];
 
-  @ApiProperty({ nullable: true, type: [GetClubRdo] })
+  @ApiProperty({ nullable: true, type: () => [GetClubRdo] })
   readonly clubs?: GetClubRdo[];
 
   @ApiProperty({ nullable: true })

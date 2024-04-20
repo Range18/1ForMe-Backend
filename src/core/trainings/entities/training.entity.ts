@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { BaseEntity } from '#src/common/base.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
-import { UserEntity } from '#src/core/users/user.entity';
+import { UserEntity } from '#src/core/users/entity/user.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 
 @Entity()

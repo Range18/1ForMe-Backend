@@ -7,7 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserEntity } from '#src/core/users/user.entity';
+import { UserEntity } from '#src/core/users/entity/user.entity';
 import { BaseEntity } from '#src/common/base.entity';
 import { City } from '#src/core/city/entity/cities.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';

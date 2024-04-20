@@ -6,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
+import { UserEntity } from '../users/entity/user.entity';
 import { BaseEntity } from '#src/common/base.entity';
 
 @Entity('sessions')

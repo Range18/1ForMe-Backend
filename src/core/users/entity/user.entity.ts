@@ -9,7 +9,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { SessionEntity } from '../session/session.entity';
+import { SessionEntity } from '../../session/session.entity';
 import { BaseEntity } from '#src/common/base.entity';
 import { RolesEntity } from '#src/core/roles/entity/roles.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
