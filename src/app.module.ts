@@ -12,6 +12,7 @@ import { StudiosModule } from '#src/core/studios/studios.module';
 import { CategoriesModule } from '#src/core/categories/categories.module';
 import { TrainingTypeModule } from '#src/core/training-type/training-type.module';
 import { TrainingsModule } from '#src/core/trainings/trainings.module';
+import { CommentsModule } from '#src/core/comments/comments.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TrainingsModule } from '#src/core/trainings/trainings.module';
     CategoriesModule,
     TrainingTypeModule,
     TrainingsModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

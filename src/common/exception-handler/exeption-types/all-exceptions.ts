@@ -6,6 +6,11 @@ export namespace AllExceptions {
     InvalidAccessToken = 'Invalid access token',
   }
 
+  export enum FileExceptions {
+    FileNotFound = 'File is not found',
+    ErrorWhileDeleting = 'File does not exists or is broken',
+  }
+
   export enum SessionExceptions {
     SessionNotFound = 'Session is not found',
     SessionExpired = 'Session expired',

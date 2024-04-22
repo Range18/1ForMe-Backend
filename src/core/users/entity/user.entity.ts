@@ -17,6 +17,7 @@ import { AssetEntity } from '#src/core/assets/entities/asset.entity';
 import { Category } from '#src/core/categories/entity/categories.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
+import { UserComment } from '#src/core/comments/entity/comment.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -99,4 +100,15 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => Training, (training) => training.trainer, { nullable: true })
   trainingsAsTrainer?: Training[];
+
+  //comments about users
+  @OneToMany(() => UserComment, (comment) => comment.customer, {
+    nullable: true,
+  })
+  relatedComments?: UserComment[];
+
+  @OneToMany(() => UserComment, (comment) => comment.trainer, {
+    nullable: true,
+  })
+  commentsAboutCustomers?: UserComment[];
 }

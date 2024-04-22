@@ -18,6 +18,10 @@ export class TrainingsController {
     @Body() createTrainingDto: CreateTrainingDto,
     @User() user: UserRequest,
   ) {
+    const [hours, minutes] = createTrainingDto.duration.split(':');
+    const [date, time] = createTrainingDto.startTime.toString().split('T');
+
+    const [startHours, startMin, startMil] = time.split(':');
     return await this.trainingsService.save({
       sport: { id: createTrainingDto.sport },
       status: createTrainingDto.status,
@@ -27,8 +31,8 @@ export class TrainingsController {
       startTime: createTrainingDto.startTime,
       client: { id: createTrainingDto.client },
       trainer: { id: user.id },
-      //TODO
-      endTime: createTrainingDto.startTime,
+      endTime:
+        date + 'T' + `${startHours + hours}:${startMin + minutes}:${startMil}Z`,
     });
   }
 

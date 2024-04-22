@@ -12,6 +12,7 @@ import { UserService } from '#src/core/users/user.service';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import StorageExceptions = AllExceptions.StorageExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
+import FileExceptions = AllExceptions.FileExceptions;
 
 @Injectable()
 export class AssetsService extends BaseEntityService<
@@ -48,9 +49,15 @@ export class AssetsService extends BaseEntityService<
     }
 
     if (entity.avatar) {
-      await unlink(entity.avatar.path);
+      await unlink(entity.avatar.path).catch((err) => {
+        throw new ApiException(
+          HttpStatus.BAD_REQUEST,
+          'FileExceptions',
+          FileExceptions.FileNotFound,
+        );
+      });
 
-      await this.removeOne(entity.avatar);
+      await this.removeOne(entity.avatar, true);
     }
 
     return await this.save({
