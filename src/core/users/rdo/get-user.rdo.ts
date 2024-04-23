@@ -67,9 +67,9 @@ export class GetUserRdo {
       ? user.tariffs.map((tariff) => new GetTariffRdo(tariff))
       : undefined;
     this.category = user.category ? user.category.name : undefined;
-    this.whatsApp = user.whatsApp;
-    this.experience = user.experience;
-    this.description = user.description;
+    this.whatsApp = user.whatsApp ?? undefined;
+    this.experience = user.experience ?? undefined;
+    this.description = user.description ?? undefined;
     //TODO
     this.link = user.link
       ? `${frontendServer.url}/trainers?link=${user.link}`

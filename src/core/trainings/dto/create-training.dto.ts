@@ -8,7 +8,7 @@ export class CreateTrainingDto {
   readonly isFinished: boolean;
 
   @ApiProperty()
-  readonly startTime: Date;
+  readonly startTime: string;
 
   @ApiProperty()
   readonly duration: string;

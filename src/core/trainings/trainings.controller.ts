@@ -1,16 +1,25 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { TrainingsService } from './trainings.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
-import { ApiHeader, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiHeader,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
+import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
 
 @ApiTags('Trainings')
 @Controller('api/trainings')
 export class TrainingsController {
   constructor(private readonly trainingsService: TrainingsService) {}
 
+  @ApiBody({ type: CreateTrainingDto })
+  @ApiCreatedResponse({ type: GetTrainingRdo })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Post()
@@ -18,11 +27,16 @@ export class TrainingsController {
     @Body() createTrainingDto: CreateTrainingDto,
     @User() user: UserRequest,
   ) {
-    const [hours, minutes] = createTrainingDto.duration.split(':');
+    const [hours, minutes] = createTrainingDto.duration
+      .split(':')
+      .map((el) => Number(el));
     const [date, time] = createTrainingDto.startTime.toString().split('T');
 
-    const [startHours, startMin, startMil] = time.split(':');
-    return await this.trainingsService.save({
+    const [startHours, startMin, startMil] = time
+      .split(':')
+      .map((el) => Number(el));
+
+    const training = await this.trainingsService.save({
       sport: { id: createTrainingDto.sport },
       status: createTrainingDto.status,
       isFinished: createTrainingDto.isFinished,
@@ -31,19 +45,31 @@ export class TrainingsController {
       startTime: createTrainingDto.startTime,
       client: { id: createTrainingDto.client },
       trainer: { id: user.id },
-      endTime:
-        date + 'T' + `${startHours + hours}:${startMin + minutes}:${startMil}Z`,
+      duration: createTrainingDto.duration,
+      endTime: `${startHours + hours + Math.floor((startMin + minutes) / 60)}:${
+        (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60
+      }`,
     });
+
+    return new GetTrainingRdo(
+      await this.trainingsService.findOne({ where: { id: training.id } }),
+    );
   }
 
+  @ApiOkResponse({ type: [GetTrainingRdo] })
   @Get()
   async findAll() {
-    return await this.trainingsService.find({});
+    const trainings = await this.trainingsService.find({});
+
+    return trainings.map((training) => new GetTrainingRdo(training));
   }
 
+  @ApiOkResponse({ type: GetTrainingRdo })
   @Get(':id')
   async findOne(@Param('id') id: number) {
-    return await this.trainingsService.findOne({ where: { id } });
+    return new GetTrainingRdo(
+      await this.trainingsService.findOne({ where: { id } }),
+    );
   }
 
   // @Patch(':id')

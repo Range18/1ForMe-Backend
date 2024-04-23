@@ -9,6 +9,7 @@ import { BaseEntity } from '#src/common/base.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
+import { TransactionStatus } from '#src/core/transactions/transaction-status.type';
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -18,7 +19,7 @@ export class Transaction extends BaseEntity {
   @Column({ nullable: true })
   customCost?: number;
 
-  @Column({ nullable: false, default: '' })
+  @Column({ nullable: false, default: TransactionStatus.Unpaid })
   status: string;
 
   @ManyToOne(() => UserEntity, (trainer) => trainer.transactionsFromClients, {

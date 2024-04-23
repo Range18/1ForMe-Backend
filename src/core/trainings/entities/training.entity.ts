@@ -29,10 +29,13 @@ export class Training extends BaseEntity {
   isFinished: boolean;
 
   @Column({ nullable: false })
-  startTime: Date;
+  startTime: string;
 
   @Column({ nullable: false })
-  endTime: Date;
+  duration: string;
+
+  @Column({ nullable: false })
+  endTime: string;
 
   @Column({ nullable: false })
   date: Date;

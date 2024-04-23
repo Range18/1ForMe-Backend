@@ -1,4 +1,6 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateTransactionDto } from './create-transaction.dto';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdateTransactionDto extends PartialType(CreateTransactionDto) {}
+export class UpdateTransactionDto {
+  @ApiProperty({ type: String, enum: ['Paid', 'Unpaid'] })
+  status: string;
+}
