@@ -12,7 +12,7 @@ export class GetTariffRdo {
   @ApiProperty()
   readonly cost: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ nullable: true, type: () => GetUserRdo })
   trainer?: GetUserRdo;
 
   constructor(tariff: Tariff) {

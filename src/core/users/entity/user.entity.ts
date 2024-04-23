@@ -18,6 +18,7 @@ import { Category } from '#src/core/categories/entity/categories.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { UserComment } from '#src/core/comments/entity/comment.entity';
+import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -82,6 +83,7 @@ export class UserEntity extends BaseEntity {
     nullable: true,
     onDelete: 'SET NULL',
   })
+  @JoinColumn({ name: 'studio' })
   studio?: Studio;
 
   @OneToMany(() => Tariff, (tariff) => tariff.user, { nullable: true })
@@ -111,4 +113,15 @@ export class UserEntity extends BaseEntity {
     nullable: true,
   })
   commentsAboutCustomers?: UserComment[];
+
+  //transactions
+  @OneToMany(() => Transaction, (transaction) => transaction.client, {
+    nullable: true,
+  })
+  transactions?: Transaction[];
+
+  @OneToMany(() => Transaction, (transaction) => transaction.trainer, {
+    nullable: true,
+  })
+  transactionsFromClients?: Transaction[];
 }

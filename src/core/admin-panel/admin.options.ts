@@ -11,6 +11,7 @@ import { Studio } from '#src/core/studios/entities/studio.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
+import { UserComment } from '#src/core/comments/entity/comment.entity';
 
 export const adminOptions = {
   adminJsOptions: {
@@ -28,6 +29,7 @@ export const adminOptions = {
       Tariff,
       TrainingType,
       Training,
+      UserComment,
     ],
   },
   auth: {

@@ -14,7 +14,6 @@ import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
-import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 
 @ApiTags('users')
 @Controller('api/users')
@@ -29,6 +28,8 @@ export class UserController {
         role: true,
         avatar: true,
         studio: true,
+        category: true,
+        tariffs: true,
       },
     });
 
@@ -46,6 +47,8 @@ export class UserController {
             role: true,
             avatar: true,
             studio: true,
+            category: true,
+            tariffs: true,
           },
         },
         true,
@@ -69,6 +72,8 @@ export class UserController {
           role: true,
           avatar: true,
           studio: true,
+          category: true,
+          tariffs: true,
         },
       }),
     );
@@ -90,7 +95,13 @@ export class UserController {
       await this.userService.updateOne(
         {
           where: { id: user.id },
-          relations: { role: true, avatar: true, studio: true },
+          relations: {
+            role: true,
+            avatar: true,
+            studio: true,
+            category: true,
+            tariffs: true,
+          },
         },
         {
           name: updateUserDto.name,
@@ -109,16 +120,5 @@ export class UserController {
     @User('id') userId: number,
   ) {
     return new GetUserRdo(await this.userService.signUp(link, userId));
-  }
-
-  @AuthGuard()
-  @Post('/trainers/sign-up')
-  async signUpToCoach(
-    @User('id') trainerId: number,
-    @Body() createClientDto: CreateClientDto,
-  ) {
-    return new GetUserRdo(
-      await this.userService.signUpByTrainer(createClientDto, trainerId),
-    );
   }
 }

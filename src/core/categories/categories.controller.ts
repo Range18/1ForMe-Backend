@@ -11,7 +11,7 @@ import { UpdateCategoryDto } from '#src/core/categories/dto/update-category.dto'
 import { CreateCategoryDto } from '#src/core/categories/dto/create-category.dto';
 
 @ApiTags('Trainer Categories')
-@Controller('api/trainers/categories')
+@Controller('api/users/trainers/categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 

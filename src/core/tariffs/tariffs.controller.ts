@@ -16,14 +16,14 @@ import { User } from '#src/common/decorators/User.decorator';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 
 @ApiTags('Tariffs')
-@Controller('api/trainers/tariffs')
+@Controller('api/users/trainers')
 export class TariffsController {
   constructor(private readonly tariffsService: TariffsService) {}
 
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @ApiCreatedResponse({ type: Tariff })
-  @Post()
+  @Post('/tariffs')
   async create(@Body() body: CreateTariffDto, @User() user: UserRequest) {
     return new GetTariffRdo(
       await this.tariffsService.save({ ...body, user: { id: user.id } }),
@@ -31,7 +31,7 @@ export class TariffsController {
   }
 
   @ApiOkResponse({ type: [Tariff] })
-  @Get()
+  @Get('/tariffs')
   async getAll() {
     const tariffs = await this.tariffsService.find({
       relations: {
@@ -47,8 +47,26 @@ export class TariffsController {
     return tariffs.map((entity) => new GetTariffRdo(entity));
   }
 
+  @ApiOkResponse({ type: [Tariff] })
+  @Get(':id/tariffs')
+  async getAllForTrainer(@Param('id') id: number) {
+    const tariffs = await this.tariffsService.find({
+      where: { user: { id: id } },
+      relations: {
+        user: {
+          studio: { city: true },
+          role: true,
+          avatar: true,
+          category: true,
+        },
+      },
+    });
+
+    return tariffs.map((entity) => new GetTariffRdo(entity));
+  }
+
   @ApiOkResponse({ type: Tariff })
-  @Get(':id')
+  @Get('/tariffs/:id')
   async get(@Param('id') id: number) {
     return new GetTariffRdo(
       await this.tariffsService.findOne({
@@ -68,7 +86,7 @@ export class TariffsController {
   // TODO PERMS
   @ApiOkResponse({ type: Tariff })
   @ApiBody({ type: UpdateTariffDto })
-  @Patch(':id')
+  @Patch('/tariffs/:id')
   async update(
     @Param('id') id: number,
     @Body() updateTariffDto: UpdateTariffDto,

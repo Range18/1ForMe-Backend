@@ -2,8 +2,8 @@ import { UserEntity } from '#src/core/users/entity/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { RolesEntity } from '#src/core/roles/entity/roles.entity';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
-import { backendServer } from '#src/common/configs/config';
-import { Category } from '#src/core/categories/entity/categories.entity';
+import { backendServer, frontendServer } from '#src/common/configs/config';
+import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 
 export class GetUserRdo {
   @ApiProperty()
@@ -34,8 +34,11 @@ export class GetUserRdo {
   @ApiProperty({ nullable: true, type: () => GetStudioRdo })
   readonly studio?: GetStudioRdo;
 
-  @ApiProperty({ nullable: true, type: Category })
-  readonly category?: Category;
+  @ApiProperty({ nullable: true })
+  readonly category?: string;
+
+  @ApiProperty({ nullable: true, type: () => [GetTariffRdo] })
+  readonly tariff?: GetTariffRdo[];
 
   @ApiProperty({ nullable: true })
   readonly whatsApp?: string;
@@ -60,12 +63,17 @@ export class GetUserRdo {
       : undefined;
 
     this.studio = user.studio ? new GetStudioRdo(user.studio) : undefined;
-    this.category = user.category;
+    this.tariff = user.tariffs
+      ? user.tariffs.map((tariff) => new GetTariffRdo(tariff))
+      : undefined;
+    this.category = user.category ? user.category.name : undefined;
     this.whatsApp = user.whatsApp;
     this.experience = user.experience;
     this.description = user.description;
     //TODO
-    this.link = user.link;
+    this.link = user.link
+      ? `${frontendServer.url}/trainers?link=${user.link}`
+      : undefined;
 
     this.updatedAt = user.updatedAt;
     this.createdAt = user.createdAt;

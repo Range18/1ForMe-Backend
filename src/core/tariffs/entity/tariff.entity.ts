@@ -3,10 +3,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from '#src/common/base.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
+import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 
 @Entity('tariffs')
 export class Tariff extends BaseEntity {
@@ -25,4 +27,9 @@ export class Tariff extends BaseEntity {
   })
   @JoinColumn({ name: 'user' })
   user: UserEntity;
+
+  @OneToMany(() => Transaction, (transaction) => transaction.tariff, {
+    nullable: true,
+  })
+  transactions?: Transaction[];
 }

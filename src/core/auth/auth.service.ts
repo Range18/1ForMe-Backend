@@ -8,6 +8,7 @@ import { LoginUserDto } from '../users/dto/login-user.dto';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { RolesService } from '#src/core/roles/roles.service';
 import { uid } from 'uid';
+import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 import AuthExceptions = AllExceptions.AuthExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -45,9 +46,54 @@ export class AuthService {
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },
       }),
-      link: createUserDto.role === 'coach' ? uid(8) : null,
-      studio: createUserDto.studio ? { id: createUserDto.studio } : null,
       trainers: [{ id: createUserDto.trainer }],
+    });
+
+    const session = await this.sessionService.createSession({
+      userId: userEntity.id,
+    });
+
+    return new LoggedUserRdo(
+      session.accessToken,
+      session.sessionExpireAt,
+      userEntity.phone,
+    );
+  }
+
+  async registerAsTrainer(
+    createUserDto: CreateUserDto,
+  ): Promise<LoggedUserRdo> {
+    const user = await this.userService.findOne(
+      {
+        where: { phone: createUserDto.phone },
+      },
+      false,
+    );
+
+    if (user) {
+      throw new ApiException(
+        HttpStatus.CONFLICT,
+        'UserExceptions',
+        UserExceptions.UserAlreadyExists,
+      );
+    }
+
+    const userEntity = await this.userService.save({
+      name: createUserDto.name,
+      surname: createUserDto.surname,
+      //TODO Enable
+      // password: await bcrypt.hash(createUserDto.password, passwordSaltRounds),
+      password: createUserDto.password,
+      phone: createUserDto.phone,
+      role: await this.rolesService.findOne({
+        where: { name: createUserDto.role },
+      }),
+      link: createUserDto.role === 'trainer' ? uid(8) : null,
+      studio: createUserDto.studio ? { id: createUserDto.studio } : null,
+      experience: createUserDto.experience,
+      category: createUserDto.category ? { id: createUserDto.category } : null,
+      description: createUserDto.description,
+      whatsApp: createUserDto.whatsApp,
     });
 
     const session = await this.sessionService.createSession({
@@ -103,6 +149,43 @@ export class AuthService {
   async logout(sessionId: string): Promise<void> {
     await this.sessionService.removeOne({
       where: { sessionId: sessionId },
+    });
+  }
+
+  async signUpByTrainer(createClientDto: CreateClientDto, trainerId: number) {
+    const trainer = await this.userService.findOne({
+      where: { id: trainerId },
+    });
+
+    if (!trainer) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
+    const clientExists = await this.userService.findOne(
+      {
+        where: { phone: createClientDto.phone },
+      },
+      false,
+    );
+
+    if (clientExists) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'UserExceptions',
+        UserExceptions.UserAlreadyExists,
+      );
+    }
+
+    return await this.userService.save({
+      ...createClientDto,
+      role: await this.rolesService.findOne({
+        where: { name: createClientDto.role },
+      }),
+      trainers: [{ id: trainerId }],
     });
   }
 }

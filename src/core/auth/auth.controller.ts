@@ -14,6 +14,9 @@ import {
 import { Session } from '#src/common/decorators/session.decorator';
 import { type RequestSession } from '#src/common/types/request-session.type';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
+import { User } from '#src/common/decorators/User.decorator';
+import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
+import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 
 @ApiTags('auth')
 @Controller('api/auth')
@@ -26,6 +29,9 @@ export class AuthController {
   async registration(
     @Body() createUserDto: CreateUserDto,
   ): Promise<LoggedUserRdo> {
+    if (createUserDto.role == 'trainer') {
+      return await this.authService.registerAsTrainer(createUserDto);
+    }
     return await this.authService.register(createUserDto);
   }
 
@@ -50,5 +56,19 @@ export class AuthController {
   @Delete('logout')
   async logout(@Session() session: RequestSession): Promise<void> {
     await this.authService.logout(session.sessionId);
+  }
+
+  @ApiHeader({ name: 'Authorization' })
+  @ApiCreatedResponse({ type: GetUserRdo })
+  @ApiBody({ type: CreateClientDto })
+  @AuthGuard()
+  @Post('/register/byTrainer')
+  async signUpToCoach(
+    @User('id') trainerId: number,
+    @Body() createClientDto: CreateClientDto,
+  ) {
+    return new GetUserRdo(
+      await this.authService.signUpByTrainer(createClientDto, trainerId),
+    );
   }
 }
