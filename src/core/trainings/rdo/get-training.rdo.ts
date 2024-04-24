@@ -3,6 +3,7 @@ import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Training } from '#src/core/trainings/entities/training.entity';
+import { TrainingStatusType } from '#src/core/trainings/training-status.type';
 
 export class GetTrainingRdo {
   @ApiProperty()
@@ -12,7 +13,7 @@ export class GetTrainingRdo {
   sport: Sport;
 
   @ApiProperty()
-  isFinished: boolean;
+  status: string;
 
   @ApiProperty()
   startTime: string;
@@ -43,7 +44,7 @@ export class GetTrainingRdo {
 
   constructor(training: Training) {
     this.id = training.id;
-    this.sport = training.sport;
+    this.sport = training?.sport;
     this.client = training.client ? new GetUserRdo(training.client) : undefined;
     this.trainer = training.trainer
       ? new GetUserRdo(training.trainer)
@@ -52,7 +53,8 @@ export class GetTrainingRdo {
     this.startTime = training.startTime;
     this.endTime = training.endTime;
     this.duration = training.duration;
-    this.type = training.type;
+    this.type = training?.type;
+    this.status = TrainingStatusType[training.status];
 
     this.createdAt = training.createdAt;
     this.updatedAt = training.updatedAt;

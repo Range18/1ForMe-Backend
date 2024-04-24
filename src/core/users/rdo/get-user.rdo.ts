@@ -57,13 +57,13 @@ export class GetUserRdo {
     this.name = user.name;
     this.surname = user.surname;
     this.phone = user.phone;
-    this.role = user.role;
+    this.role = user?.role;
     this.avatar = user.avatar
       ? `${backendServer.urlValue}/api/assets/${user.avatar.id}/file`
       : undefined;
 
     this.studio = user.studio ? new GetStudioRdo(user.studio) : undefined;
-    this.tariff = user.tariffs
+    this.tariff = user?.tariffs
       ? user.tariffs.map((tariff) => new GetTariffRdo(tariff))
       : undefined;
     this.category = user.category ? user.category.name : undefined;

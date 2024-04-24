@@ -3,13 +3,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from '#src/common/base.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
-import { Sport } from '#src/core/sports/entity/sports.entity';
-import { TransactionStatus } from '#src/core/transactions/transaction-status.type';
+import { Training } from '#src/core/trainings/entities/training.entity';
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -19,7 +19,7 @@ export class Transaction extends BaseEntity {
   @Column({ nullable: true })
   customCost?: number;
 
-  @Column({ nullable: false, default: TransactionStatus.Unpaid })
+  @Column({ nullable: false, default: 'Unpaid' })
   status: string;
 
   @ManyToOne(() => UserEntity, (trainer) => trainer.transactionsFromClients, {
@@ -40,9 +40,8 @@ export class Transaction extends BaseEntity {
   @JoinColumn({ name: 'tariff' })
   tariff: Tariff;
 
-  @ManyToOne(() => Sport, (sport) => sport.transactions, {
+  @OneToOne(() => Training, (training) => training.transaction, {
     nullable: false,
   })
-  @JoinColumn({ name: 'sport' })
-  sport: Sport;
+  training: Training;
 }

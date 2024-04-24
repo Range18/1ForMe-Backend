@@ -8,6 +8,7 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 import { UserModule } from '#src/core/users/user.module';
 import { SessionModule } from '#src/core/session/session.module';
 import { TokenModule } from '#src/core/token/token.module';
+import { TransactionsModule } from '#src/core/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TokenModule } from '#src/core/token/token.module';
     UserModule,
     SessionModule,
     TokenModule,
+    TransactionsModule,
   ],
   controllers: [TrainingsController],
   providers: [TrainingsService],

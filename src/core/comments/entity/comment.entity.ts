@@ -13,9 +13,9 @@ export class UserComment extends BaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.relatedComments, {
     nullable: false,
   })
-  customer: UserEntity;
+  client: UserEntity;
 
-  @ManyToOne(() => UserEntity, (user) => user.commentsAboutCustomers, {
+  @ManyToOne(() => UserEntity, (user) => user.commentsAboutClients, {
     nullable: false,
   })
   trainer: UserEntity;

@@ -3,12 +3,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from '#src/common/base.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
+import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 
 @Entity()
 export class Training extends BaseEntity {
@@ -22,11 +24,8 @@ export class Training extends BaseEntity {
   @JoinColumn({ name: 'sport' })
   sport: Sport;
 
-  @Column({ nullable: false, default: '' })
+  @Column({ nullable: false, default: 'NotFinished' })
   status: string;
-
-  @Column({ nullable: false, default: false })
-  isFinished: boolean;
 
   @Column({ nullable: false })
   startTime: string;
@@ -57,4 +56,10 @@ export class Training extends BaseEntity {
   @ManyToOne(() => TrainingType, (type) => type.trainings, { nullable: false })
   @JoinColumn({ name: 'type' })
   type: TrainingType;
+
+  @OneToOne(() => Transaction, (transaction) => transaction.training, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'transaction' })
+  transaction: Transaction;
 }

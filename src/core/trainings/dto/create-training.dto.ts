@@ -1,11 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateTransactionDto } from '#src/core/transactions/dto/create-transaction.dto';
 
 export class CreateTrainingDto {
   @ApiProperty()
   readonly status: string;
-
-  @ApiProperty()
-  readonly isFinished: boolean;
 
   @ApiProperty()
   readonly startTime: string;
@@ -24,4 +22,7 @@ export class CreateTrainingDto {
 
   @ApiProperty()
   readonly sport: number;
+
+  @ApiProperty({ type: () => CreateTransactionDto })
+  createTransactionDto: CreateTransactionDto;
 }

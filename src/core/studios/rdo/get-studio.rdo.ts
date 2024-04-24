@@ -12,9 +12,6 @@ export class GetStudioRdo {
   @ApiProperty()
   readonly name: string;
 
-  @ApiProperty()
-  readonly tax: number;
-
   @ApiProperty({ nullable: true })
   readonly address?: string;
 
@@ -33,7 +30,6 @@ export class GetStudioRdo {
   constructor(studio: Studio) {
     this.id = studio.id;
     this.name = studio.name;
-    this.tax = studio.tax;
     this.address = studio.address;
     this.clubs = studio.clubs
       ? studio.clubs.map((club) => new GetClubRdo(club))

@@ -21,9 +21,6 @@ export class Studio extends BaseEntity {
   @Column({ nullable: false })
   name: string;
 
-  @Column({ nullable: false })
-  tax: number;
-
   @Column({ nullable: true })
   address?: string;
 

@@ -1,8 +1,9 @@
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
-import { Sport } from '#src/core/sports/entity/sports.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
+import { TransactionStatus } from '#src/core/transactions/transaction-status.type';
+import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
 
 export class GetTransactionRdo {
   @ApiProperty()
@@ -20,11 +21,11 @@ export class GetTransactionRdo {
   @ApiProperty()
   cost: number;
 
-  @ApiProperty({ type: () => GetTariffRdo })
-  tariff: GetTariffRdo;
+  @ApiProperty({ nullable: true, type: () => GetTariffRdo })
+  tariff?: GetTariffRdo;
 
-  @ApiProperty({ type: () => Sport })
-  sport: Sport;
+  @ApiProperty({ nullable: true, type: () => GetTrainingRdo })
+  training?: GetTrainingRdo;
 
   @ApiProperty()
   createdAt: Date;
@@ -37,10 +38,14 @@ export class GetTransactionRdo {
     this.client = new GetUserRdo(transaction.client);
     this.trainer = new GetUserRdo(transaction.trainer);
 
-    this.sport = transaction.sport;
-    this.tariff = new GetTariffRdo(transaction.tariff);
+    this.training = transaction.training
+      ? new GetTrainingRdo(transaction.training)
+      : undefined;
+    this.tariff = transaction.tariff
+      ? new GetTariffRdo(transaction.tariff)
+      : undefined;
     this.cost = transaction.customCost ?? transaction?.tariff.cost;
-    this.status = transaction.status;
+    this.status = TransactionStatus[transaction.status];
     this.createdAt = transaction.createdAt;
     this.updatedAt = transaction.updatedAt;
   }

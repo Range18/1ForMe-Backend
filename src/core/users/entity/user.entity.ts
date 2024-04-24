@@ -62,6 +62,19 @@ export class UserEntity extends BaseEntity {
   })
   sessions?: SessionEntity[];
 
+  @OneToMany(() => Training, (training) => training.client, { nullable: true })
+  trainingsAsClient?: Training[];
+
+  @OneToMany(() => UserComment, (comment) => comment.client, {
+    nullable: true,
+  })
+  relatedComments?: UserComment[];
+
+  @OneToMany(() => Transaction, (transaction) => transaction.client, {
+    nullable: true,
+  })
+  transactions?: Transaction[];
+
   //Only for trainers
   @Column({ nullable: true })
   whatsApp?: string;
@@ -70,11 +83,15 @@ export class UserEntity extends BaseEntity {
   link?: string;
 
   @Column({ nullable: true })
+  tax?: number;
+
+  @Column({ nullable: true })
   experience?: number;
 
   @Column({ nullable: true })
   description?: string;
 
+  //relations connected only to trainer
   @ManyToOne(() => Category, (category) => category.users, { nullable: true })
   @JoinColumn({ name: 'category' })
   category?: Category;
@@ -97,29 +114,16 @@ export class UserEntity extends BaseEntity {
   })
   clients?: UserEntity[];
 
-  @OneToMany(() => Training, (training) => training.client, { nullable: true })
-  trainingsAsClient?: Training[];
-
   @OneToMany(() => Training, (training) => training.trainer, { nullable: true })
   trainingsAsTrainer?: Training[];
 
   //comments about users
-  @OneToMany(() => UserComment, (comment) => comment.customer, {
-    nullable: true,
-  })
-  relatedComments?: UserComment[];
-
   @OneToMany(() => UserComment, (comment) => comment.trainer, {
     nullable: true,
   })
-  commentsAboutCustomers?: UserComment[];
+  commentsAboutClients?: UserComment[];
 
   //transactions
-  @OneToMany(() => Transaction, (transaction) => transaction.client, {
-    nullable: true,
-  })
-  transactions?: Transaction[];
-
   @OneToMany(() => Transaction, (transaction) => transaction.trainer, {
     nullable: true,
   })

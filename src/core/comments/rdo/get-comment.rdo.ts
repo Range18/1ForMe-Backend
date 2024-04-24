@@ -13,7 +13,7 @@ export class GetCommentRdo {
   readonly trainer: GetUserRdo;
 
   @ApiProperty({ type: () => GetUserRdo })
-  readonly customer: GetUserRdo;
+  readonly client: GetUserRdo;
 
   @ApiProperty()
   readonly updatedAt: Date;
@@ -23,9 +23,7 @@ export class GetCommentRdo {
   constructor(comment: UserComment) {
     this.id = comment.id;
     this.text = comment.text;
-    this.customer = comment.customer
-      ? new GetUserRdo(comment.customer)
-      : undefined;
+    this.client = comment.client ? new GetUserRdo(comment.client) : undefined;
     this.trainer = comment.trainer
       ? new GetUserRdo(comment.trainer)
       : undefined;

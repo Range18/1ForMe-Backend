@@ -27,32 +27,8 @@ export class TrainingsController {
     @Body() createTrainingDto: CreateTrainingDto,
     @User() user: UserRequest,
   ) {
-    const [hours, minutes] = createTrainingDto.duration
-      .split(':')
-      .map((el) => Number(el));
-    const [date, time] = createTrainingDto.startTime.toString().split('T');
-
-    const [startHours, startMin, startMil] = time
-      .split(':')
-      .map((el) => Number(el));
-
-    const training = await this.trainingsService.save({
-      sport: { id: createTrainingDto.sport },
-      status: createTrainingDto.status,
-      isFinished: createTrainingDto.isFinished,
-      type: { id: createTrainingDto.type },
-      date: createTrainingDto.date,
-      startTime: createTrainingDto.startTime,
-      client: { id: createTrainingDto.client },
-      trainer: { id: user.id },
-      duration: createTrainingDto.duration,
-      endTime: `${startHours + hours + Math.floor((startMin + minutes) / 60)}:${
-        (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60
-      }`,
-    });
-
     return new GetTrainingRdo(
-      await this.trainingsService.findOne({ where: { id: training.id } }),
+      await this.trainingsService.create(createTrainingDto, user.id),
     );
   }
 

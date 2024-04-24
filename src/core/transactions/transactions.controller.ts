@@ -5,66 +5,24 @@ import {
   Get,
   Param,
   Patch,
-  Post,
   Query,
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
-import {
-  ApiBody,
-  ApiCreatedResponse,
-  ApiHeader,
-  ApiOkResponse,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiHeader, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { Between } from 'typeorm';
 import { UpdateTransactionDto } from '#src/core/transactions/dto/update-transaction.dto';
+import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 
 @ApiTags('Transactions')
 @Controller('api/transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-  @ApiHeader({ name: 'Authorization' })
-  @ApiBody({ type: CreateTransactionDto })
-  @ApiCreatedResponse({ type: GetTransactionRdo })
-  @AuthGuard()
-  @Post()
-  async create(
-    @Body() createTransactionDto: CreateTransactionDto,
-    @User() user: UserRequest,
-  ) {
-    const transaction = await this.transactionsService.save({
-      client: { id: createTransactionDto.client },
-      sport: { id: createTransactionDto.sport },
-      tariff: { id: createTransactionDto.tariff },
-      customCost: createTransactionDto.customCost,
-      trainer: { id: user.id },
-    });
-
-    return new GetTransactionRdo(
-      await this.transactionsService.findOne({
-        where: { id: transaction.id },
-        relations: {
-          tariff: true,
-          client: { avatar: true },
-          trainer: {
-            avatar: true,
-            category: true,
-            studio: true,
-          },
-          sport: true,
-        },
-      }),
-    );
-  }
-
-  @ApiOkResponse({ type: [GetTransactionRdo] })
+  @ApiOkResponse({ type: GetAnalyticsRdo })
   @ApiQuery({ name: 'from' })
   @ApiQuery({ name: 'to' })
   @ApiHeader({ name: 'Authorization' })
@@ -74,7 +32,7 @@ export class TransactionsController {
     @User() user: UserRequest,
     @Query('from') from?: Date,
     @Query('to') to: Date = new Date(),
-  ) {
+  ): Promise<GetAnalyticsRdo> {
     let dateRange = undefined;
     if (from == to) {
       dateRange = from;
@@ -95,13 +53,21 @@ export class TransactionsController {
           category: true,
           studio: true,
         },
-        sport: true,
+        training: true,
       },
     });
 
-    return transactions.map(
+    const transactionsRdo = transactions.map(
       (transaction) => new GetTransactionRdo(transaction),
     );
+
+    return {
+      transactions: transactionsRdo,
+      totalCost: transactionsRdo.reduce(
+        (previousValue, currentValue) => previousValue + currentValue.cost,
+        0,
+      ),
+    };
   }
   @ApiOkResponse({ type: GetTransactionRdo })
   @Get(':id')
@@ -117,7 +83,7 @@ export class TransactionsController {
             category: true,
             studio: true,
           },
-          sport: true,
+          training: true,
         },
       }),
     );

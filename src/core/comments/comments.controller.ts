@@ -35,14 +35,14 @@ export class CommentsController {
     const comment = await this.commentsService.save({
       ...body,
       trainer: { id: user.id },
-      customer: { id: body.userId },
+      client: { id: body.userId },
     });
 
     return new GetCommentRdo(
       await this.commentsService.findOne({
         where: { id: comment.id },
         relations: {
-          customer: { role: true, avatar: true },
+          client: { role: true, avatar: true },
           trainer: { role: true, avatar: true, studio: true, category: true },
         },
       }),
@@ -54,7 +54,7 @@ export class CommentsController {
   async getAll() {
     const comments = await this.commentsService.find({
       relations: {
-        customer: { role: true, avatar: true },
+        client: { role: true, avatar: true },
         trainer: { role: true, avatar: true, studio: true, category: true },
       },
     });
@@ -69,7 +69,7 @@ export class CommentsController {
       await this.commentsService.findOne({
         where: { id },
         relations: {
-          customer: { role: true, avatar: true },
+          client: { role: true, avatar: true },
           trainer: { role: true, avatar: true, studio: true, category: true },
         },
       }),
@@ -89,7 +89,7 @@ export class CommentsController {
         {
           where: { id },
           relations: {
-            customer: { role: true, avatar: true },
+            client: { role: true, avatar: true },
             trainer: { role: true, avatar: true, studio: true, category: true },
           },
         },

@@ -104,10 +104,10 @@ export class UserController {
           },
         },
         {
-          name: updateUserDto.name,
-          phone: updateUserDto.phone,
+          ...updateUserDto,
           role: { id: updateUserDto.role },
-          password: updateUserDto.password,
+          studio: { id: updateUserDto.studio },
+          category: { id: updateUserDto.category },
         },
       ),
     );
