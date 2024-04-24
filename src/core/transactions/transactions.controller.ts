@@ -25,12 +25,14 @@ export class TransactionsController {
   @ApiOkResponse({ type: GetAnalyticsRdo })
   @ApiQuery({ name: 'from' })
   @ApiQuery({ name: 'to' })
+  @ApiQuery({ name: 'period' })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get()
   async findAll(
     @User() user: UserRequest,
     @Query('from') from?: Date,
+    @Query('period') period?: string,
     @Query('to') to: Date = new Date(),
   ): Promise<GetAnalyticsRdo> {
     let dateRange = undefined;
@@ -69,6 +71,7 @@ export class TransactionsController {
       ),
     };
   }
+
   @ApiOkResponse({ type: GetTransactionRdo })
   @Get(':id')
   async findOne(@Param('id') id: number) {

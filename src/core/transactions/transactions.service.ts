@@ -14,7 +14,7 @@ export class TransactionsService extends BaseEntityService<
 > {
   constructor(
     @InjectRepository(Transaction)
-    private readonly transactionRepository: Repository<Transaction>,
+    readonly transactionRepository: Repository<Transaction>,
   ) {
     super(
       transactionRepository,
