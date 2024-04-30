@@ -23,6 +23,9 @@ export class CreateTrainingDto {
   @ApiProperty()
   readonly sport: number;
 
+  @ApiProperty()
+  readonly club: number;
+
   @ApiProperty({ type: () => CreateTransactionDto })
   createTransactionDto: CreateTransactionDto;
 }

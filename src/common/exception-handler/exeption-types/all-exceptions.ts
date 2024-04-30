@@ -4,6 +4,7 @@ export namespace AllExceptions {
     WrongPassword = 'Wrong password',
     ExpiredToken = 'Access token expired',
     InvalidAccessToken = 'Invalid access token',
+    WrongVerificationCode = 'Wrong verification code',
   }
 
   export enum FileExceptions {

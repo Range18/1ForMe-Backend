@@ -3,11 +3,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from '#src/common/base.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { City } from '#src/core/city/entity/cities.entity';
+import { Training } from '#src/core/trainings/entities/training.entity';
 
 @Entity('clubs')
 export class Clubs extends BaseEntity {
@@ -33,4 +35,9 @@ export class Clubs extends BaseEntity {
   })
   @JoinColumn({ name: 'city' })
   city?: City;
+
+  @OneToMany(() => Training, (training) => training.club, {
+    nullable: true,
+  })
+  trainings?: Training[];
 }

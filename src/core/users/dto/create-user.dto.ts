@@ -17,9 +17,8 @@ export class CreateUserDto {
   readonly phone: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty()
-  readonly password: string;
+  readonly password?: string;
 
   @IsString()
   @IsNotEmpty()

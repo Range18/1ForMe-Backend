@@ -9,6 +9,7 @@ import { AdminModule } from '@adminjs/nestjs';
 import AdminJS from 'adminjs';
 import { Database, Resource } from '@adminjs/typeorm';
 import { adminOptions } from '#src/core/admin-panel/admin.options';
+import { VerificationModule } from '#src/core/verification-codes/verification.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { adminOptions } from '#src/core/admin-panel/admin.options';
         return adminOptions;
       },
     }),
+    VerificationModule,
     UserModule,
     SessionModule,
     TokenModule,

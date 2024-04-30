@@ -17,6 +17,7 @@ import { TariffsModule } from '#src/core/tariffs/tariffs.module';
 import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { CitiesModule } from '#src/core/city/cities.module';
 import { SportsModule } from '#src/core/sports/sports.module';
+import { VerificationModule } from '#src/core/verification-codes/verification.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SportsModule } from '#src/core/sports/sports.module';
     SessionModule,
     RolesModule,
     AssetsModule,
+    VerificationModule,
     StudiosModule,
     CategoriesModule,
     TariffsModule,

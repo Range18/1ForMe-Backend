@@ -36,6 +36,21 @@ export class UserController {
     return users.map((user) => new GetUserRdo(user));
   }
 
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
+  @ApiOkResponse({ type: [GetUserRdo] })
+  @Get('trainers/clients')
+  async getAllTrainerClients(@User() user: UserRequest) {
+    const userEntity = await this.userService.findOne({
+      where: { id: user.id },
+      relations: {
+        clients: { avatar: true, relatedComments: true, role: true },
+      },
+    });
+
+    return userEntity?.clients.map((user) => new GetUserRdo(user));
+  }
+
   @ApiOkResponse({ type: GetUserRdo })
   @Get('/byId/:id')
   async getUser(@Param('id') id: number) {

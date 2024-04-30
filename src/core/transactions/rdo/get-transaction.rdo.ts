@@ -44,7 +44,7 @@ export class GetTransactionRdo {
     this.tariff = transaction.tariff
       ? new GetTariffRdo(transaction.tariff)
       : undefined;
-    this.cost = transaction.customCost ?? transaction?.tariff.cost;
+    this.cost = transaction.cost ?? transaction?.tariff.cost;
     this.status = TransactionStatus[transaction.status];
     this.createdAt = transaction.createdAt;
     this.updatedAt = transaction.updatedAt;

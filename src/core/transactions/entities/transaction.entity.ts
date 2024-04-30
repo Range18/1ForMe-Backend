@@ -16,8 +16,8 @@ export class Transaction extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;
 
-  @Column({ nullable: true })
-  customCost?: number;
+  @Column({ nullable: false })
+  cost: number;
 
   @Column({ nullable: false, default: 'Unpaid' })
   status: string;

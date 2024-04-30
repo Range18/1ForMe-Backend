@@ -9,6 +9,7 @@ import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-
 import { RolesService } from '#src/core/roles/roles.service';
 import { uid } from 'uid';
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
+import { VerificationService } from '#src/core/verification-codes/verification.service';
 import AuthExceptions = AllExceptions.AuthExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly rolesService: RolesService,
     private readonly sessionService: SessionService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   async register(createUserDto: CreateUserDto): Promise<LoggedUserRdo> {
@@ -48,6 +50,8 @@ export class AuthService {
       }),
       trainers: [{ id: createUserDto.trainer }],
     });
+
+    // await this.verificationService.createAndSend(1234, userEntity);
 
     const session = await this.sessionService.createSession({
       userId: userEntity.id,
@@ -182,6 +186,8 @@ export class AuthService {
 
     return await this.userService.save({
       ...createClientDto,
+      password:
+        createClientDto.password ?? Math.random().toString(36).slice(-8),
       role: await this.rolesService.findOne({
         where: { name: createClientDto.role },
       }),

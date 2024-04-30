@@ -11,6 +11,7 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
+import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 
 @Entity()
 export class Training extends BaseEntity {
@@ -45,6 +46,12 @@ export class Training extends BaseEntity {
   })
   @JoinColumn({ name: 'client' })
   client: UserEntity;
+
+  @ManyToOne(() => Clubs, (club) => club.trainings, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'club' })
+  club: Clubs;
 
   @ManyToOne(() => UserEntity, (user) => user.trainingsAsTrainer, {
     nullable: false,

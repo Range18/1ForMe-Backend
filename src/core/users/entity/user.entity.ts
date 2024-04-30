@@ -19,6 +19,7 @@ import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { UserComment } from '#src/core/comments/entity/comment.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
+import { Code } from '#src/core/verification-codes/entity/verification-codes.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -52,6 +53,11 @@ export class UserEntity extends BaseEntity {
   })
   @JoinColumn({ name: 'avatar' })
   avatar?: AssetEntity;
+
+  @OneToOne(() => Code, (code) => code.user, {
+    nullable: true,
+  })
+  verificationCode?: Code;
 
   @ManyToMany(() => UserEntity, (trainer) => trainer.clients)
   trainers?: UserEntity[];

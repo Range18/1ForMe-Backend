@@ -4,6 +4,8 @@ import { RolesEntity } from '#src/core/roles/entity/roles.entity';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
 import { backendServer, frontendServer } from '#src/common/configs/config';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
+import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
+import { Training } from '#src/core/trainings/entities/training.entity';
 
 export class GetUserRdo {
   @ApiProperty()
@@ -52,7 +54,13 @@ export class GetUserRdo {
   @ApiProperty({ nullable: true })
   readonly description?: string;
 
-  constructor(user: UserEntity) {
+  @ApiProperty({ nullable: true })
+  readonly tax?: number;
+
+  @ApiProperty({ nullable: true })
+  readonly closestTraining?: GetTrainingRdo;
+
+  constructor(user: UserEntity, training?: Training) {
     this.id = user.id;
     this.name = user.name;
     this.surname = user.surname;
@@ -70,6 +78,8 @@ export class GetUserRdo {
     this.whatsApp = user.whatsApp ?? undefined;
     this.experience = user.experience ?? undefined;
     this.description = user.description ?? undefined;
+    this.tax = user.tax;
+    this.closestTraining = training ? new GetTrainingRdo(training) : undefined;
     //TODO
     this.link = user.link
       ? `${frontendServer.url}/trainers?link=${user.link}`
