@@ -10,6 +10,7 @@ import { RolesService } from '#src/core/roles/roles.service';
 import { uid } from 'uid';
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 import { VerificationService } from '#src/core/verification-codes/verification.service';
+import { CommentsService } from '#src/core/comments/comments.service';
 import AuthExceptions = AllExceptions.AuthExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -20,6 +21,7 @@ export class AuthService {
     private readonly rolesService: RolesService,
     private readonly sessionService: SessionService,
     private readonly verificationService: VerificationService,
+    private readonly commentsService: CommentsService,
   ) {}
 
   async register(createUserDto: CreateUserDto): Promise<LoggedUserRdo> {
@@ -48,6 +50,7 @@ export class AuthService {
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },
       }),
+      birthday: createUserDto.birthday,
       trainers: [{ id: createUserDto.trainer }],
     });
 
@@ -92,6 +95,7 @@ export class AuthService {
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },
       }),
+      birthday: createUserDto.birthday,
       link: createUserDto.role === 'trainer' ? uid(8) : null,
       studio: createUserDto.studio ? { id: createUserDto.studio } : null,
       experience: createUserDto.experience,
@@ -184,7 +188,7 @@ export class AuthService {
       );
     }
 
-    return await this.userService.save({
+    const client = await this.userService.save({
       ...createClientDto,
       password:
         createClientDto.password ?? Math.random().toString(36).slice(-8),
@@ -193,5 +197,15 @@ export class AuthService {
       }),
       trainers: [{ id: trainerId }],
     });
+
+    if (createClientDto.comment) {
+      await this.commentsService.save({
+        trainer: trainer,
+        client: client,
+        text: createClientDto.comment,
+      });
+    }
+
+    return client;
   }
 }

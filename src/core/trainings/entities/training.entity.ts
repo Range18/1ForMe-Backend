@@ -12,6 +12,7 @@ import { UserEntity } from '#src/core/users/entity/user.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 
 @Entity()
 export class Training extends BaseEntity {
@@ -37,8 +38,14 @@ export class Training extends BaseEntity {
   @Column({ nullable: false })
   endTime: string;
 
-  @Column({ nullable: false })
+  @Column({ type: 'date', nullable: false })
   date: Date;
+
+  @ManyToOne(() => Subscription, (subs) => subs.trainings, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'subscription' })
+  subscription?: Subscription;
 
   @ManyToOne(() => UserEntity, (user) => user.trainingsAsClient, {
     nullable: false,
@@ -65,8 +72,8 @@ export class Training extends BaseEntity {
   type: TrainingType;
 
   @OneToOne(() => Transaction, (transaction) => transaction.training, {
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'transaction' })
-  transaction: Transaction;
+  transaction?: Transaction;
 }

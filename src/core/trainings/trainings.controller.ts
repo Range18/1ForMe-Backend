@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -26,6 +27,7 @@ import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { UserService } from '#src/core/users/user.service';
 import { TrainingStatusType } from '#src/core/trainings/training-status.type';
 import { MoreThanOrEqual } from 'typeorm';
+import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 
 @ApiTags('Trainings')
 @Controller('api/trainings')
@@ -59,7 +61,7 @@ export class TrainingsController {
         transaction: { tariff: true },
         sport: true,
         type: true,
-        club: { city: true },
+        club: { city: true, studio: { city: true } },
       },
     });
 
@@ -73,14 +75,14 @@ export class TrainingsController {
   @Get('/trainers/my')
   async findAllMine(@User() user: UserRequest, @Query('date') date?: Date) {
     const trainings = await this.trainingsService.find({
-      where: { trainer: { id: user.id }, date: date },
+      where: { trainer: { id: user.id }, date: date ? date : undefined },
       relations: {
         client: { avatar: true },
         trainer: { avatar: true },
         transaction: { tariff: true },
         sport: true,
         type: true,
-        club: { city: true },
+        club: { city: true, studio: { city: true } },
       },
       order: { startTime: 'ASC' },
     });
@@ -137,6 +139,40 @@ export class TrainingsController {
     return rdo;
   }
 
+  @ApiOkResponse({ type: [GetTrainingRdo] })
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
+  @Get('my')
+  async getMyTrainings(@User() user: UserRequest) {
+    const trainings = await this.trainingsService.find({
+      where: { client: { id: user.id } },
+      relations: {
+        trainer: true,
+        club: { city: true },
+        sport: true,
+        type: true,
+      },
+    });
+
+    return trainings.map((training) => new GetTrainingRdo(training));
+  }
+
+  @ApiOkResponse({ type: [GetTrainingRdo] })
+  @Get('clients/:id')
+  async getClientTrainings(@Param('id') id: number) {
+    const trainings = await this.trainingsService.find({
+      where: { client: { id: id } },
+      relations: {
+        trainer: true,
+        club: { city: true },
+        sport: true,
+        type: true,
+      },
+    });
+
+    return trainings.map((training) => new GetTrainingRdo(training));
+  }
+
   @ApiOkResponse({ type: GetTrainingRdo })
   @Get(':id')
   async findOne(@Param('id') id: number) {
@@ -145,16 +181,35 @@ export class TrainingsController {
     );
   }
 
-  // @Patch(':id')
-  // async update(
-  //   @Param('id') id: number,
-  //   @Body() updateTrainingDto: UpdateTrainingDto,
-  // ) {
-  //   return await this.trainingsService.updateOne(
-  //     { where: { id } },
-  //     updateTrainingDto,
-  //   );
-  // }
+  @ApiOkResponse({ type: GetTrainingRdo })
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
+  @Patch(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() updateTrainingDto: UpdateTrainingDto,
+    @User() user: UserRequest,
+  ): Promise<GetTrainingRdo> {
+    return new GetTrainingRdo(
+      await this.trainingsService.updateOne(
+        {
+          where: { id, trainer: { id: user.id } },
+          relations: {
+            club: { city: true },
+            sport: true,
+            type: true,
+            trainer: true,
+            client: true,
+          },
+        },
+        {
+          club: { id: updateTrainingDto.club },
+          date: updateTrainingDto.date,
+          status: updateTrainingDto.status,
+        },
+      ),
+    );
+  }
 
   @Delete(':id')
   async remove(@Param('id') id: number) {

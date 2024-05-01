@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Studio } from '#src/core/studios/entities/studio.entity';
-import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { City } from '#src/core/city/entity/cities.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
+import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 
 export class GetStudioRdo {
   @ApiProperty()

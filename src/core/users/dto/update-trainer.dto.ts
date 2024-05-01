@@ -1,35 +1,28 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsOptional } from 'class-validator';
+import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
 
-export class UpdateUserDto {
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
-  name?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
-  surname?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
-  password?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
-  phone?: string;
-
+export class UpdateTrainerDto extends UpdateUserDto {
   @IsNumber()
   @IsOptional()
   @ApiProperty({ nullable: true, required: false })
-  role?: number;
+  tax?: number;
 
   @ApiProperty({ nullable: true, required: false })
-  comment?: string;
+  studio?: number;
 
   @ApiProperty({ nullable: true, required: false })
-  birthday?: Date;
+  category?: number;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly experience?: number;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly description?: string;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly whatsApp?: string;
+
+  @ApiProperty({ nullable: true, required: false })
+  readonly link?: string;
 }

@@ -23,5 +23,6 @@ import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
   ],
   controllers: [TrainingsController],
   providers: [TrainingsService],
+  exports: [TrainingsService],
 })
 export class TrainingsModule {}

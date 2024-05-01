@@ -23,7 +23,7 @@ import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 
 @ApiTags('Comments of users')
-@Controller('api/users/comments')
+@Controller('api/users/:id/comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
@@ -31,11 +31,15 @@ export class CommentsController {
   @AuthGuard()
   @ApiCreatedResponse({ type: GetCommentRdo })
   @Post()
-  async create(@Body() body: CreateCommentDto, @User() user: UserRequest) {
+  async create(
+    @Body() body: CreateCommentDto,
+    @Param('id') clientId: number,
+    @User() user: UserRequest,
+  ) {
     const comment = await this.commentsService.save({
       ...body,
       trainer: { id: user.id },
-      client: { id: body.userId },
+      client: { id: clientId },
     });
 
     return new GetCommentRdo(
@@ -47,19 +51,6 @@ export class CommentsController {
         },
       }),
     );
-  }
-
-  @ApiOkResponse({ type: [GetCommentRdo] })
-  @Get()
-  async getAll() {
-    const comments = await this.commentsService.find({
-      relations: {
-        client: { role: true, avatar: true },
-        trainer: { role: true, avatar: true, studio: true, category: true },
-      },
-    });
-
-    return comments.map((comment) => new GetCommentRdo(comment));
   }
 
   @ApiOkResponse({ type: GetCommentRdo })
@@ -79,15 +70,18 @@ export class CommentsController {
   // TODO PERMS
   @ApiOkResponse({ type: GetCommentRdo })
   @ApiBody({ type: UpdateCommentDto })
-  @Patch(':id')
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
+  @Patch()
   async update(
-    @Param('id') id: number,
+    @Param('id') clientId: number,
     @Body() updateCommentDto: UpdateCommentDto,
+    @User() user: UserRequest,
   ) {
     return new GetCommentRdo(
       await this.commentsService.updateOne(
         {
-          where: { id },
+          where: { client: { id: clientId }, trainer: { id: user.id } },
           relations: {
             client: { role: true, avatar: true },
             trainer: { role: true, avatar: true, studio: true, category: true },

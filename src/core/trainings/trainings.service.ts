@@ -8,6 +8,8 @@ import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-
 import { CreateTrainingDto } from '#src/core/trainings/dto/create-training.dto';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
+import { isNumber } from 'class-validator';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
@@ -31,6 +33,10 @@ export class TrainingsService extends BaseEntityService<
     );
   }
 
+  private parseTime(time: string): [number, number] {
+    return time.split(':').map((el) => Number(el)) as [number, number];
+  }
+
   async create(createTrainingDto: CreateTrainingDto, trainerId: number) {
     const tariff = createTrainingDto.createTransactionDto.tariff
       ? await this.tariffsService.findOne({
@@ -42,13 +48,18 @@ export class TrainingsService extends BaseEntityService<
       throw new HttpException('No tariff or cost', HttpStatus.BAD_REQUEST);
     }
 
-    const [hours, minutes] = createTrainingDto.duration
-      .split(':')
-      .map((el) => Number(el));
+    const [hours, minutes] = this.parseTime(createTrainingDto.duration);
+    const [startHours, startMin] = this.parseTime(createTrainingDto.startTime);
 
-    const [startHours, startMin, startMil] = createTrainingDto.startTime
-      .split(':')
-      .map((el) => Number(el));
+    const endTimeHours =
+      startHours + hours + Math.floor((startMin + minutes) / 60);
+
+    let endTimeMin =
+      (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
+
+    if (isNumber(endTimeMin) && endTimeMin < 10) {
+      endTimeMin = `0${endTimeMin}`;
+    }
 
     const training = await this.save({
       sport: { id: createTrainingDto.sport },
@@ -59,9 +70,7 @@ export class TrainingsService extends BaseEntityService<
       client: { id: createTrainingDto.client },
       trainer: { id: trainerId },
       duration: createTrainingDto.duration,
-      endTime: `${startHours + hours + Math.floor((startMin + minutes) / 60)}:${
-        (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60
-      }`,
+      endTime: `${endTimeHours}:${endTimeMin}`,
       club: { id: createTrainingDto.club },
       transaction: await this.transactionsService.save({
         client: { id: createTrainingDto.client },
@@ -82,5 +91,42 @@ export class TrainingsService extends BaseEntityService<
         club: { city: true },
       },
     });
+  }
+
+  async createForSubscription(
+    createTrainingDtoArray: Omit<CreateTrainingDto, 'createTransactionDto'>[],
+    trainerId: number,
+    subscriptionEntity: Subscription,
+  ) {
+    await Promise.all(
+      createTrainingDtoArray.map(async (training) => {
+        const [hours, minutes] = this.parseTime(training.duration);
+        const [startHours, startMin] = this.parseTime(training.startTime);
+
+        const endTimeHours =
+          startHours + hours + Math.floor((startMin + minutes) / 60);
+
+        let endTimeMin =
+          (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
+
+        if (isNumber(endTimeMin) && endTimeMin < 10) {
+          endTimeMin = `0${endTimeMin}`;
+        }
+
+        return await this.save({
+          sport: { id: training.sport },
+          status: training.status,
+          type: { id: training.type },
+          date: training.date,
+          startTime: training.startTime,
+          client: { id: training.client },
+          trainer: { id: trainerId },
+          duration: training.duration,
+          endTime: `${endTimeHours}:${endTimeMin}`,
+          club: { id: training.club },
+          subscription: subscriptionEntity,
+        });
+      }),
+    );
   }
 }

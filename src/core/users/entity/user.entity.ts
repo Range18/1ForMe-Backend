@@ -20,6 +20,7 @@ import { Training } from '#src/core/trainings/entities/training.entity';
 import { UserComment } from '#src/core/comments/entity/comment.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Code } from '#src/core/verification-codes/entity/verification-codes.entity';
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -40,6 +41,9 @@ export class UserEntity extends BaseEntity {
 
   @Column({ nullable: false, default: false })
   isVerified: boolean;
+
+  @Column({ nullable: true })
+  birthday?: Date;
 
   @ManyToOne(() => RolesEntity, (role) => role.users, {
     nullable: false,
@@ -80,6 +84,11 @@ export class UserEntity extends BaseEntity {
     nullable: true,
   })
   transactions?: Transaction[];
+
+  @OneToMany(() => Subscription, (subs) => subs.client, {
+    nullable: true,
+  })
+  subsAsClient?: Subscription[];
 
   //Only for trainers
   @Column({ nullable: true })
@@ -134,4 +143,10 @@ export class UserEntity extends BaseEntity {
     nullable: true,
   })
   transactionsFromClients?: Transaction[];
+
+  //subscriptions
+  @OneToMany(() => Subscription, (subs) => subs.trainer, {
+    nullable: true,
+  })
+  subsAsTrainer?: Subscription[];
 }

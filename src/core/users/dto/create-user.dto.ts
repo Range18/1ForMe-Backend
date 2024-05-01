@@ -5,12 +5,12 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  readonly name: string;
+  readonly name?: string;
 
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  readonly surname: string;
+  readonly surname?: string;
 
   @IsString()
   @ApiProperty()
@@ -24,6 +24,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   @ApiProperty()
   readonly role: string;
+
+  @ApiProperty()
+  readonly birthday: Date;
 
   //If registered by trainer
   @IsNumber()

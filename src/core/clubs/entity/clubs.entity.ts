@@ -40,4 +40,10 @@ export class Clubs extends BaseEntity {
     nullable: true,
   })
   trainings?: Training[];
+
+  @Column({ nullable: true })
+  startTime?: string;
+
+  @Column({ nullable: true })
+  endTime?: string;
 }

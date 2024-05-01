@@ -11,7 +11,7 @@ import { CreateClubDto } from '#src/core/clubs/dto/create-club.dto';
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
 
 @ApiTags('Clubs')
-@Controller('api/studios/clubs')
+@Controller('api/clubs')
 export class ClubsController {
   constructor(private readonly clubsService: ClubsService) {}
 
@@ -23,6 +23,8 @@ export class ClubsController {
         ...body,
         studio: { id: body.studio },
         city: { id: body.city },
+        startTime: body.startTime,
+        endTime: body.endTime,
       }),
     );
   }

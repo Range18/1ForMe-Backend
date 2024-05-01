@@ -8,17 +8,27 @@ import {
   Query,
 } from '@nestjs/common';
 import { UserService } from '#src/core/users/user.service';
-import { ApiHeader, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiHeader,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+  OmitType,
+} from '@nestjs/swagger';
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
+import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
 
 @ApiTags('users')
 @Controller('api/users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService, // private readonly commentsService: CommentsService,
+  ) {}
 
   @ApiOkResponse({ type: [GetUserRdo] })
   @Get()
@@ -44,11 +54,23 @@ export class UserController {
     const userEntity = await this.userService.findOne({
       where: { id: user.id },
       relations: {
-        clients: { avatar: true, relatedComments: true, role: true },
+        clients: {
+          avatar: true,
+          relatedComments: { trainer: true },
+          role: true,
+        },
       },
     });
 
-    return userEntity?.clients.map((user) => new GetUserRdo(user));
+    return userEntity?.clients.map((user) => {
+      const trainerComment = user?.relatedComments.find(
+        (comment) => comment.trainer.id === user.id,
+      );
+
+      user.relatedComments = [trainerComment];
+
+      return new GetUserRdo(user);
+    });
   }
 
   @ApiOkResponse({ type: GetUserRdo })
@@ -100,11 +122,12 @@ export class UserController {
     required: true,
     schema: { format: 'Bearer ${AccessToken}' },
   })
+  @ApiBody({ type: UpdateTrainerDto })
   @AuthGuard()
-  @Patch()
-  async update(
+  @Patch('/me')
+  async updateSelf(
     @User() user: UserRequest,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateTrainerDto: UpdateTrainerDto,
   ) {
     return new GetUserRdo(
       await this.userService.updateOne(
@@ -116,13 +139,64 @@ export class UserController {
             studio: true,
             category: true,
             tariffs: true,
+            relatedComments: true,
           },
         },
         {
-          ...updateUserDto,
-          role: { id: updateUserDto.role },
-          studio: { id: updateUserDto.studio },
-          category: { id: updateUserDto.category },
+          ...updateTrainerDto,
+          role: { id: updateTrainerDto.role },
+          studio: { id: updateTrainerDto.studio },
+          category: { id: updateTrainerDto.category },
+        },
+      ),
+    );
+  }
+
+  @ApiOkResponse({ type: OmitType(GetUserRdo, ['trainerProfile']) })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiHeader({
+    name: 'Authorization',
+    required: true,
+    schema: { format: 'Bearer ${AccessToken}' },
+  })
+  @AuthGuard()
+  @Patch('/byId/:id')
+  async updateSomeone(
+    @Param('id') id: number,
+    @Body() updateTrainerDto: UpdateUserDto,
+    @User() user: UserRequest,
+  ) {
+    // if (updateTrainerDto.comment) {
+    //   const comment = await this.commentsService.findOne({
+    //     where: { client: { id: id } },
+    //   });
+    //
+    //   if (!comment) {
+    //     await this.commentsService.save({
+    //       trainer: { id: user.id },
+    //       client: { id: id },
+    //       text: updateTrainerDto.comment,
+    //     });
+    //   } else {
+    //     await this.commentsService.updateOne(comment, {
+    //       text: updateTrainerDto.comment,
+    //     });
+    //   }
+    // }
+
+    return new GetUserRdo(
+      await this.userService.updateOne(
+        {
+          where: { id: id },
+          relations: {
+            role: true,
+            avatar: true,
+            relatedComments: true,
+          },
+        },
+        {
+          ...updateTrainerDto,
+          role: { id: updateTrainerDto.role },
         },
       ),
     );

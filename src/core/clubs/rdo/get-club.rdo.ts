@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 
@@ -12,7 +12,9 @@ export class GetClubRdo {
   @ApiProperty()
   address: string;
 
-  @ApiProperty({ type: () => GetStudioRdo })
+  @ApiProperty({
+    type: () => OmitType(GetStudioRdo, ['clubs', 'sports', 'trainers']),
+  })
   studio?: GetStudioRdo;
 
   @ApiProperty()

@@ -4,6 +4,7 @@ import { TrainingType } from '#src/core/training-type/entity/training-type.entit
 import { ApiProperty } from '@nestjs/swagger';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { TrainingStatusType } from '#src/core/trainings/training-status.type';
+import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
 
 export class GetTrainingRdo {
   @ApiProperty()
@@ -36,6 +37,9 @@ export class GetTrainingRdo {
   @ApiProperty({ type: TrainingType })
   type: TrainingType;
 
+  @ApiProperty({ type: () => GetClubRdo })
+  club: GetClubRdo;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -55,6 +59,7 @@ export class GetTrainingRdo {
     this.duration = training.duration;
     this.type = training?.type;
     this.status = TrainingStatusType[training.status];
+    this.club = training.club ? new GetClubRdo(training.club) : undefined;
 
     this.createdAt = training.createdAt;
     this.updatedAt = training.updatedAt;

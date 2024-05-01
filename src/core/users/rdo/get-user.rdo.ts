@@ -1,11 +1,10 @@
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { RolesEntity } from '#src/core/roles/entity/roles.entity';
-import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
-import { backendServer, frontendServer } from '#src/common/configs/config';
-import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
-import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
+import { backendServer } from '#src/common/configs/config';
 import { Training } from '#src/core/trainings/entities/training.entity';
+import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
+import { GetTrainerRdo } from '#src/core/users/rdo/get-trainer.rdo';
 
 export class GetUserRdo {
   @ApiProperty()
@@ -26,39 +25,24 @@ export class GetUserRdo {
   @ApiProperty({ nullable: true })
   readonly avatar?: string;
 
+  @ApiProperty({ nullable: true, type: () => GetTrainerRdo })
+  readonly trainerProfile?: GetTrainerRdo;
+
+  @ApiProperty()
+  readonly birthday: Date;
+
+  //only if client
+  @ApiProperty({ nullable: true })
+  readonly closestTraining?: GetTrainingRdo;
+
+  @ApiProperty({ nullable: true })
+  readonly comment?: string;
+
   @ApiProperty()
   readonly updatedAt: Date;
 
   @ApiProperty()
   readonly createdAt: Date;
-
-  //Only for trainers
-  @ApiProperty({ nullable: true, type: () => GetStudioRdo })
-  readonly studio?: GetStudioRdo;
-
-  @ApiProperty({ nullable: true })
-  readonly category?: string;
-
-  @ApiProperty({ nullable: true, type: () => [GetTariffRdo] })
-  readonly tariff?: GetTariffRdo[];
-
-  @ApiProperty({ nullable: true })
-  readonly whatsApp?: string;
-
-  @ApiProperty({ nullable: true })
-  readonly link?: string;
-
-  @ApiProperty({ nullable: true })
-  readonly experience?: number;
-
-  @ApiProperty({ nullable: true })
-  readonly description?: string;
-
-  @ApiProperty({ nullable: true })
-  readonly tax?: number;
-
-  @ApiProperty({ nullable: true })
-  readonly closestTraining?: GetTrainingRdo;
 
   constructor(user: UserEntity, training?: Training) {
     this.id = user.id;
@@ -69,21 +53,11 @@ export class GetUserRdo {
     this.avatar = user.avatar
       ? `${backendServer.urlValue}/api/assets/${user.avatar.id}/file`
       : undefined;
-
-    this.studio = user.studio ? new GetStudioRdo(user.studio) : undefined;
-    this.tariff = user?.tariffs
-      ? user.tariffs.map((tariff) => new GetTariffRdo(tariff))
-      : undefined;
-    this.category = user.category ? user.category.name : undefined;
-    this.whatsApp = user.whatsApp ?? undefined;
-    this.experience = user.experience ?? undefined;
-    this.description = user.description ?? undefined;
-    this.tax = user.tax;
     this.closestTraining = training ? new GetTrainingRdo(training) : undefined;
-    //TODO
-    this.link = user.link
-      ? `${frontendServer.url}/trainers?link=${user.link}`
-      : undefined;
+    this.trainerProfile =
+      user?.role?.name == 'trainer' ? new GetTrainerRdo(user) : undefined;
+    this.comment = user?.relatedComments[0].text;
+    this.birthday = user.birthday;
 
     this.updatedAt = user.updatedAt;
     this.createdAt = user.createdAt;

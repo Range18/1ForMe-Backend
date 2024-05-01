@@ -13,6 +13,7 @@ import { TrainingType } from '#src/core/training-type/entity/training-type.entit
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { UserComment } from '#src/core/comments/entity/comment.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 
 export const adminOptions = {
   adminJsOptions: {
@@ -32,6 +33,7 @@ export const adminOptions = {
       Training,
       UserComment,
       Transaction,
+      Subscription,
     ],
   },
   auth: {

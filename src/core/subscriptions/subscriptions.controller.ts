@@ -1,34 +1,65 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
+import { ApiCreatedResponse, ApiHeader, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
+import { User } from '#src/common/decorators/User.decorator';
+import { type UserRequest } from '#src/common/types/user-request.type';
 
-@Controller('subscriptions')
+@ApiTags('Subscriptions')
+@Controller('api/subscriptions')
 export class SubscriptionsController {
   constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
+  @ApiCreatedResponse()
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
   @Post()
-  create(@Body() createSubscriptionDto: CreateSubscriptionDto) {
-    return this.subscriptionsService.create(createSubscriptionDto);
+  async create(
+    @Body() createSubscriptionDto: CreateSubscriptionDto,
+    @User() user: UserRequest,
+  ) {
+    return await this.subscriptionsService.create(
+      createSubscriptionDto,
+      user.id,
+    );
   }
 
   @Get()
-  findAll() {
-    return this.subscriptionsService.findAll();
+  async findAll() {
+    return await this.subscriptionsService.find({
+      relations: {
+        client: { avatar: true },
+        trainer: true,
+        transaction: true,
+        trainings: { type: true, club: true, sport: true },
+      },
+    });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subscriptionsService.findOne(+id);
+  async findOne(@Param('id') id: number) {
+    return await this.subscriptionsService.findOne({
+      where: { id },
+      relations: {
+        client: { avatar: true },
+        trainer: true,
+        transaction: true,
+        trainings: { type: true, club: true, sport: true },
+      },
+    });
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubscriptionDto: UpdateSubscriptionDto) {
-    return this.subscriptionsService.update(+id, updateSubscriptionDto);
-  }
+  // @Patch(':id')
+  // async update(
+  //   @Param('id') id: number,
+  //   @Body() updateSubscriptionDto: UpdateSubscriptionDto,
+  // ) {
+  //   return await this.subscriptionsService.updateOne({where: {id}}, updateSubscriptionDto);
+  // }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.subscriptionsService.remove(+id);
+  async remove(@Param('id') id: number) {
+    return await this.subscriptionsService.remove({ where: { id } });
   }
 }

@@ -10,6 +10,7 @@ import AdminJS from 'adminjs';
 import { Database, Resource } from '@adminjs/typeorm';
 import { adminOptions } from '#src/core/admin-panel/admin.options';
 import { VerificationModule } from '#src/core/verification-codes/verification.module';
+import { CommentsModule } from '#src/core/comments/comments.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { VerificationModule } from '#src/core/verification-codes/verification.mo
     SessionModule,
     TokenModule,
     RolesModule,
+    CommentsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

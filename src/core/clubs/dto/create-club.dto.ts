@@ -12,4 +12,10 @@ export class CreateClubDto {
 
   @ApiProperty()
   readonly city: number;
+
+  @ApiProperty({ nullable: true })
+  startTime?: string;
+
+  @ApiProperty({ nullable: true })
+  endTime?: string;
 }

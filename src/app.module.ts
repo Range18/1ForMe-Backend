@@ -18,6 +18,8 @@ import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { CitiesModule } from '#src/core/city/cities.module';
 import { SportsModule } from '#src/core/sports/sports.module';
 import { VerificationModule } from '#src/core/verification-codes/verification.module';
+import { ClubsModule } from '#src/core/clubs/clubs.module';
+import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { VerificationModule } from '#src/core/verification-codes/verification.mo
     TransactionsModule,
     CitiesModule,
     SportsModule,
+    ClubsModule,
+    SubscriptionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

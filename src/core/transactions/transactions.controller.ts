@@ -23,6 +23,7 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @ApiOkResponse({ type: GetAnalyticsRdo })
+  @ApiQuery({ name: 'clientId' })
   @ApiQuery({ name: 'from' })
   @ApiQuery({ name: 'to' })
   @ApiQuery({ name: 'period' })
@@ -31,6 +32,52 @@ export class TransactionsController {
   @Get()
   async findAll(
     @User() user: UserRequest,
+    @Query('clientId') clientId?: number,
+    @Query('from') from?: Date,
+    @Query('period') period?: string,
+    @Query('to') to: Date = new Date(),
+  ): Promise<GetTransactionRdo[]> {
+    let dateRange = undefined;
+    if (from == to) {
+      dateRange = from;
+    } else if (from) {
+      dateRange = Between(from, to);
+    }
+
+    const transactions = await this.transactionsService.find({
+      where: {
+        client: clientId ? { id: clientId } : undefined,
+        trainer: { id: user.id },
+        createdAt: dateRange,
+      },
+      relations: {
+        tariff: true,
+        client: { avatar: true },
+        trainer: {
+          avatar: true,
+          category: true,
+          studio: true,
+        },
+        training: true,
+      },
+    });
+
+    return transactions.map(
+      (transaction) => new GetTransactionRdo(transaction),
+    );
+  }
+
+  @ApiOkResponse({ type: GetAnalyticsRdo })
+  @ApiQuery({ name: 'clientId' })
+  @ApiQuery({ name: 'from' })
+  @ApiQuery({ name: 'to' })
+  @ApiQuery({ name: 'period' })
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
+  @Get('/analytics')
+  async findAllAnalytics(
+    @User() user: UserRequest,
+    @Query('clientId') clientId?: number,
     @Query('from') from?: Date,
     @Query('period') period?: string,
     @Query('to') to: Date = new Date(),
@@ -44,6 +91,7 @@ export class TransactionsController {
 
     const transactions = await this.transactionsService.find({
       where: {
+        client: clientId ? { id: clientId } : undefined,
         trainer: { id: user.id },
         createdAt: dateRange,
       },
