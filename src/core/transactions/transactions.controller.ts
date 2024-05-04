@@ -16,6 +16,7 @@ import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rd
 import { Between } from 'typeorm';
 import { UpdateTransactionDto } from '#src/core/transactions/dto/update-transaction.dto';
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
+import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactions-sums.rdo';
 
 @ApiTags('Transactions')
 @Controller('api/transactions')
@@ -74,7 +75,7 @@ export class TransactionsController {
   @ApiQuery({ name: 'period' })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
-  @Get('/analytics')
+  @Get('/analytics/entities')
   async findAllAnalytics(
     @User() user: UserRequest,
     @Query('clientId') clientId?: number,
@@ -121,7 +122,7 @@ export class TransactionsController {
   }
 
   @ApiOkResponse({ type: GetTransactionRdo })
-  @Get(':id')
+  @Get('byId/:id')
   async findOne(@Param('id') id: number) {
     return new GetTransactionRdo(
       await this.transactionsService.findOne({
@@ -154,5 +155,21 @@ export class TransactionsController {
   @Delete(':id')
   async remove(@Param('id') id: number) {
     return await this.transactionsService.remove({ where: { id: id } });
+  }
+
+  @AuthGuard()
+  @Get('analytics')
+  async analytics(
+    @User() user: UserRequest,
+    @Query('from') from?: string,
+    @Query('period') period?: string,
+    @Query('to') to?: string,
+  ): Promise<GetTransactionSumsRdo[]> {
+    return await this.transactionsService.getAnalytics(
+      user.id,
+      from,
+      period,
+      to,
+    );
   }
 }

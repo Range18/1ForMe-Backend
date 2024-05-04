@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
@@ -38,14 +38,16 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async create(createTrainingDto: CreateTrainingDto, trainerId: number) {
-    const tariff = createTrainingDto.createTransactionDto.tariff
-      ? await this.tariffsService.findOne({
-          where: { id: createTrainingDto.createTransactionDto.tariff },
-        })
-      : undefined;
+    const tariff = await this.tariffsService.findOne({
+      where: { id: createTrainingDto.tariff },
+    });
 
-    if (!tariff && !createTrainingDto.createTransactionDto.customCost) {
-      throw new HttpException('No tariff or cost', HttpStatus.BAD_REQUEST);
+    if (!tariff) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
     }
 
     const [hours, minutes] = this.parseTime(createTrainingDto.duration);
@@ -75,8 +77,8 @@ export class TrainingsService extends BaseEntityService<
       transaction: await this.transactionsService.save({
         client: { id: createTrainingDto.client },
         trainer: { id: trainerId },
-        tariff: { id: createTrainingDto.createTransactionDto?.tariff },
-        cost: createTrainingDto.createTransactionDto?.customCost ?? tariff.cost,
+        tariff: tariff,
+        cost: tariff.cost,
       }),
     });
 

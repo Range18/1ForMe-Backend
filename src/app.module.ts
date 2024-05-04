@@ -20,6 +20,7 @@ import { SportsModule } from '#src/core/sports/sports.module';
 import { VerificationModule } from '#src/core/verification-codes/verification.module';
 import { ClubsModule } from '#src/core/clubs/clubs.module';
 import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.module';
+import { SlotsModule } from '#src/core/slots/slots.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.modul
     SportsModule,
     ClubsModule,
     SubscriptionsModule,
+    SlotsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

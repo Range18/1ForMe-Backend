@@ -95,6 +95,7 @@ export class AuthService {
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },
       }),
+      isTrainerActive: true,
       birthday: createUserDto.birthday,
       link: createUserDto.role === 'trainer' ? uid(8) : null,
       studio: createUserDto.studio ? { id: createUserDto.studio } : null,

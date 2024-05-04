@@ -21,6 +21,7 @@ import { UserComment } from '#src/core/comments/entity/comment.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Code } from '#src/core/verification-codes/entity/verification-codes.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
+import { Slot } from '#src/core/slots/entities/slot.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -106,6 +107,9 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   description?: string;
 
+  @Column({ nullable: true })
+  isTrainerActive?: boolean;
+
   //relations connected only to trainer
   @ManyToOne(() => Category, (category) => category.users, { nullable: true })
   @JoinColumn({ name: 'category' })
@@ -149,4 +153,10 @@ export class UserEntity extends BaseEntity {
     nullable: true,
   })
   subsAsTrainer?: Subscription[];
+
+  //slots
+  @OneToMany(() => Slot, (slot) => slot.trainer, {
+    nullable: true,
+  })
+  slots?: Slot[];
 }

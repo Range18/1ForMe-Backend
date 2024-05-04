@@ -28,8 +28,8 @@ export class GetUserRdo {
   @ApiProperty({ nullable: true, type: () => GetTrainerRdo })
   readonly trainerProfile?: GetTrainerRdo;
 
-  @ApiProperty()
-  readonly birthday: Date;
+  @ApiProperty({ nullable: true })
+  readonly birthday?: Date;
 
   //only if client
   @ApiProperty({ nullable: true })
@@ -56,7 +56,9 @@ export class GetUserRdo {
     this.closestTraining = training ? new GetTrainingRdo(training) : undefined;
     this.trainerProfile =
       user?.role?.name == 'trainer' ? new GetTrainerRdo(user) : undefined;
-    this.comment = user?.relatedComments[0].text;
+    this.comment = user.relatedComments
+      ? user?.relatedComments[0].text
+      : undefined;
     this.birthday = user.birthday;
 
     this.updatedAt = user.updatedAt;

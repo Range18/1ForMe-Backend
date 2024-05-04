@@ -9,9 +9,7 @@ export class CreateSubscriptionDto {
   cost: number;
 
   @ApiProperty({
-    type: () => [
-      OmitType(CreateTrainingDto, ['createTransactionDto', 'client', 'sport']),
-    ],
+    type: () => [OmitType(CreateTrainingDto, ['client', 'sport'])],
   })
   createTrainingDto: Omit<CreateTrainingDto, 'createTransactionDto'>[];
 

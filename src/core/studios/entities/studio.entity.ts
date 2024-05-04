@@ -12,6 +12,7 @@ import { BaseEntity } from '#src/common/base.entity';
 import { City } from '#src/core/city/entity/cities.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
+import { Slot } from '#src/core/slots/entities/slot.entity';
 
 @Entity('studios')
 export class Studio extends BaseEntity {
@@ -36,4 +37,7 @@ export class Studio extends BaseEntity {
 
   @OneToMany(() => Clubs, (club) => club.studio, { nullable: true })
   clubs?: Clubs[];
+
+  @OneToMany(() => Slot, (slot) => slot.studio, { nullable: true })
+  slots?: Slot[];
 }

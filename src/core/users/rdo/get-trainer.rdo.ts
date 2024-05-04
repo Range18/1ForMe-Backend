@@ -43,6 +43,6 @@ export class GetTrainerRdo {
     this.link = user.link
       ? `${frontendServer.url}/trainers?link=${user.link}`
       : undefined;
-    this.tax = user.tax;
+    this.tax = user.tax ?? undefined;
   }
 }
