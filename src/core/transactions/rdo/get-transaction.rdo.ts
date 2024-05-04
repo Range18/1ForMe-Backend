@@ -35,8 +35,13 @@ export class GetTransactionRdo {
 
   constructor(transaction: Transaction) {
     this.id = transaction.id;
-    this.client = new GetUserRdo(transaction.client);
-    this.trainer = new GetUserRdo(transaction.trainer);
+
+    this.client = transaction.client
+      ? new GetUserRdo(transaction.client)
+      : undefined;
+    this.trainer = transaction.trainer
+      ? new GetUserRdo(transaction.trainer)
+      : undefined;
 
     this.training = transaction.training
       ? new GetTrainingRdo(transaction.training)
@@ -44,8 +49,10 @@ export class GetTransactionRdo {
     this.tariff = transaction.tariff
       ? new GetTariffRdo(transaction.tariff)
       : undefined;
-    this.cost = transaction.cost ?? transaction?.tariff.cost;
+
+    this.cost = transaction.cost;
     this.status = TransactionStatus[transaction.status];
+
     this.createdAt = transaction.createdAt;
     this.updatedAt = transaction.updatedAt;
   }

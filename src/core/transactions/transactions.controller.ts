@@ -72,53 +72,21 @@ export class TransactionsController {
   @ApiQuery({ name: 'clientId' })
   @ApiQuery({ name: 'from' })
   @ApiQuery({ name: 'to' })
-  @ApiQuery({ name: 'period' })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('/analytics/entities')
   async findAllAnalytics(
     @User() user: UserRequest,
     @Query('clientId') clientId?: number,
-    @Query('from') from?: Date,
-    @Query('period') period?: string,
-    @Query('to') to: Date = new Date(),
-  ): Promise<GetAnalyticsRdo> {
-    let dateRange = undefined;
-    if (from == to) {
-      dateRange = from;
-    } else if (from) {
-      dateRange = Between(from, to);
-    }
-
-    const transactions = await this.transactionsService.find({
-      where: {
-        client: clientId ? { id: clientId } : undefined,
-        trainer: { id: user.id },
-        createdAt: dateRange,
-      },
-      relations: {
-        tariff: true,
-        client: { avatar: true },
-        trainer: {
-          avatar: true,
-          category: true,
-          studio: true,
-        },
-        training: true,
-      },
-    });
-
-    const transactionsRdo = transactions.map(
-      (transaction) => new GetTransactionRdo(transaction),
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ): Promise<GetAnalyticsRdo[]> {
+    return await this.transactionsService.getTransactionsPerDay(
+      user.id,
+      clientId,
+      from,
+      to,
     );
-
-    return {
-      transactions: transactionsRdo,
-      totalCost: transactionsRdo.reduce(
-        (previousValue, currentValue) => previousValue + currentValue.cost,
-        0,
-      ),
-    };
   }
 
   @ApiOkResponse({ type: GetTransactionRdo })

@@ -6,10 +6,23 @@ export class GetAnalyticsRdo {
   transactions: GetTransactionRdo[];
 
   @ApiProperty()
+  day: number;
+
+  @ApiProperty()
+  month: number;
+
+  @ApiProperty()
   totalCost: number;
 
-  constructor(transactionsRdo: GetTransactionRdo[], totalCost: number) {
+  constructor(
+    transactionsRdo: GetTransactionRdo[],
+    totalCost: number,
+    day: number,
+    month: number,
+  ) {
     this.transactions = transactionsRdo;
     this.totalCost = totalCost;
+    this.day = day;
+    this.month = month;
   }
 }

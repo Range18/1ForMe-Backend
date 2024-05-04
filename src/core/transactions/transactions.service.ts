@@ -2,11 +2,14 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactions-sums.rdo';
 import { SqlPeriodsEnum } from '#src/core/transactions/types/sql-periods.enum';
+import { TransactionsByPeriodType } from '#src/core/transactions/types/transactions-by-period.type';
+import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
+import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
@@ -148,17 +151,64 @@ export class TransactionsService extends BaseEntityService<
     return totalByPeriod;
   }
 
-  async getTransactionsPerDay(trainerId: number) {
-    const transactionsByPeriod = await this.transactionRepository
-      .createQueryBuilder('transaction')
-      .select([
-        'DATE(createdAt) as createdAt',
-        'GROUP_CONCAT(id) as transactionsArray',
-      ])
-      .where(`transaction.trainer.id = ${trainerId}`)
-      .addGroupBy('YEAR(createdAt)')
-      .addGroupBy('DAY(createdAt)')
-      .addOrderBy('createdAt', 'ASC')
-      .getMany();
+  async getTransactionsPerDay(
+    trainerId: number,
+    clientId: number,
+    from?: string,
+    to?: string,
+  ) {
+    const transactionsByPeriodRaw: TransactionsByPeriodType[] =
+      await this.transactionRepository
+        .createQueryBuilder('transaction')
+        .select([
+          'MONTH(createdAt) as month',
+          'DAY(createdAt) as day',
+          'SUM(cost) as costSum',
+          'GROUP_CONCAT(id) as transactionsArray',
+        ])
+        .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
+        .andWhere(
+          'transaction.createdAt >= COALESCE(CAST(:from AS DATE), transaction.createdAt)',
+          { from: from },
+        )
+        .andWhere(
+          'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
+          { to: to },
+        )
+        .andWhere(
+          'transaction.client = COALESCE(:clientId, transaction.client)',
+          { clientId: clientId },
+        )
+        .addGroupBy('YEAR(createdAt)')
+        .addGroupBy('DAY(createdAt)')
+        .addOrderBy('createdAt', 'ASC')
+        .getRawMany();
+
+    const transactionsByPeriod: GetAnalyticsRdo[] = [];
+
+    for (const entity of transactionsByPeriodRaw) {
+      const transactions = await this.transactionRepository.find({
+        where: {
+          id: In(entity.transactionsArray.split(',')),
+        },
+        relations: {
+          client: true,
+          tariff: true,
+          subscription: true,
+          training: { type: true, sport: true },
+        },
+      });
+
+      transactionsByPeriod.push({
+        transactions: transactions.map(
+          (transaction) => new GetTransactionRdo(transaction),
+        ),
+        day: entity.day,
+        month: entity.month,
+        totalCost: entity.costSum,
+      });
+    }
+
+    return transactionsByPeriod;
   }
 }

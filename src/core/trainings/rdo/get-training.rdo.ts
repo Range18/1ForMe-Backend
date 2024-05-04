@@ -11,7 +11,7 @@ export class GetTrainingRdo {
   id: number;
 
   @ApiProperty({ type: Sport })
-  sport: Sport;
+  sport?: Sport;
 
   @ApiProperty()
   status: string;
@@ -35,10 +35,10 @@ export class GetTrainingRdo {
   trainer: GetUserRdo;
 
   @ApiProperty({ type: TrainingType })
-  type: TrainingType;
+  type?: TrainingType;
 
   @ApiProperty({ type: () => GetClubRdo })
-  club: GetClubRdo;
+  club?: GetClubRdo;
 
   @ApiProperty()
   createdAt: Date;
