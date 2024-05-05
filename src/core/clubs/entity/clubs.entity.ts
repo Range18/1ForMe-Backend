@@ -41,9 +41,16 @@ export class Clubs extends BaseEntity {
   })
   trainings?: Training[];
 
+  //TODO NOT NULL
   @Column({ nullable: true })
   startTime?: string;
 
   @Column({ nullable: true })
   endTime?: string;
+
+  @Column({ nullable: true })
+  timeForExercise: Date;
+
+  @Column({ nullable: true })
+  timeForRest: Date;
 }

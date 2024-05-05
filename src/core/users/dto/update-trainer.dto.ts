@@ -25,4 +25,6 @@ export class UpdateTrainerDto extends UpdateUserDto {
 
   @ApiProperty({ nullable: true, required: false })
   readonly link?: string;
+
+  readonly isActive?: boolean;
 }

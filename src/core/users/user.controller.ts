@@ -163,7 +163,7 @@ export class UserController {
   @Patch('/byId/:id')
   async updateSomeone(
     @Param('id') id: number,
-    @Body() updateTrainerDto: UpdateUserDto,
+    @Body() updateUserDto: UpdateUserDto,
     @User() user: UserRequest,
   ) {
     // if (updateTrainerDto.comment) {
@@ -195,8 +195,8 @@ export class UserController {
           },
         },
         {
-          ...updateTrainerDto,
-          role: { id: updateTrainerDto.role },
+          ...updateUserDto,
+          role: { id: updateUserDto.role },
         },
       ),
     );

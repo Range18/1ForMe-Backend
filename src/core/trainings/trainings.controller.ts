@@ -51,13 +51,15 @@ export class TrainingsController {
     );
   }
 
+  @ApiQuery({ name: 'date', type: Date })
   @ApiOkResponse({ type: [GetTrainingRdo] })
   @Get()
-  async findAll() {
+  async findAll(@Query('date') date?: Date) {
     const trainings = await this.trainingsService.find({
+      where: { date: date },
       relations: {
-        client: { avatar: true },
-        trainer: { avatar: true },
+        client: true,
+        trainer: true,
         transaction: { tariff: true },
         sport: true,
         type: true,
@@ -77,8 +79,8 @@ export class TrainingsController {
     const trainings = await this.trainingsService.find({
       where: { trainer: { id: user.id }, date: date ? date : undefined },
       relations: {
-        client: { avatar: true },
-        trainer: { avatar: true },
+        client: true,
+        trainer: true,
         transaction: { tariff: true },
         sport: true,
         type: true,

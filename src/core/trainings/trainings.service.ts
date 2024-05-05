@@ -131,4 +131,13 @@ export class TrainingsService extends BaseEntityService<
       }),
     );
   }
+  async getTrainingsPerDay(trainerId: number, from?: string, to?: string) {
+    const trainingsPerDay = await this.trainingRepository
+      .createQueryBuilder('training')
+      .select(['DATE(training.date) sa date'])
+      .where('training.trainer = :trainerId', { trainerId })
+      .getRawMany();
+
+    return trainingsPerDay;
+  }
 }
