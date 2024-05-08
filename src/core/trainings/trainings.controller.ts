@@ -105,13 +105,6 @@ export class TrainingsController {
     const clients = await this.userService.find(
       {
         where: { trainers: [{ id: user.id }] },
-        relations: {
-          role: true,
-          avatar: true,
-          studio: true,
-          category: true,
-          tariffs: true,
-        },
       },
       true,
     );
@@ -135,7 +128,9 @@ export class TrainingsController {
         order: { date: 'ASC', startTime: 'ASC' },
       });
 
-      rdo.push(new GetUserRdo(client, trainings[0]));
+      if (trainings.length != 0) {
+        rdo.push(new GetUserRdo(client, trainings[0]));
+      }
     }
 
     return rdo;

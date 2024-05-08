@@ -49,7 +49,7 @@ export class GetUserRdo {
     this.name = user.name;
     this.surname = user.surname;
     this.phone = user.phone;
-    this.role = user?.role;
+    this.role = user.role ?? undefined;
     this.avatar = user.avatar
       ? `${backendServer.urlValue}/api/assets/${user.avatar.id}/file`
       : undefined;

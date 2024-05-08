@@ -10,7 +10,10 @@ import { TransactionsService } from '#src/core/transactions/transactions.service
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { isNumber } from 'class-validator';
+import { UserService } from '#src/core/users/user.service';
+import { UserEntity } from '#src/core/users/entity/user.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
+import UserExceptions = AllExceptions.UserExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -22,6 +25,7 @@ export class TrainingsService extends BaseEntityService<
     private readonly trainingRepository: Repository<Training>,
     private readonly transactionsService: TransactionsService,
     private readonly tariffsService: TariffsService,
+    private readonly userService: UserService,
   ) {
     super(
       trainingRepository,
@@ -50,6 +54,18 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
+    const client = await this.userService.findOne({
+      where: { id: createTrainingDto.client },
+    });
+
+    if (!client) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
     const [hours, minutes] = this.parseTime(createTrainingDto.duration);
     const [startHours, startMin] = this.parseTime(createTrainingDto.startTime);
 
@@ -62,6 +78,10 @@ export class TrainingsService extends BaseEntityService<
     if (isNumber(endTimeMin) && endTimeMin < 10) {
       endTimeMin = `0${endTimeMin}`;
     }
+
+    client.trainers.push({ id: trainerId } as UserEntity);
+
+    await this.userService.save(client);
 
     const training = await this.save({
       sport: { id: createTrainingDto.sport },
