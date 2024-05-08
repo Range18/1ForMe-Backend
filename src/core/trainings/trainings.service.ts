@@ -12,6 +12,7 @@ import { Subscription } from '#src/core/subscriptions/entities/subscription.enti
 import { isNumber } from 'class-validator';
 import { UserService } from '#src/core/users/user.service';
 import { UserEntity } from '#src/core/users/entity/user.entity';
+import { TrainingCountPerDateRdo } from './rdo/training-count-per-date.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -152,11 +153,26 @@ export class TrainingsService extends BaseEntityService<
     );
   }
   async getTrainingsPerDay(trainerId: number, from?: string, to?: string) {
-    const trainingsPerDay = await this.trainingRepository
-      .createQueryBuilder('training')
-      .select(['DATE(training.date) sa date'])
-      .where('training.trainer = :trainerId', { trainerId })
-      .getRawMany();
+    const trainingsPerDay = (
+      await this.trainingRepository
+        .createQueryBuilder('training')
+        .select([
+          'DAY(training.`date`) as day',
+          'MONTH(training.`date`) as month',
+          'COUNT(training.`id`) as trainingCount',
+        ])
+        .where('training.trainer = :trainerId', { trainerId })
+        .addGroupBy('DAY(training.`date`)')
+        .addGroupBy('DAY(training.`date`)')
+        .getRawMany()
+    ).map(
+      (entity) =>
+        new TrainingCountPerDateRdo(
+          entity.trainingCount,
+          entity.day,
+          entity.month,
+        ),
+    );
 
     return trainingsPerDay;
   }

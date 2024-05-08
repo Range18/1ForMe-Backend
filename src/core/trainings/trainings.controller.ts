@@ -178,6 +178,14 @@ export class TrainingsController {
     );
   }
 
+  @ApiOkResponse({ type: [GetTrainingRdo] })
+  @ApiHeader({ name: 'Authorization' })
+  @AuthGuard()
+  @Get('my/count')
+  async getMyTrainingsCount(@User() user: UserRequest) {
+    return await this.trainingsService.getTrainingsPerDay(user.id);
+  }
+
   @ApiOkResponse({ type: GetTrainingRdo })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
