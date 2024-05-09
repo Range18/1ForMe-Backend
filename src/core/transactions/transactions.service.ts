@@ -124,7 +124,10 @@ export class TransactionsService extends BaseEntityService<
                   totalByPeriodRaw[i].month == 12
                     ? totalByPeriodRaw[i].year + 1
                     : totalByPeriodRaw[i].year,
-                month: totalByPeriodRaw[i].month + j + 1,
+                month:
+                  period == 'month'
+                    ? totalByPeriodRaw[i].month + j + 1
+                    : totalByPeriodRaw[i].month,
                 week:
                   period == 'week'
                     ? totalByPeriodRaw[i].week + j + 1
@@ -195,7 +198,7 @@ export class TransactionsService extends BaseEntityService<
           client: true,
           tariff: true,
           subscription: true,
-          training: { type: true, sport: true },
+          training: { type: true },
         },
       });
 

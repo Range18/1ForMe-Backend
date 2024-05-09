@@ -144,11 +144,11 @@ export class UserController {
             studio: true,
             category: true,
             tariffs: true,
-            relatedComments: true,
           },
         },
         {
           ...updateTrainerDto,
+          isTrainerActive: updateTrainerDto.isActive,
           role: { id: updateTrainerDto.role },
           studio: { id: updateTrainerDto.studio },
           category: { id: updateTrainerDto.category },

@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from '#src/common/base.entity';
-import { Sport } from '#src/core/sports/entity/sports.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
@@ -18,13 +17,6 @@ import { Subscription } from '#src/core/subscriptions/entities/subscription.enti
 export class Training extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;
-
-  @ManyToOne(() => Sport, (sport) => sport.trainings, {
-    nullable: false,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'sport' })
-  sport: Sport;
 
   @Column({ nullable: false, default: false })
   isCanceled: boolean;
@@ -67,9 +59,9 @@ export class Training extends BaseEntity {
   @JoinColumn({ name: 'trainer' })
   trainer: UserEntity;
 
-  @ManyToOne(() => TrainingType, (type) => type.trainings, { nullable: false })
+  @ManyToOne(() => TrainingType, (type) => type.trainings, { nullable: true })
   @JoinColumn({ name: 'type' })
-  type: TrainingType;
+  type?: TrainingType;
 
   @OneToOne(() => Transaction, (transaction) => transaction.training, {
     nullable: true,

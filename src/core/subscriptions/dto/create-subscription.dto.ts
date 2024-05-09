@@ -6,12 +6,9 @@ export class CreateSubscriptionDto {
   client: number;
 
   @ApiProperty({
-    type: () => [OmitType(CreateTrainingDto, ['client', 'sport'])],
+    type: () => [OmitType(CreateTrainingDto, ['client'])],
   })
   createTrainingDto: Omit<CreateTrainingDto, 'createTransactionDto'>[];
-
-  @ApiProperty({ nullable: true, required: false })
-  expireAt?: Date;
 
   tariff: number;
 }

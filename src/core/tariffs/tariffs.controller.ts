@@ -26,7 +26,11 @@ export class TariffsController {
   @Post('/tariffs')
   async create(@Body() body: CreateTariffDto, @User() user: UserRequest) {
     return new GetTariffRdo(
-      await this.tariffsService.save({ ...body, user: { id: user.id } }),
+      await this.tariffsService.save({
+        ...body,
+        sport: { id: body.sport },
+        user: { id: user.id },
+      }),
     );
   }
 
@@ -104,7 +108,7 @@ export class TariffsController {
             },
           },
         },
-        updateTariffDto,
+        { ...updateTariffDto, sport: { id: updateTariffDto.sport } },
       ),
     );
   }

@@ -56,9 +56,10 @@ export class GetUserRdo {
     this.closestTraining = training ? new GetTrainingRdo(training) : undefined;
     this.trainerProfile =
       user?.role?.name == 'trainer' ? new GetTrainerRdo(user) : undefined;
-    this.comment = user.relatedComments
-      ? user?.relatedComments[0].text
-      : undefined;
+    this.comment =
+      user.relatedComments && user.relatedComments.length !== 0
+        ? user?.relatedComments[0].text
+        : undefined;
     this.birthday = user.birthday;
 
     this.updatedAt = user.updatedAt;

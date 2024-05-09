@@ -60,7 +60,6 @@ export class TrainingsController {
         client: true,
         trainer: true,
         transaction: { tariff: true },
-        sport: true,
         type: true,
         club: { city: true, studio: { city: true } },
       },
@@ -69,6 +68,7 @@ export class TrainingsController {
     return trainings.map((training) => new GetTrainingRdo(training));
   }
 
+  //Get all trainer`s trainings on date with count
   @ApiQuery({ name: 'date', type: Date })
   @ApiOkResponse({ type: GetTrainingExtraRdo })
   @ApiHeader({ name: 'Authorization' })
@@ -80,10 +80,9 @@ export class TrainingsController {
       relations: {
         client: true,
         trainer: true,
-        transaction: { tariff: true },
-        sport: true,
         type: true,
         club: { city: true, studio: { city: true } },
+        transaction: { tariff: { sport: true } },
       },
       order: { startTime: 'ASC' },
     });
@@ -95,6 +94,7 @@ export class TrainingsController {
     );
   }
 
+  // Get Trainer`s clients with the closest training
   @ApiOkResponse({ type: [GetUserRdo] })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
@@ -123,8 +123,11 @@ export class TrainingsController {
             date: MoreThanOrEqual(new Date(Date.now())),
           },
           relations: {
-            club: { studio: true, city: true },
-            sport: true,
+            trainer: true,
+            club: { city: true, studio: true },
+            type: true,
+            transaction: { tariff: { sport: true } },
+            subscription: { transaction: { tariff: { sport: true } } },
           },
           order: { date: 'ASC', startTime: 'ASC' },
         },
@@ -141,6 +144,7 @@ export class TrainingsController {
     return rdo;
   }
 
+  //Get client`s trainings
   @ApiOkResponse({ type: [GetTrainingRdo] })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
@@ -151,14 +155,15 @@ export class TrainingsController {
       relations: {
         trainer: true,
         club: { city: true },
-        sport: true,
         type: true,
+        transaction: { tariff: { sport: true } },
       },
     });
 
     return trainings.map((training) => new GetTrainingRdo(training));
   }
 
+  //Get someone client training
   @ApiOkResponse({ type: [GetTrainingRdo] })
   @Get('clients/:id')
   async getClientTrainings(@Param('id') id: number) {
@@ -167,8 +172,8 @@ export class TrainingsController {
       relations: {
         trainer: true,
         club: { city: true },
-        sport: true,
         type: true,
+        transaction: { tariff: { sport: true } },
       },
     });
 
@@ -206,7 +211,6 @@ export class TrainingsController {
           where: { id, trainer: { id: user.id } },
           relations: {
             club: { city: true },
-            sport: true,
             type: true,
             trainer: true,
             client: true,

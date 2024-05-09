@@ -1,5 +1,4 @@
 import {
-  Column,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -41,7 +40,4 @@ export class Subscription extends BaseEntity {
     nullable: false,
   })
   transaction: Transaction;
-
-  @Column({ nullable: true })
-  expireAt?: Date;
 }

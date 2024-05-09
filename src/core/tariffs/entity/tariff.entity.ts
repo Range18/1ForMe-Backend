@@ -9,6 +9,7 @@ import {
 import { BaseEntity } from '#src/common/base.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
+import { Sport } from '#src/core/sports/entity/sports.entity';
 
 @Entity('tariffs')
 export class Tariff extends BaseEntity {
@@ -35,4 +36,18 @@ export class Tariff extends BaseEntity {
 
   @Column({ nullable: true })
   duration: string;
+
+  @ManyToOne(() => Sport, (sport) => sport.tariffs, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'sport' })
+  sport: Sport;
+
+  //only for subs
+  @Column({ nullable: true })
+  subExpireAt?: Date;
+
+  @Column({ nullable: true })
+  trainingAmount?: number;
 }

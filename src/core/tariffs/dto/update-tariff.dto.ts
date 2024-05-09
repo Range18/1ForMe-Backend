@@ -13,4 +13,8 @@ export class UpdateTariffDto {
   readonly cost?: number;
 
   readonly duration?: string;
+
+  readonly sport?: number;
+
+  readonly subExpireAt?: Date;
 }

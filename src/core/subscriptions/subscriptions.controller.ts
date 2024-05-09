@@ -19,6 +19,7 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
+import * as console from 'node:console';
 
 @ApiTags('Subscriptions')
 @Controller('api/subscriptions')
@@ -33,9 +34,8 @@ export class SubscriptionsController {
     @Body() createSubscriptionDto: CreateSubscriptionDto,
     @User() user: UserRequest,
   ) {
-    return await this.subscriptionsService.create(
-      createSubscriptionDto,
-      user.id,
+    return new GetSubscriptionRdo(
+      await this.subscriptionsService.create(createSubscriptionDto, user.id),
     );
   }
 
@@ -45,8 +45,8 @@ export class SubscriptionsController {
       relations: {
         client: true,
         trainer: true,
-        transaction: true,
-        trainings: { type: true, club: true, sport: true },
+        transaction: { tariff: { sport: true } },
+        trainings: { type: true, club: true },
       },
     });
 
@@ -71,10 +71,12 @@ export class SubscriptionsController {
       relations: {
         client: true,
         trainer: true,
-        transaction: true,
-        trainings: { type: true, club: true, sport: true },
+        transaction: { tariff: { sport: true } },
+        trainings: { type: true, club: true },
       },
     });
+
+    console.log(subscriptions);
 
     return subscriptions.map(
       (subscription) => new GetSubscriptionRdo(subscription),
@@ -93,20 +95,11 @@ export class SubscriptionsController {
           trainings: {
             type: true,
             club: { city: true, studio: true },
-            sport: true,
           },
         },
       }),
     );
   }
-
-  // @Patch(':id')
-  // async update(
-  //   @Param('id') id: number,
-  //   @Body() updateSubscriptionDto: UpdateSubscriptionDto,
-  // ) {
-  //   return await this.subscriptionsService.updateOne({where: {id}}, updateSubscriptionDto);
-  // }
 
   @Delete(':id')
   async remove(@Param('id') id: number) {

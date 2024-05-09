@@ -90,8 +90,7 @@ export class TrainingsService extends BaseEntityService<
     await this.userService.save(client);
 
     const training = await this.save({
-      sport: { id: createTrainingDto.sport },
-      type: { id: createTrainingDto.type },
+      type: createTrainingDto.type ? { id: createTrainingDto.type } : undefined,
       date: createTrainingDto.date,
       startTime: createTrainingDto.startTime,
       client: { id: createTrainingDto.client },
@@ -113,7 +112,6 @@ export class TrainingsService extends BaseEntityService<
         client: { avatar: true },
         trainer: { avatar: true },
         transaction: { tariff: true },
-        sport: true,
         type: true,
         club: { city: true },
       },
@@ -123,6 +121,7 @@ export class TrainingsService extends BaseEntityService<
   async createForSubscription(
     createTrainingDtoArray: Omit<CreateTrainingDto, 'createTransactionDto'>[],
     trainerId: number,
+    clientId: number,
     subscriptionEntity: Subscription,
   ) {
     await Promise.all(
@@ -143,11 +142,10 @@ export class TrainingsService extends BaseEntityService<
         }
 
         return await this.save({
-          sport: { id: training.sport },
           type: { id: training.type },
           date: training.date,
           startTime: training.startTime,
-          client: { id: training.client },
+          client: { id: clientId },
           trainer: { id: trainerId },
           duration: subscriptionEntity.transaction.tariff.duration,
           endTime: `${endTimeHours}:${endTimeMin}`,
@@ -157,6 +155,7 @@ export class TrainingsService extends BaseEntityService<
       }),
     );
   }
+
   async getTrainingsPerDay(trainerId: number, from?: string, to?: string) {
     const trainingsPerDay = (
       await this.trainingRepository

@@ -9,4 +9,11 @@ export class CreateTariffDto {
 
   @ApiProperty()
   readonly duration: string;
+
+  readonly sport: number;
+
+  //only for subs
+  readonly subExpireAt?: Date;
+
+  trainingAmount?: number;
 }

@@ -10,7 +10,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '#src/common/base.entity';
 import { Exclude } from 'class-transformer';
 import { Studio } from '#src/core/studios/entities/studio.entity';
-import { Training } from '#src/core/trainings/entities/training.entity';
+import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Entity('sports')
 export class Sport extends BaseEntity {
@@ -31,6 +31,9 @@ export class Sport extends BaseEntity {
   })
   studios?: Studio[];
 
-  @OneToMany(() => Training, (training) => training.sport, { nullable: true })
-  trainings?: Training[];
+  @OneToMany(() => Tariff, (tariff) => tariff.sport, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  tariffs?: Tariff[];
 }

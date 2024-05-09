@@ -68,21 +68,37 @@ export class SubscriptionsService extends BaseEntityService<
       client: client,
       trainer: { id: trainerId },
       cost: tariff.cost,
+      tariff: { id: createSubscriptionDto.tariff },
     });
 
-    const subscription = await this.save({
-      client: client,
-      trainer: { id: trainerId },
-      transaction: transaction,
-      expireAt: createSubscriptionDto.expireAt,
+    const subId = (
+      await this.save({
+        client: client,
+        trainer: { id: trainerId },
+        transaction: transaction,
+      })
+    ).id;
+
+    const subscription = await this.findOne({
+      where: { id: subId },
+      relations: { transaction: { tariff: true } },
     });
 
     await this.trainingsService.createForSubscription(
       createSubscriptionDto.createTrainingDto,
       trainerId,
+      client.id,
       subscription,
     );
 
-    return subscription;
+    return await this.findOne({
+      where: { id: subId },
+      relations: {
+        client: true,
+        trainer: true,
+        transaction: { tariff: { sport: true } },
+        trainings: { type: true, club: true },
+      },
+    });
   }
 }
