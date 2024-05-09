@@ -9,6 +9,7 @@ import { CreateSubscriptionDto } from '#src/core/subscriptions/dto/create-subscr
 import { TrainingsService } from '#src/core/trainings/trainings.service';
 import { UserService } from '#src/core/users/user.service';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
+import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -23,6 +24,7 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly trainingsService: TrainingsService,
     private readonly userService: UserService,
     private readonly transactionsService: TransactionsService,
+    private readonly tariffsService: TariffsService,
   ) {
     super(
       subscriptionRepository,
@@ -50,10 +52,22 @@ export class SubscriptionsService extends BaseEntityService<
       );
     }
 
+    const tariff = await this.tariffsService.findOne({
+      where: { id: createSubscriptionDto.tariff },
+    });
+
+    if (!tariff) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
+
     const transaction = await this.transactionsService.save({
       client: client,
       trainer: { id: trainerId },
-      cost: createSubscriptionDto.cost,
+      cost: tariff.cost,
     });
 
     const subscription = await this.save({

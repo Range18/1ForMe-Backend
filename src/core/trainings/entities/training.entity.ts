@@ -26,8 +26,8 @@ export class Training extends BaseEntity {
   @JoinColumn({ name: 'sport' })
   sport: Sport;
 
-  @Column({ nullable: false, default: 'NotFinished' })
-  status: string;
+  @Column({ nullable: false, default: false })
+  isCanceled: boolean;
 
   @Column({ nullable: false })
   startTime: string;

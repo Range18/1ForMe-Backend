@@ -11,4 +11,6 @@ export class UpdateTariffDto {
   @IsNumber()
   @IsOptional()
   readonly cost?: number;
+
+  readonly duration?: string;
 }

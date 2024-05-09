@@ -1,4 +1,4 @@
-import { ISODateToString } from '#src/core/transactions/utilities/iso-date-to-string.func';
+import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
 
 export class GetTransactionSumsRdo {
   costSum: number;

@@ -10,6 +10,7 @@ import { SessionModule } from '#src/core/session/session.module';
 import { TokenModule } from '#src/core/token/token.module';
 import { TrainingsModule } from '#src/core/trainings/trainings.module';
 import { TransactionsModule } from '#src/core/transactions/transactions.module';
+import { TariffsModule } from '#src/core/tariffs/tariffs.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TransactionsModule } from '#src/core/transactions/transactions.module';
     TokenModule,
     TrainingsModule,
     TransactionsModule,
+    TariffsModule,
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],

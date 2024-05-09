@@ -32,4 +32,7 @@ export class Tariff extends BaseEntity {
     nullable: true,
   })
   transactions?: Transaction[];
+
+  @Column({ nullable: true })
+  duration: string;
 }

@@ -6,4 +6,7 @@ export class CreateTariffDto {
 
   @ApiProperty()
   readonly cost: number;
+
+  @ApiProperty()
+  readonly duration: string;
 }

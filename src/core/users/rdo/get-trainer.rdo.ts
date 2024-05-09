@@ -30,6 +30,8 @@ export class GetTrainerRdo {
   @ApiProperty({ nullable: true })
   readonly tax?: number;
 
+  readonly isActive: boolean;
+
   constructor(user: UserEntity) {
     this.studio = user.studio ? new GetStudioRdo(user.studio) : undefined;
     this.tariff = user?.tariffs
@@ -44,5 +46,6 @@ export class GetTrainerRdo {
       ? `${frontendServer.url}/trainers?link=${user.link}`
       : undefined;
     this.tax = user.tax ?? undefined;
+    this.isActive = user.isTrainerActive;
   }
 }

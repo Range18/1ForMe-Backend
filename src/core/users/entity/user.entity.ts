@@ -128,8 +128,8 @@ export class UserEntity extends BaseEntity {
   @ManyToMany(() => UserEntity, (client) => client.trainers)
   @JoinTable({
     name: 'clients-to-trainers',
-    joinColumn: { name: 'client' },
-    inverseJoinColumn: { name: 'trainer' },
+    joinColumn: { name: 'trainer' },
+    inverseJoinColumn: { name: 'client' },
   })
   clients?: UserEntity[];
 

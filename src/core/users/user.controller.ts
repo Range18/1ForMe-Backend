@@ -22,6 +22,7 @@ import { User } from '#src/common/decorators/User.decorator';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
+import * as console from 'console';
 
 @ApiTags('users')
 @Controller('api/users')
@@ -62,12 +63,16 @@ export class UserController {
       },
     });
 
+    console.log(userEntity);
+
     return userEntity?.clients.map((user) => {
       const trainerComment = user?.relatedComments.find(
         (comment) => comment.trainer.id === user.id,
       );
 
       user.relatedComments = [trainerComment];
+
+      console.log(user);
 
       return new GetUserRdo(user);
     });

@@ -12,6 +12,8 @@ export class GetTariffRdo {
   @ApiProperty()
   readonly cost: number;
 
+  readonly duration: string;
+
   @ApiProperty({ nullable: true, type: () => GetUserRdo })
   trainer?: GetUserRdo;
 
@@ -19,6 +21,7 @@ export class GetTariffRdo {
     this.id = tariff.id;
     this.name = tariff.name;
     this.cost = tariff.cost;
+    this.duration = tariff.duration;
     this.trainer = tariff.user ? new GetUserRdo(tariff.user) : undefined;
   }
 }

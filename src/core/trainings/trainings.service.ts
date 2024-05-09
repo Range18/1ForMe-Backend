@@ -11,8 +11,8 @@ import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { isNumber } from 'class-validator';
 import { UserService } from '#src/core/users/user.service';
-import { UserEntity } from '#src/core/users/entity/user.entity';
 import { TrainingCountPerDateRdo } from './rdo/training-count-per-date.rdo';
+import { UserEntity } from '#src/core/users/entity/user.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -57,6 +57,9 @@ export class TrainingsService extends BaseEntityService<
 
     const client = await this.userService.findOne({
       where: { id: createTrainingDto.client },
+      relations: {
+        trainers: true,
+      },
     });
 
     if (!client) {
@@ -67,7 +70,7 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    const [hours, minutes] = this.parseTime(createTrainingDto.duration);
+    const [hours, minutes] = this.parseTime(tariff.duration);
     const [startHours, startMin] = this.parseTime(createTrainingDto.startTime);
 
     const endTimeHours =
@@ -80,19 +83,20 @@ export class TrainingsService extends BaseEntityService<
       endTimeMin = `0${endTimeMin}`;
     }
 
+    console.log(client.trainers);
+
     client.trainers.push({ id: trainerId } as UserEntity);
 
     await this.userService.save(client);
 
     const training = await this.save({
       sport: { id: createTrainingDto.sport },
-      status: createTrainingDto.status,
       type: { id: createTrainingDto.type },
       date: createTrainingDto.date,
       startTime: createTrainingDto.startTime,
       client: { id: createTrainingDto.client },
       trainer: { id: trainerId },
-      duration: createTrainingDto.duration,
+      duration: tariff.duration,
       endTime: `${endTimeHours}:${endTimeMin}`,
       club: { id: createTrainingDto.club },
       transaction: await this.transactionsService.save({
@@ -123,7 +127,9 @@ export class TrainingsService extends BaseEntityService<
   ) {
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
-        const [hours, minutes] = this.parseTime(training.duration);
+        const [hours, minutes] = this.parseTime(
+          subscriptionEntity.transaction.tariff.duration,
+        );
         const [startHours, startMin] = this.parseTime(training.startTime);
 
         const endTimeHours =
@@ -138,13 +144,12 @@ export class TrainingsService extends BaseEntityService<
 
         return await this.save({
           sport: { id: training.sport },
-          status: training.status,
           type: { id: training.type },
           date: training.date,
           startTime: training.startTime,
           client: { id: training.client },
           trainer: { id: trainerId },
-          duration: training.duration,
+          duration: subscriptionEntity.transaction.tariff.duration,
           endTime: `${endTimeHours}:${endTimeMin}`,
           club: { id: training.club },
           subscription: subscriptionEntity,

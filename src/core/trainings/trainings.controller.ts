@@ -25,9 +25,8 @@ import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
 import { GetTrainingExtraRdo } from '#src/core/trainings/rdo/get-training-extra.rdo';
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { UserService } from '#src/core/users/user.service';
-import { TrainingStatusType } from '#src/core/trainings/training-status.type';
-import { MoreThanOrEqual } from 'typeorm';
 import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
+import { MoreThanOrEqual } from 'typeorm';
 
 @ApiTags('Trainings')
 @Controller('api/trainings')
@@ -96,40 +95,46 @@ export class TrainingsController {
     );
   }
 
-  @ApiQuery({ name: 'date', type: Date })
   @ApiOkResponse({ type: [GetUserRdo] })
   @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('my/clients')
-  async getMyClients(@User() user: UserRequest, @Query('date') date?: Date) {
-    const clients = await this.userService.find(
+  async getMyClients(@User() user: UserRequest) {
+    let clients = await this.userService.find(
       {
-        where: { trainers: [{ id: user.id }] },
+        relations: { trainers: true },
       },
       true,
+    );
+
+    clients = clients.filter((client) =>
+      client.trainers.some((trainer) => trainer.id == user.id),
     );
 
     const rdo: GetUserRdo[] = [];
 
     for (const client of clients) {
-      const trainings = await this.trainingsService.find({
-        where: {
-          client: { id: client.id },
-          trainer: { id: user.id },
-          status: TrainingStatusType.NotFinished,
-          date: MoreThanOrEqual(date),
+      const trainings = await this.trainingsService.find(
+        {
+          where: {
+            client: { id: client.id },
+            trainer: { id: user.id },
+            isCanceled: false,
+            date: MoreThanOrEqual(new Date(Date.now())),
+          },
+          relations: {
+            club: { studio: true, city: true },
+            sport: true,
+          },
+          order: { date: 'ASC', startTime: 'ASC' },
         },
-        relations: {
-          client: { avatar: true },
-          trainer: { avatar: true },
-          club: { studio: true, city: true },
-          sport: true,
-        },
-        order: { date: 'ASC', startTime: 'ASC' },
-      });
+        false,
+      );
 
-      if (trainings.length != 0) {
+      if (trainings.length !== 0) {
         rdo.push(new GetUserRdo(client, trainings[0]));
+      } else {
+        rdo.push(new GetUserRdo(client));
       }
     }
 
@@ -210,7 +215,6 @@ export class TrainingsController {
         {
           club: { id: updateTrainingDto.club },
           date: updateTrainingDto.date,
-          status: updateTrainingDto.status,
         },
       ),
     );
