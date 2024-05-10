@@ -10,6 +10,7 @@ import { BaseEntity } from '#src/common/base.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { City } from '#src/core/city/entity/cities.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
+import { ClubSlots } from '#src/core/club_slots/entities/club-slot.entity';
 
 @Entity('clubs')
 export class Clubs extends BaseEntity {
@@ -40,6 +41,12 @@ export class Clubs extends BaseEntity {
     nullable: true,
   })
   trainings?: Training[];
+
+  @OneToMany(() => ClubSlots, (slot) => slot.club, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  slots?: ClubSlots[];
 
   //TODO NOT NULL
   @Column({ nullable: true })

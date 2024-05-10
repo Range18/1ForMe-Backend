@@ -21,6 +21,7 @@ import { VerificationModule } from '#src/core/verification-codes/verification.mo
 import { ClubsModule } from '#src/core/clubs/clubs.module';
 import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.module';
 import { SlotsModule } from '#src/core/slots/slots.module';
+import { ClubSlotsModule } from '#src/core/club_slots/club-slots.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SlotsModule } from '#src/core/slots/slots.module';
     ClubsModule,
     SubscriptionsModule,
     SlotsModule,
+    ClubSlotsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
