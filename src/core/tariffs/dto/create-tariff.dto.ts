@@ -16,4 +16,6 @@ export class CreateTariffDto {
   readonly subExpireAt?: Date;
 
   trainingAmount?: number;
+
+  isForSubscription?: boolean;
 }

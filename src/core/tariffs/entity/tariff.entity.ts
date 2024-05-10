@@ -50,4 +50,7 @@ export class Tariff extends BaseEntity {
 
   @Column({ nullable: true })
   trainingAmount?: number;
+
+  @Column({ nullable: false, default: false })
+  isForSubscription: boolean;
 }
