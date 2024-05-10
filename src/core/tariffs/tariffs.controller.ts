@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiCreatedResponse,
   ApiHeader,
   ApiOkResponse,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
@@ -34,10 +43,14 @@ export class TariffsController {
     );
   }
 
+  @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
   @Get('/tariffs')
-  async getAll() {
+  async getAll(@Query('isForSubscription') isForSubscription?: boolean) {
     const tariffs = await this.tariffsService.find({
+      where: {
+        isForSubscription: isForSubscription ? isForSubscription : undefined,
+      },
       relations: {
         user: {
           studio: { city: true },
