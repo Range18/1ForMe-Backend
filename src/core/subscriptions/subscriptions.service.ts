@@ -98,7 +98,7 @@ export class SubscriptionsService extends BaseEntityService<
         client: true,
         trainer: true,
         transaction: { tariff: { sport: true } },
-        trainings: { type: true, club: true },
+        trainings: { type: true, club: true, slot: true },
       },
     });
   }

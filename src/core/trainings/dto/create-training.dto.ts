@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTrainingDto {
   @ApiProperty()
-  readonly startTime: string;
+  readonly slot: number;
 
   @ApiProperty()
   readonly date: Date;

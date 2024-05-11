@@ -70,6 +70,7 @@ export class TrainingsController {
         type: true,
         club: { city: true, studio: { city: true } },
         subscription: { transaction: { tariff: { sport: true } } },
+        slot: true,
       },
     });
 
@@ -91,8 +92,9 @@ export class TrainingsController {
         club: { city: true, studio: { city: true } },
         transaction: { tariff: { sport: true } },
         subscription: { transaction: { tariff: { sport: true } } },
+        slot: true,
       },
-      order: { startTime: 'ASC' },
+      order: { slot: { id: 'ASC' } },
     });
 
     return new GetTrainingExtraRdo(
@@ -135,8 +137,9 @@ export class TrainingsController {
             type: true,
             transaction: { tariff: { sport: true } },
             subscription: { transaction: { tariff: { sport: true } } },
+            slot: true,
           },
-          order: { date: 'ASC', startTime: 'ASC' },
+          order: { date: 'ASC', slot: { id: 'ASC' } },
         },
         false,
       );
@@ -164,6 +167,7 @@ export class TrainingsController {
         type: true,
         transaction: { tariff: { sport: true } },
         subscription: { transaction: { tariff: { sport: true } } },
+        slot: true,
       },
     });
 
@@ -172,16 +176,21 @@ export class TrainingsController {
 
   //Get someone client trainings
   @ApiOkResponse({ type: [GetTrainingRdo] })
+  @AuthGuard()
   @Get('clients/:id')
-  async getClientTrainings(@Param('id') id: number) {
+  async getClientTrainings(@Param('id') id: number, @User() user: UserRequest) {
     const trainings = await this.trainingsService.find({
-      where: { client: { id: id } },
+      where: {
+        client: { id: id },
+        trainer: user.role.name === 'trainer' ? { id: user.id } : undefined,
+      },
       relations: {
         trainer: true,
         club: { city: true },
         type: true,
         transaction: { tariff: { sport: true } },
         subscription: { transaction: { tariff: { sport: true } } },
+        slot: true,
       },
     });
 
@@ -192,7 +201,17 @@ export class TrainingsController {
   @Get(':id')
   async findOne(@Param('id') id: number) {
     return new GetTrainingRdo(
-      await this.trainingsService.findOne({ where: { id } }),
+      await this.trainingsService.findOne({
+        where: { id },
+        relations: {
+          trainer: true,
+          club: { city: true },
+          type: true,
+          transaction: { tariff: { sport: true } },
+          subscription: { transaction: { tariff: { sport: true } } },
+          slot: true,
+        },
+      }),
     );
   }
 
@@ -216,10 +235,12 @@ export class TrainingsController {
         {
           where: { id, trainer: { id: user.id } },
           relations: {
+            trainer: true,
             club: { city: true },
             type: true,
-            trainer: true,
-            client: true,
+            transaction: { tariff: { sport: true } },
+            subscription: { transaction: { tariff: { sport: true } } },
+            slot: true,
           },
         },
         {

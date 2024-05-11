@@ -12,6 +12,7 @@ import { TrainingType } from '#src/core/training-type/entity/training-type.entit
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
+import { ClubSlots } from '#src/core/club_slots/entities/club-slot.entity';
 
 @Entity()
 export class Training extends BaseEntity {
@@ -21,14 +22,9 @@ export class Training extends BaseEntity {
   @Column({ nullable: false, default: false })
   isCanceled: boolean;
 
-  @Column({ nullable: false })
-  startTime: string;
-
-  @Column({ nullable: false })
-  duration: string;
-
-  @Column({ nullable: false })
-  endTime: string;
+  @ManyToOne(() => ClubSlots, (slot) => slot.trainings, { nullable: false })
+  @JoinColumn({ name: 'slots' })
+  slot: ClubSlots;
 
   @Column({ type: 'date', nullable: false })
   date: Date;

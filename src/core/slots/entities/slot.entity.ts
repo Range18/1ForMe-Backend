@@ -8,17 +8,24 @@ import {
 import { BaseEntity } from '#src/common/base.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
+import { ClubSlots } from '#src/core/club_slots/entities/club-slot.entity';
 
 @Entity('trainer_slots')
 export class Slot extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;
 
-  @Column({ nullable: false })
-  beginning: string;
+  @ManyToOne(() => ClubSlots, (slot) => slot.trainerSlotsStart, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'beginning' })
+  beginning: ClubSlots;
 
-  @Column({ nullable: false })
-  end: string;
+  @ManyToOne(() => ClubSlots, (slot) => slot.trainerSlotsEnd, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'end' })
+  end: ClubSlots;
 
   @Column({ nullable: false })
   day: number;

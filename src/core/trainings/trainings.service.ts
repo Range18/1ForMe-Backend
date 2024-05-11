@@ -9,7 +9,6 @@ import { CreateTrainingDto } from '#src/core/trainings/dto/create-training.dto';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
-import { isNumber } from 'class-validator';
 import { UserService } from '#src/core/users/user.service';
 import { TrainingCountPerDateRdo } from './rdo/training-count-per-date.rdo';
 import { UserEntity } from '#src/core/users/entity/user.entity';
@@ -70,20 +69,18 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    const [hours, minutes] = this.parseTime(tariff.duration);
-    const [startHours, startMin] = this.parseTime(createTrainingDto.startTime);
-
-    const endTimeHours =
-      startHours + hours + Math.floor((startMin + minutes) / 60);
-
-    let endTimeMin =
-      (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
-
-    if (isNumber(endTimeMin) && endTimeMin < 10) {
-      endTimeMin = `0${endTimeMin}`;
-    }
-
-    console.log(client.trainers);
+    // const [hours, minutes] = this.parseTime(tariff.duration);
+    // const [startHours, startMin] = this.parseTime(createTrainingDto.startTime);
+    //
+    // const endTimeHours =
+    //   startHours + hours + Math.floor((startMin + minutes) / 60);
+    //
+    // let endTimeMin =
+    //   (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
+    //
+    // if (isNumber(endTimeMin) && endTimeMin < 10) {
+    //   endTimeMin = `0${endTimeMin}`;
+    // }
 
     client.trainers.push({ id: trainerId } as UserEntity);
 
@@ -91,12 +88,10 @@ export class TrainingsService extends BaseEntityService<
 
     const training = await this.save({
       type: createTrainingDto.type ? { id: createTrainingDto.type } : undefined,
+      slot: { id: createTrainingDto.slot },
       date: createTrainingDto.date,
-      startTime: createTrainingDto.startTime,
       client: { id: createTrainingDto.client },
       trainer: { id: trainerId },
-      duration: tariff.duration,
-      endTime: `${endTimeHours}:${endTimeMin}`,
       club: { id: createTrainingDto.club },
       transaction: await this.transactionsService.save({
         client: { id: createTrainingDto.client },
@@ -114,6 +109,7 @@ export class TrainingsService extends BaseEntityService<
         transaction: { tariff: true },
         type: true,
         club: { city: true },
+        slot: true,
       },
     });
   }
@@ -130,29 +126,27 @@ export class TrainingsService extends BaseEntityService<
   ) {
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
-        const [hours, minutes] = this.parseTime(
-          subscriptionEntity.transaction.tariff.duration,
-        );
-        const [startHours, startMin] = this.parseTime(training.startTime);
-
-        const endTimeHours =
-          startHours + hours + Math.floor((startMin + minutes) / 60);
-
-        let endTimeMin =
-          (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
-
-        if (isNumber(endTimeMin) && endTimeMin < 10) {
-          endTimeMin = `0${endTimeMin}`;
-        }
+        // const [hours, minutes] = this.parseTime(
+        //   subscriptionEntity.transaction.tariff.duration,
+        // );
+        // const [startHours, startMin] = this.parseTime(training.startTime);
+        //
+        // const endTimeHours =
+        //   startHours + hours + Math.floor((startMin + minutes) / 60);
+        //
+        // let endTimeMin =
+        //   (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
+        //
+        // if (isNumber(endTimeMin) && endTimeMin < 10) {
+        //   endTimeMin = `0${endTimeMin}`;
+        // }
 
         return await this.save({
           type: { id: trainingType },
           date: training.date,
-          startTime: training.startTime,
+          slot: { id: training.slot },
           client: { id: clientId },
           trainer: { id: trainerId },
-          duration: subscriptionEntity.transaction.tariff.duration,
-          endTime: `${endTimeHours}:${endTimeMin}`,
           club: { id: training.club },
           subscription: subscriptionEntity,
         });

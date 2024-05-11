@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { SlotsService } from './slots.service';
 import { CreateSlotDto } from './dto/create-slot.dto';
@@ -16,6 +17,7 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { GetSlotRdo } from '#src/core/slots/rdo/get-slot.rdo';
@@ -24,8 +26,14 @@ import { User } from '#src/common/decorators/User.decorator';
 import { ClubSlotsService } from '#src/core/club_slots/club-slots.service';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { MoreThanOrEqual } from 'typeorm';
+import { In, MoreThanOrEqual } from 'typeorm';
+import { TrainingsService } from '#src/core/trainings/trainings.service';
+import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
+
+function range(start: number, stop: number) {
+  return [...Array(stop).keys()].map((key) => ++key).splice(start - 1);
+}
 
 @ApiTags('Slots')
 @Controller('api/slots')
@@ -33,6 +41,7 @@ export class SlotsController {
   constructor(
     private readonly slotsService: SlotsService,
     private readonly clubSlotsService: ClubSlotsService,
+    private readonly trainingService: TrainingsService,
   ) {}
 
   @ApiCreatedResponse({ type: GetSlotRdo })
@@ -60,8 +69,8 @@ export class SlotsController {
     }
 
     return await this.slotsService.save({
-      beginning: beginningSlot.beginning,
-      end: endSlot.end,
+      beginning: beginningSlot,
+      end: endSlot,
       day: createSlotDto.day,
       date: createSlotDto.date,
       studio: { id: createSlotDto.studio },
@@ -81,6 +90,44 @@ export class SlotsController {
       order: { day: 'ASC' },
       relations: { studio: { city: true } },
     });
+  }
+
+  @ApiOkResponse({ type: [GetSlotRdo] })
+  @ApiQuery({ name: 'date' })
+  @AuthGuard()
+  @Get('trainers/:trainerId/available')
+  async getAllTrainerTime(
+    @User() user: UserRequest,
+    @Param('trainerId') trainerId: number,
+    @Query('date') date: Date,
+  ) {
+    const trainings = await this.trainingService.find({
+      where: { date: date },
+      relations: { slot: true },
+    });
+
+    const trainerTime = await this.slotsService.findOne({
+      where: {
+        trainer: { id: trainerId },
+        date: date,
+      },
+      order: { day: 'ASC' },
+      relations: { studio: { city: true }, end: true, beginning: true },
+    });
+
+    const slots = await this.clubSlotsService.find({
+      where: { id: In(range(trainerTime.beginning.id, trainerTime.end.id)) },
+      relations: { club: { city: true, studio: true } },
+      order: { id: 'ASC' },
+    });
+
+    return slots.map(
+      (slot) =>
+        new GetClubSlotRdo(
+          slot,
+          trainings.some((training) => slot.id !== training.slot.id),
+        ),
+    );
   }
 
   @ApiOkResponse({ type: GetSlotRdo })
@@ -123,8 +170,8 @@ export class SlotsController {
         relations: { trainer: true, studio: { city: true } },
       },
       {
-        beginning: beginningSlot.beginning,
-        end: endSlot.end,
+        beginning: beginningSlot,
+        end: endSlot,
         studio: { id: updateSlotDto.studio },
       },
     );
