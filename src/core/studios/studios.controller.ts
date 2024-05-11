@@ -10,12 +10,7 @@ import {
 import { StudiosService } from './studios.service';
 import { CreateStudioDto } from './dto/create-studio.dto';
 import { UpdateStudioDto } from './dto/update-studio.dto';
-import {
-  ApiCreatedResponse,
-  ApiHeader,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
 import { User } from '#src/common/decorators/User.decorator';
@@ -84,7 +79,6 @@ export class StudiosController {
     return studio?.clubs.map((club) => new GetClubRdo(club));
   }
 
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @ApiOkResponse({ type: [GetClubRdo] })
   @Get('/clubs')

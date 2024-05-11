@@ -10,7 +10,6 @@ import {
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -29,7 +28,6 @@ import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 export class TariffsController {
   constructor(private readonly tariffsService: TariffsService) {}
 
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @ApiCreatedResponse({ type: Tariff })
   @Post('/tariffs')
@@ -46,7 +44,10 @@ export class TariffsController {
   @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
   @Get('/tariffs')
-  async getAll(@Query('isForSubscription') isForSubscription?: boolean) {
+  async getAll(
+    @Query('isForSubscription')
+    isForSubscription?: boolean,
+  ) {
     const tariffs = await this.tariffsService.find({
       where: {
         isForSubscription: isForSubscription ? isForSubscription : undefined,

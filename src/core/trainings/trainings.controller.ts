@@ -13,7 +13,6 @@ import { CreateTrainingDto } from './dto/create-training.dto';
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -27,6 +26,7 @@ import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { UserService } from '#src/core/users/user.service';
 import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 import { MoreThanOrEqual } from 'typeorm';
+import { TrainingCountPerDateRdo } from '#src/core/trainings/rdo/training-count-per-date.rdo';
 
 @ApiTags('Trainings')
 @Controller('api/trainings')
@@ -38,7 +38,6 @@ export class TrainingsController {
 
   @ApiBody({ type: CreateTrainingDto })
   @ApiCreatedResponse({ type: GetTrainingRdo })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Post()
   async create(
@@ -50,16 +49,24 @@ export class TrainingsController {
     );
   }
 
-  @ApiQuery({ name: 'date', type: Date })
   @ApiOkResponse({ type: [GetTrainingRdo] })
+  @AuthGuard()
   @Get()
-  async findAll(@Query('date') date?: Date) {
+  async findAll(
+    @Query('clientId') clientId?: number,
+    @Query('trainerId') trainerId?: number,
+    @Query('date') date?: Date,
+  ) {
     const trainings = await this.trainingsService.find({
-      where: { date: date },
+      where: {
+        date: date,
+        client: { id: clientId },
+        trainer: { id: trainerId },
+      },
       relations: {
         client: true,
         trainer: true,
-        transaction: { tariff: true },
+        transaction: { tariff: { sport: true } },
         type: true,
         club: { city: true, studio: { city: true } },
       },
@@ -71,7 +78,6 @@ export class TrainingsController {
   //Get all trainer`s trainings on date with count
   @ApiQuery({ name: 'date', type: Date })
   @ApiOkResponse({ type: GetTrainingExtraRdo })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('/trainers/my')
   async findAllMine(@User() user: UserRequest, @Query('date') date?: Date) {
@@ -96,7 +102,6 @@ export class TrainingsController {
 
   // Get Trainer`s clients with the closest training
   @ApiOkResponse({ type: [GetUserRdo] })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('my/clients')
   async getMyClients(@User() user: UserRequest) {
@@ -146,7 +151,6 @@ export class TrainingsController {
 
   //Get client`s trainings
   @ApiOkResponse({ type: [GetTrainingRdo] })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('my')
   async getMyTrainings(@User() user: UserRequest) {
@@ -163,7 +167,7 @@ export class TrainingsController {
     return trainings.map((training) => new GetTrainingRdo(training));
   }
 
-  //Get someone client training
+  //Get someone client trainings
   @ApiOkResponse({ type: [GetTrainingRdo] })
   @Get('clients/:id')
   async getClientTrainings(@Param('id') id: number) {
@@ -188,8 +192,7 @@ export class TrainingsController {
     );
   }
 
-  @ApiOkResponse({ type: [GetTrainingRdo] })
-  @ApiHeader({ name: 'Authorization' })
+  @ApiOkResponse({ type: [TrainingCountPerDateRdo] })
   @AuthGuard()
   @Get('my/count')
   async getMyTrainingsCount(@User() user: UserRequest) {
@@ -197,7 +200,6 @@ export class TrainingsController {
   }
 
   @ApiOkResponse({ type: GetTrainingRdo })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Patch(':id')
   async update(

@@ -10,7 +10,6 @@ import {
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -23,17 +22,16 @@ import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 
 @ApiTags('Comments of users')
-@Controller('api/users/:id/comments')
+@Controller('api/users/:userId/comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @ApiCreatedResponse({ type: GetCommentRdo })
   @Post()
   async create(
     @Body() body: CreateCommentDto,
-    @Param('id') clientId: number,
+    @Param('userId') clientId: number,
     @User() user: UserRequest,
   ) {
     const comment = await this.commentsService.save({
@@ -46,22 +44,21 @@ export class CommentsController {
       await this.commentsService.findOne({
         where: { id: comment.id },
         relations: {
-          client: { role: true, avatar: true },
-          trainer: { role: true, avatar: true, studio: true, category: true },
+          client: { avatar: true },
         },
       }),
     );
   }
 
   @ApiOkResponse({ type: GetCommentRdo })
-  @Get(':id')
-  async get(@Param('id') id: number) {
+  @AuthGuard()
+  @Get()
+  async get(@Param('userId') clientId: number, @User() user: UserRequest) {
     return new GetCommentRdo(
       await this.commentsService.findOne({
-        where: { id },
+        where: { client: { id: clientId }, trainer: { id: user.id } },
         relations: {
-          client: { role: true, avatar: true },
-          trainer: { role: true, avatar: true, studio: true, category: true },
+          client: { avatar: true },
         },
       }),
     );
@@ -70,7 +67,6 @@ export class CommentsController {
   // TODO PERMS
   @ApiOkResponse({ type: GetCommentRdo })
   @ApiBody({ type: UpdateCommentDto })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Patch()
   async update(
@@ -83,8 +79,7 @@ export class CommentsController {
         {
           where: { client: { id: clientId }, trainer: { id: user.id } },
           relations: {
-            client: { role: true, avatar: true },
-            trainer: { role: true, avatar: true, studio: true, category: true },
+            client: { avatar: true },
           },
         },
         updateCommentDto,

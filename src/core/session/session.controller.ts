@@ -1,7 +1,7 @@
 import { Controller, Post } from '@nestjs/common';
 import { LoggedUserRdo } from '#src/core/users/rdo/logged-user.rdo';
 import { SessionService } from '#src/core/session/session.service';
-import { ApiCreatedResponse, ApiHeader, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { Session } from '#src/common/decorators/session.decorator';
 import { type RequestSession } from '#src/common/types/request-session.type';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
@@ -11,11 +11,6 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 export class SessionController {
   constructor(private readonly sessionService: SessionService) {}
 
-  @ApiHeader({
-    name: 'Authorization',
-    required: true,
-    schema: { format: 'Bearer ${AccessToken}' },
-  })
   @AuthGuard()
   @ApiCreatedResponse({ type: LoggedUserRdo })
   @Post('refresh')

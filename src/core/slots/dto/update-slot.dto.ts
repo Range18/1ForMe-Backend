@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateSlotDto {
   @ApiProperty({ required: false })
-  beginning?: string;
+  beginning?: number;
 
   @ApiProperty({ required: false })
-  end?: string;
+  end?: number;
 
   @ApiProperty()
   studio: number;

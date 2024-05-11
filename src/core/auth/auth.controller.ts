@@ -7,7 +7,6 @@ import { LoginUserDto } from '#src/core/users/dto/login-user.dto';
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -47,18 +46,12 @@ export class AuthController {
     return await this.authService.login(loginUserDto);
   }
 
-  @ApiHeader({
-    name: 'Authorization',
-    required: true,
-    schema: { format: 'Bearer ${AccessToken}' },
-  })
   @AuthGuard()
   @Delete('logout')
   async logout(@Session() session: RequestSession): Promise<void> {
     await this.authService.logout(session.sessionId);
   }
 
-  @ApiHeader({ name: 'Authorization' })
   @ApiCreatedResponse({ type: GetUserRdo })
   @ApiBody({ type: CreateClientDto })
   @AuthGuard()

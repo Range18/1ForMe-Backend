@@ -16,5 +16,6 @@ import { ClubSlots } from '#src/core/club_slots/entities/club-slot.entity';
   ],
   controllers: [ClubSlotsController],
   providers: [ClubSlotsService],
+  exports: [ClubSlotsService],
 })
 export class ClubSlotsModule {}

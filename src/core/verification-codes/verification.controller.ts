@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBody, ApiHeader, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { VerificationService } from '#src/core/verification-codes/verification.service';
 import { VerifyByCodeDto } from '#src/core/verification-codes/dto/verify-by-code.dto';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
@@ -12,7 +12,6 @@ export class VerificationController {
   constructor(private readonly verificationService: VerificationService) {}
 
   @ApiBody({ type: VerifyByCodeDto })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @ApiOkResponse()
   @Post()

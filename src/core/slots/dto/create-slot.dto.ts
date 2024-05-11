@@ -2,13 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSlotDto {
   @ApiProperty()
-  beginning: string;
+  beginning: number;
 
   @ApiProperty()
-  end: string;
+  end: number;
 
   @ApiProperty()
-  day: string;
+  day: number;
+
+  date: Date;
 
   @ApiProperty()
   studio: number;

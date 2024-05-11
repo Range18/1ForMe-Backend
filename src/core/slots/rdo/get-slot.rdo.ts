@@ -27,7 +27,7 @@ export class GetSlotRdo {
 
   end: string;
 
-  day: string;
+  day: number;
 
   trainer: GetUserForSlots;
 

@@ -35,8 +35,8 @@ export class GetUserRdo {
   @ApiProperty({ nullable: true })
   readonly closestTraining?: GetTrainingRdo;
 
-  @ApiProperty({ nullable: true })
-  readonly comment?: string;
+  // @ApiProperty({ nullable: true })
+  // readonly comment?: string;
 
   @ApiProperty()
   readonly updatedAt: Date;
@@ -56,10 +56,10 @@ export class GetUserRdo {
     this.closestTraining = training ? new GetTrainingRdo(training) : undefined;
     this.trainerProfile =
       user?.role?.name == 'trainer' ? new GetTrainerRdo(user) : undefined;
-    this.comment =
-      user.relatedComments && user.relatedComments.length !== 0
-        ? user?.relatedComments[0].text
-        : undefined;
+    // this.comment =
+    //   user.relatedComments && user.relatedComments.length !== 0
+    //     ? user?.relatedComments[0].text
+    //     : undefined;
     this.birthday = user.birthday;
 
     this.updatedAt = user.updatedAt;

@@ -14,7 +14,6 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -29,7 +28,6 @@ export class ClubSlotsController {
 
   @ApiCreatedResponse({ type: GetClubSlotRdo })
   @ApiBody({ type: CreateClubSlotDto })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Post()
   async create(
@@ -44,7 +42,6 @@ export class ClubSlotsController {
   }
 
   @ApiOkResponse({ type: [GetClubSlotRdo] })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get()
   async findAll(@Param('clubId') clubId: number, @User() user: UserRequest) {
@@ -65,7 +62,6 @@ export class ClubSlotsController {
 
   @ApiOkResponse({ type: GetClubSlotRdo })
   @ApiBody({ type: UpdateClubSlotDto })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Patch(':id')
   async update(

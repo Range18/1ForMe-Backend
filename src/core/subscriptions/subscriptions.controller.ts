@@ -9,12 +9,7 @@ import {
 } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import {
-  ApiCreatedResponse,
-  ApiHeader,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
@@ -27,7 +22,6 @@ export class SubscriptionsController {
   constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
   @ApiCreatedResponse()
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Post()
   async create(
@@ -56,7 +50,6 @@ export class SubscriptionsController {
   }
 
   @ApiQuery({ name: 'clientId' })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('/my')
   async findAllMy(

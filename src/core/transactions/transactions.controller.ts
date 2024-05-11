@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
-import { ApiHeader, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
@@ -28,7 +28,6 @@ export class TransactionsController {
   @ApiQuery({ name: 'from' })
   @ApiQuery({ name: 'to' })
   @ApiQuery({ name: 'period' })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get()
   async findAll(
@@ -72,7 +71,6 @@ export class TransactionsController {
   @ApiQuery({ name: 'clientId' })
   @ApiQuery({ name: 'from' })
   @ApiQuery({ name: 'to' })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('/analytics/entities')
   async findAllAnalytics(

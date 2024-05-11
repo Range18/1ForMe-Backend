@@ -21,7 +21,10 @@ export class Slot extends BaseEntity {
   end: string;
 
   @Column({ nullable: false })
-  day: string;
+  day: number;
+
+  @Column({ type: 'date', nullable: false })
+  date: Date;
 
   @ManyToOne(() => UserEntity, (user) => user.slots, {
     nullable: false,

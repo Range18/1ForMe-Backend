@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -14,42 +15,69 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { GetSlotRdo } from '#src/core/slots/rdo/get-slot.rdo';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
+import { ClubSlotsService } from '#src/core/club_slots/club-slots.service';
+import { ApiException } from '#src/common/exception-handler/api-exception';
+import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { MoreThanOrEqual } from 'typeorm';
+import EntityExceptions = AllExceptions.EntityExceptions;
 
 @ApiTags('Slots')
 @Controller('api/slots')
 export class SlotsController {
-  constructor(private readonly slotsService: SlotsService) {}
+  constructor(
+    private readonly slotsService: SlotsService,
+    private readonly clubSlotsService: ClubSlotsService,
+  ) {}
 
   @ApiCreatedResponse({ type: GetSlotRdo })
   @ApiBody({ type: CreateSlotDto })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Post()
   async create(
     @Body() createSlotDto: CreateSlotDto,
     @User() user: UserRequest,
   ) {
+    const beginningSlot = await this.clubSlotsService.findOne({
+      where: { id: createSlotDto.beginning },
+    });
+
+    const endSlot = await this.clubSlotsService.findOne({
+      where: { id: createSlotDto.end },
+    });
+
+    if (!beginningSlot && !endSlot) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
     return await this.slotsService.save({
-      ...createSlotDto,
+      beginning: beginningSlot.beginning,
+      end: endSlot.end,
+      day: createSlotDto.day,
+      date: createSlotDto.date,
       studio: { id: createSlotDto.studio },
       trainer: { id: user.id },
     });
   }
 
   @ApiOkResponse({ type: [GetSlotRdo] })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Get('/my')
   async findAllMy(@User() user: UserRequest) {
     return await this.slotsService.find({
-      where: { trainer: { id: user.id } },
+      where: {
+        trainer: { id: user.id },
+        date: MoreThanOrEqual(new Date()),
+      },
+      order: { day: 'ASC' },
       relations: { trainer: true, studio: { city: true } },
     });
   }
@@ -65,7 +93,6 @@ export class SlotsController {
 
   @ApiOkResponse({ type: GetSlotRdo })
   @ApiBody({ type: UpdateSlotDto })
-  @ApiHeader({ name: 'Authorization' })
   @AuthGuard()
   @Patch(':id')
   async update(
@@ -73,13 +100,30 @@ export class SlotsController {
     @Body() updateSlotDto: UpdateSlotDto,
     @User() user: UserRequest,
   ) {
+    const beginningSlot = await this.clubSlotsService.findOne({
+      where: { id: updateSlotDto.beginning },
+    });
+
+    const endSlot = await this.clubSlotsService.findOne({
+      where: { id: updateSlotDto.end },
+    });
+
+    if (!beginningSlot && !endSlot) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
+
     return await this.slotsService.updateOne(
       {
         where: { id, trainer: { id: user.id } },
         relations: { trainer: true, studio: { city: true } },
       },
       {
-        ...updateSlotDto,
+        beginning: beginningSlot.beginning,
+        end: endSlot.end,
         studio: { id: updateSlotDto.studio },
       },
     );
