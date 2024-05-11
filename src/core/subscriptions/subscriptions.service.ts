@@ -89,6 +89,7 @@ export class SubscriptionsService extends BaseEntityService<
       trainerId,
       client.id,
       subscription,
+      createSubscriptionDto.type,
     );
 
     return await this.findOne({

@@ -3,14 +3,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Expose } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 
 export class BaseEntity extends TypeOrmBaseEntity {
-  @Expose()
+  @Exclude()
   @CreateDateColumn()
   readonly createdAt: Date;
 
-  @Expose()
+  @Exclude()
   @UpdateDateColumn()
   readonly updatedAt: Date;
 }

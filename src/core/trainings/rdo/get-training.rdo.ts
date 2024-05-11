@@ -6,6 +6,7 @@ import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
 import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes';
 import { TrainingStatusType } from '#src/core/trainings/training-status.type';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
+import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 
 export class GetTrainingRdo {
   @ApiProperty()
@@ -41,6 +42,8 @@ export class GetTrainingRdo {
   @ApiProperty({ type: () => GetTransactionRdo })
   transaction?: GetTransactionRdo;
 
+  subscription?: GetSubscriptionRdo;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -57,10 +60,13 @@ export class GetTrainingRdo {
     this.startTime = training.startTime;
     this.endTime = training.endTime;
     this.duration = training.duration;
-    this.type = training?.type;
+    this.type = training?.type ?? undefined;
     this.club = training.club ? new GetClubRdo(training.club) : undefined;
     this.transaction = training.transaction
       ? new GetTransactionRdo(training.transaction)
+      : undefined;
+    this.subscription = training.subscription
+      ? new GetSubscriptionRdo(training.subscription)
       : undefined;
 
     const [stHours, stMinutes] = parseHoursMinutes(training.startTime);

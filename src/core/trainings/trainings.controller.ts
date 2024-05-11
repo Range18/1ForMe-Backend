@@ -69,6 +69,7 @@ export class TrainingsController {
         transaction: { tariff: { sport: true } },
         type: true,
         club: { city: true, studio: { city: true } },
+        subscription: { transaction: { tariff: { sport: true } } },
       },
     });
 
@@ -89,6 +90,7 @@ export class TrainingsController {
         type: true,
         club: { city: true, studio: { city: true } },
         transaction: { tariff: { sport: true } },
+        subscription: { transaction: { tariff: { sport: true } } },
       },
       order: { startTime: 'ASC' },
     });
@@ -161,6 +163,7 @@ export class TrainingsController {
         club: { city: true },
         type: true,
         transaction: { tariff: { sport: true } },
+        subscription: { transaction: { tariff: { sport: true } } },
       },
     });
 
@@ -178,6 +181,7 @@ export class TrainingsController {
         club: { city: true },
         type: true,
         transaction: { tariff: { sport: true } },
+        subscription: { transaction: { tariff: { sport: true } } },
       },
     });
 

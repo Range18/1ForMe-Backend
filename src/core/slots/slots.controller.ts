@@ -58,6 +58,7 @@ export class SlotsController {
         EntityExceptions.NotFound,
       );
     }
+
     return await this.slotsService.save({
       beginning: beginningSlot.beginning,
       end: endSlot.end,
@@ -78,7 +79,7 @@ export class SlotsController {
         date: MoreThanOrEqual(new Date()),
       },
       order: { day: 'ASC' },
-      relations: { trainer: true, studio: { city: true } },
+      relations: { studio: { city: true } },
     });
   }
 

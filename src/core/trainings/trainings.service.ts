@@ -119,10 +119,14 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async createForSubscription(
-    createTrainingDtoArray: Omit<CreateTrainingDto, 'createTransactionDto'>[],
+    createTrainingDtoArray: Omit<
+      CreateTrainingDto,
+      'type' | 'client' | 'tariff'
+    >[],
     trainerId: number,
     clientId: number,
     subscriptionEntity: Subscription,
+    trainingType?: number,
   ) {
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
@@ -142,7 +146,7 @@ export class TrainingsService extends BaseEntityService<
         }
 
         return await this.save({
-          type: { id: training.type },
+          type: { id: trainingType },
           date: training.date,
           startTime: training.startTime,
           client: { id: clientId },

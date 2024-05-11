@@ -39,5 +39,6 @@ export class Subscription extends BaseEntity {
   @OneToOne(() => Transaction, (transaction) => transaction.subscription, {
     nullable: false,
   })
+  @JoinColumn({ name: 'transaction' })
   transaction: Transaction;
 }
