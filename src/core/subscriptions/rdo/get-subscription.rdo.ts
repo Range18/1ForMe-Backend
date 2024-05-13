@@ -2,10 +2,33 @@ import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
+import { GetTrainerRdo } from '#src/core/users/rdo/get-trainer.rdo';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+
+class GetTrainerRdoForSub {
+  readonly id: number;
+  readonly name: string;
+  readonly phone: string;
+  readonly surname: string;
+  readonly birthday: Date;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+
+  @ApiProperty({ type: () => OmitType(GetTrainerRdo, ['studios']) })
+  readonly trainerProfile: GetTrainerRdo;
+}
 
 export class GetSubscriptionRdo {
   id: number;
-
+  @ApiProperty({
+    type: () =>
+      OmitType(GetUserRdo, [
+        'avatar',
+        'closestTraining',
+        'role',
+        'trainerProfile',
+      ]),
+  })
   client: GetUserRdo;
 
   trainer: GetUserRdo;
@@ -22,7 +45,7 @@ export class GetSubscriptionRdo {
 
   isFinished: boolean;
 
-  constructor(subscription: Subscription) {
+  constructor(subscription: Subscription, extraInfo = true) {
     this.id = subscription.id;
 
     this.transaction = subscription.transaction
@@ -53,9 +76,11 @@ export class GetSubscriptionRdo {
 
         0,
       );
-      this.isFinished = this.finishedTrainingsCount === this.trainings.length;
-      this.costForOne = this.transaction.cost / this.trainings.length;
-      this.nextTraining = this.trainings[0];
+      if (extraInfo) {
+        this.isFinished = this.finishedTrainingsCount === this.trainings.length;
+        this.costForOne = this.transaction.cost / this.trainings.length;
+        this.nextTraining = this.trainings[0];
+      }
     }
   }
 }

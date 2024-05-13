@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -22,29 +23,65 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
+import { UserService } from '#src/core/users/user.service';
+import { ApiException } from '#src/common/exception-handler/api-exception';
+import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { In } from 'typeorm';
+import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('Tariffs')
-@Controller('api/users/trainers')
+@Controller('api')
 export class TariffsController {
-  constructor(private readonly tariffsService: TariffsService) {}
+  constructor(
+    private readonly tariffsService: TariffsService,
+    private readonly userService: UserService,
+  ) {}
 
   @AuthGuard()
   @ApiCreatedResponse({ type: Tariff })
-  @Post('/tariffs')
-  async create(@Body() body: CreateTariffDto, @User() user: UserRequest) {
+  @Post('studios/:studioId/tariffs')
+  async create(
+    @Body() body: CreateTariffDto,
+    @User() user: UserRequest,
+    @Param('studioId') studioId: number,
+  ) {
     return new GetTariffRdo(
       await this.tariffsService.save({
         ...body,
+        category: { id: body.category },
         sport: { id: body.sport },
-        user: { id: user.id },
+        studio: { id: studioId },
       }),
     );
   }
 
   @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
-  @Get('/tariffs')
+  @Get('studios/:studioId/tariffs')
   async getAll(
+    @Param('studioId') studioId: number,
+    @Query('isForSubscription')
+    isForSubscription?: boolean,
+  ) {
+    const tariffs = await this.tariffsService.find({
+      where: {
+        isForSubscription: isForSubscription ? isForSubscription : undefined,
+        studio: { id: studioId },
+      },
+      relations: {
+        studio: true,
+        sport: true,
+        category: true,
+      },
+    });
+
+    return tariffs.map((entity) => new GetTariffRdo(entity));
+  }
+
+  @ApiQuery({ name: 'isForSubscription' })
+  @ApiOkResponse({ type: [Tariff] })
+  @Get('studios/tariffs')
+  async getAllForStudio(
     @Query('isForSubscription')
     isForSubscription?: boolean,
   ) {
@@ -53,12 +90,9 @@ export class TariffsController {
         isForSubscription: isForSubscription ? isForSubscription : undefined,
       },
       relations: {
-        user: {
-          studio: { city: true },
-          role: true,
-          avatar: true,
-          category: true,
-        },
+        studio: true,
+        sport: true,
+        category: true,
       },
     });
 
@@ -66,17 +100,37 @@ export class TariffsController {
   }
 
   @ApiOkResponse({ type: [Tariff] })
-  @Get(':id/tariffs')
-  async getAllForTrainer(@Param('id') id: number) {
+  @ApiQuery({ name: 'isForSubscription' })
+  @Get('users/:userId/tariffs')
+  async getAllForTrainer(
+    @Param('userId') userId: number,
+    @Query('isForSubscription')
+    isForSubscription?: boolean,
+  ) {
+    const trainer = await this.userService.findOne({
+      where: { id: userId },
+      relations: { studios: true },
+    });
+
+    if (!trainer) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
+    const studiosIds = trainer.studios.map((studio) => studio.id);
+
     const tariffs = await this.tariffsService.find({
-      where: { user: { id: id } },
+      where: {
+        studio: { id: In(studiosIds) },
+        isForSubscription: isForSubscription ? isForSubscription : undefined,
+      },
       relations: {
-        user: {
-          studio: { city: true },
-          role: true,
-          avatar: true,
-          category: true,
-        },
+        studio: true,
+        category: true,
+        sport: true,
       },
     });
 
@@ -90,12 +144,9 @@ export class TariffsController {
       await this.tariffsService.findOne({
         where: { id },
         relations: {
-          user: {
-            studio: { city: true },
-            role: true,
-            avatar: true,
-            category: true,
-          },
+          studio: true,
+          category: true,
+          sport: true,
         },
       }),
     );
@@ -114,15 +165,16 @@ export class TariffsController {
         {
           where: { id },
           relations: {
-            user: {
-              studio: { city: true },
-              role: true,
-              avatar: true,
-              category: true,
-            },
+            studio: true,
+            category: true,
+            sport: true,
           },
         },
-        { ...updateTariffDto, sport: { id: updateTariffDto.sport } },
+        {
+          ...updateTariffDto,
+          category: { id: updateTariffDto.category },
+          sport: { id: updateTariffDto.sport },
+        },
       ),
     );
   }

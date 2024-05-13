@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
+import { Category } from '#src/core/categories/entity/categories.entity';
+import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
 
 export class GetTariffRdo {
   @ApiProperty()
@@ -15,13 +16,16 @@ export class GetTariffRdo {
 
   readonly duration: string;
 
-  @ApiProperty({ nullable: true, type: () => GetUserRdo })
-  trainer?: GetUserRdo;
+  @ApiProperty({ nullable: true, type: () => GetStudioRdo })
+  studio?: GetStudioRdo;
 
   @ApiProperty({ type: Sport })
   sport?: Sport;
 
-  readonly subExpireAt?: Date;
+  @ApiProperty({ type: Sport })
+  category: Category;
+
+  readonly subExpireAt?: number;
 
   readonly trainingAmount?: number;
 
@@ -30,8 +34,9 @@ export class GetTariffRdo {
     this.name = tariff.name;
     this.cost = tariff.cost;
     this.duration = tariff.duration;
-    this.trainer = tariff.user ? new GetUserRdo(tariff.user) : undefined;
+    this.studio = tariff.studio ? new GetStudioRdo(tariff.studio) : undefined;
     this.sport = tariff.sport ? tariff.sport : undefined;
+    this.category = tariff.category ?? undefined;
     this.subExpireAt = tariff.subExpireAt;
     this.trainingAmount = tariff.trainingAmount;
   }

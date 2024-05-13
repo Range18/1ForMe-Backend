@@ -15,6 +15,6 @@ export class RolesEntity extends BaseEntity {
   name: string;
 
   @Exclude()
-  @OneToMany(() => UserEntity, (user) => user.role, { onDelete: 'CASCADE' })
+  @OneToMany(() => UserEntity, (user) => user.role)
   users: UserEntity[];
 }

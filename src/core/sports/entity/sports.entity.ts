@@ -11,6 +11,7 @@ import { BaseEntity } from '#src/common/base.entity';
 import { Exclude } from 'class-transformer';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
+import { UserEntity } from '#src/core/users/entity/user.entity';
 
 @Entity('sports')
 export class Sport extends BaseEntity {
@@ -33,7 +34,11 @@ export class Sport extends BaseEntity {
 
   @OneToMany(() => Tariff, (tariff) => tariff.sport, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   tariffs?: Tariff[];
+
+  @OneToMany(() => UserEntity, (user) => user.sports, {
+    nullable: true,
+  })
+  trainers?: UserEntity[];
 }

@@ -1,5 +1,10 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { CreateTrainingDto } from '#src/core/trainings/dto/create-training.dto';
+import { ApiProperty } from '@nestjs/swagger';
+
+class CreateTrainingDtoForSub {
+  readonly date: Date;
+  readonly slot: number;
+  readonly club: number;
+}
 
 export class CreateSubscriptionDto {
   @ApiProperty()
@@ -8,9 +13,9 @@ export class CreateSubscriptionDto {
   readonly type?: number;
 
   @ApiProperty({
-    type: () => [OmitType(CreateTrainingDto, ['client', 'type', 'tariff'])],
+    type: () => [CreateTrainingDtoForSub],
   })
-  createTrainingDto: Omit<CreateTrainingDto, 'client' | 'type' | 'tariff'>[];
+  createTrainingDto: CreateTrainingDtoForSub[];
 
   tariff: number;
 }

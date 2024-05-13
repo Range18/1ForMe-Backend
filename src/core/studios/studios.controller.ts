@@ -17,6 +17,7 @@ import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { UserService } from '#src/core/users/user.service';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
+import { In } from 'typeorm';
 
 @ApiTags('Studios')
 @Controller('api/studios')
@@ -42,9 +43,10 @@ export class StudiosController {
   async findAll() {
     const studios = await this.studiosService.find({
       relations: {
-        trainers: { category: true, avatar: true, role: true, tariffs: true },
+        trainers: { category: true, avatar: true, role: true },
         clubs: { city: true },
         city: true,
+        tariffs: { category: true, sport: true },
       },
     });
 
@@ -58,9 +60,10 @@ export class StudiosController {
       await this.studiosService.findOne({
         where: { id },
         relations: {
-          trainers: { category: true, avatar: true, role: true, tariffs: true },
+          trainers: { category: true, avatar: true, role: true },
           clubs: { city: true },
           city: true,
+          tariffs: { category: true, sport: true },
         },
       }),
     );
@@ -85,17 +88,26 @@ export class StudiosController {
   async findUsersClubs(@Param('id') id: number, @User() user: UserRequest) {
     const userEntity = await this.userService.findOne({
       where: { id: user.id },
-      relations: { studio: true },
+      relations: { studios: true },
     });
 
-    const studio = await this.studiosService.findOne({
-      where: { id: userEntity.studio.id },
+    const studioIds =
+      userEntity.studios.length !== 0
+        ? userEntity.studios.map((studio) => studio.id)
+        : undefined;
+
+    const studios = await this.studiosService.find({
+      where: { id: studioIds ? In(studioIds) : undefined },
       relations: {
         clubs: { city: true, studio: { city: true } },
       },
     });
 
-    return studio?.clubs.map((club) => new GetClubRdo(club));
+    return studios
+      ? studios?.map((studio) =>
+          studio.clubs.map((club) => new GetClubRdo(club)),
+        )
+      : [];
   }
 
   @ApiOkResponse({ type: GetStudioRdo })
@@ -113,7 +125,6 @@ export class StudiosController {
               category: true,
               avatar: true,
               role: true,
-              tariffs: true,
             },
             clubs: { city: true },
             city: true,

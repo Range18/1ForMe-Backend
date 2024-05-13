@@ -98,7 +98,7 @@ export class AuthService {
       isTrainerActive: true,
       birthday: createUserDto.birthday,
       link: createUserDto.role === 'trainer' ? uid(8) : null,
-      studio: createUserDto.studio ? { id: createUserDto.studio } : null,
+      studios: createUserDto.studio ? [{ id: createUserDto.studio }] : null,
       experience: createUserDto.experience,
       category: createUserDto.category ? { id: createUserDto.category } : null,
       description: createUserDto.description,

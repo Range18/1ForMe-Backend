@@ -23,7 +23,7 @@ import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactio
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-  @ApiOkResponse({ type: GetAnalyticsRdo })
+  @ApiOkResponse({ type: [GetTransactionRdo] })
   @ApiQuery({ name: 'clientId' })
   @ApiQuery({ name: 'from' })
   @ApiQuery({ name: 'to' })
@@ -56,9 +56,10 @@ export class TransactionsController {
         trainer: {
           avatar: true,
           category: true,
-          studio: true,
+          studios: true,
         },
-        training: true,
+        training: { type: true },
+        subscription: { trainings: { type: true, slot: true } },
       },
     });
 
@@ -99,7 +100,7 @@ export class TransactionsController {
           trainer: {
             avatar: true,
             category: true,
-            studio: true,
+            studios: true,
           },
           training: true,
         },

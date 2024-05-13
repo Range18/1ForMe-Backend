@@ -34,7 +34,28 @@ export class CommentsController {
     @Param('userId') clientId: number,
     @User() user: UserRequest,
   ) {
-    const comment = await this.commentsService.save({
+    const comment = await this.commentsService.findOne({
+      where: { client: { id: clientId }, trainer: { id: user.id } },
+      relations: {
+        client: { avatar: true },
+      },
+    });
+
+    if (comment) {
+      comment.text = body.text;
+      await this.commentsService.save(comment);
+
+      return new GetCommentRdo(
+        await this.commentsService.findOne({
+          where: { id: comment.id },
+          relations: {
+            client: { avatar: true },
+          },
+        }),
+      );
+    }
+
+    const commentNew = await this.commentsService.save({
       ...body,
       trainer: { id: user.id },
       client: { id: clientId },
@@ -42,7 +63,7 @@ export class CommentsController {
 
     return new GetCommentRdo(
       await this.commentsService.findOne({
-        where: { id: comment.id },
+        where: { id: commentNew.id },
         relations: {
           client: { avatar: true },
         },

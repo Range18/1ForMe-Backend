@@ -4,6 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { TransactionStatus } from '#src/core/transactions/transaction-status.type';
 import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
+import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 
 export class GetTransactionRdo {
   @ApiProperty()
@@ -27,6 +28,8 @@ export class GetTransactionRdo {
   @ApiProperty({ nullable: true, type: () => GetTrainingRdo })
   training?: GetTrainingRdo;
 
+  subscription?: GetSubscriptionRdo;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -48,6 +51,10 @@ export class GetTransactionRdo {
       : undefined;
     this.tariff = transaction.tariff
       ? new GetTariffRdo(transaction.tariff)
+      : undefined;
+
+    this.subscription = transaction.subscription
+      ? new GetSubscriptionRdo(transaction.subscription, false)
       : undefined;
 
     this.cost = transaction.cost;

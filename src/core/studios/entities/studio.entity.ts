@@ -13,6 +13,7 @@ import { City } from '#src/core/city/entity/cities.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 import { Slot } from '#src/core/slots/entities/slot.entity';
+import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Entity('studios')
 export class Studio extends BaseEntity {
@@ -25,14 +26,16 @@ export class Studio extends BaseEntity {
   @Column({ nullable: true })
   address?: string;
 
-  @OneToMany(() => UserEntity, (trainer) => trainer.studio, { nullable: true })
+  @ManyToMany(() => UserEntity, (trainer) => trainer.studios, {
+    nullable: true,
+  })
   trainers?: UserEntity[];
 
   @ManyToOne(() => City, (city) => city.studios, { nullable: false })
   @JoinColumn({ name: 'city' })
   city: City;
 
-  @ManyToMany(() => Sport, (sport) => sport.studios, { nullable: false })
+  @ManyToMany(() => Sport, (sport) => sport.studios, { nullable: true })
   sports?: Sport[];
 
   @OneToMany(() => Clubs, (club) => club.studio, { nullable: true })
@@ -40,4 +43,7 @@ export class Studio extends BaseEntity {
 
   @OneToMany(() => Slot, (slot) => slot.studio, { nullable: true })
   slots?: Slot[];
+
+  @OneToMany(() => Tariff, (tariff) => tariff.studio, { nullable: true })
+  tariffs?: Tariff[];
 }

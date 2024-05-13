@@ -19,5 +19,6 @@ import { TokenModule } from '#src/core/token/token.module';
   ],
   controllers: [StudiosController],
   providers: [StudiosService],
+  exports: [StudiosService],
 })
 export class StudiosModule {}

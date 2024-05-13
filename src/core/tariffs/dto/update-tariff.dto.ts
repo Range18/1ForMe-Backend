@@ -16,8 +16,10 @@ export class UpdateTariffDto {
 
   readonly sport?: number;
 
+  category: number;
+
   //only for subs
-  readonly subExpireAt?: Date;
+  readonly subExpireAt?: number;
 
   trainingAmount?: number;
 

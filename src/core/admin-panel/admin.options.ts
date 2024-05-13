@@ -14,6 +14,8 @@ import { Training } from '#src/core/trainings/entities/training.entity';
 import { UserComment } from '#src/core/comments/entity/comment.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
+import { ClubSlots } from '#src/core/club_slots/entities/club-slot.entity';
+import { Slot } from '#src/core/slots/entities/slot.entity';
 
 export const adminOptions = {
   adminJsOptions: {
@@ -34,6 +36,8 @@ export const adminOptions = {
       UserComment,
       Transaction,
       Subscription,
+      Slot,
+      ClubSlots,
     ],
   },
   auth: {

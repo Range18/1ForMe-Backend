@@ -21,6 +21,7 @@ import { User } from '#src/common/decorators/User.decorator';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
+import { Studio } from '#src/core/studios/entities/studio.entity';
 
 @ApiTags('users')
 @Controller('api/users')
@@ -36,9 +37,9 @@ export class UserController {
       relations: {
         role: true,
         avatar: true,
-        studio: true,
+        studios: true,
         category: true,
-        tariffs: true,
+        // tariffs: true,
       },
     });
 
@@ -75,9 +76,9 @@ export class UserController {
           relations: {
             role: true,
             avatar: true,
-            studio: true,
+            studios: true,
             category: true,
-            tariffs: true,
+            // tariffs: true,
           },
         },
         true,
@@ -95,9 +96,9 @@ export class UserController {
         relations: {
           role: true,
           avatar: true,
-          studio: true,
+          studios: true,
           category: true,
-          tariffs: true,
+          sports: true,
         },
       }),
     );
@@ -111,6 +112,18 @@ export class UserController {
     @User() user: UserRequest,
     @Body() updateTrainerDto: UpdateTrainerDto,
   ) {
+    const userEntity = await this.userService.findOne({
+      where: { id: user.id },
+      relations: { studios: true },
+    });
+    if (userEntity.studios.length === 0) {
+      userEntity.studios = [{ id: updateTrainerDto.studio } as Studio];
+    } else {
+      userEntity.studios.push({ id: updateTrainerDto.studio } as Studio);
+    }
+
+    await this.userService.save(userEntity);
+
     return new GetUserRdo(
       await this.userService.updateOne(
         {
@@ -118,16 +131,15 @@ export class UserController {
           relations: {
             role: true,
             avatar: true,
-            studio: true,
+            studios: true,
             category: true,
-            tariffs: true,
           },
         },
         {
           ...updateTrainerDto,
           isTrainerActive: updateTrainerDto.isActive,
           role: { id: updateTrainerDto.role },
-          studio: { id: updateTrainerDto.studio },
+          studios: userEntity.studios,
           category: { id: updateTrainerDto.category },
         },
       ),

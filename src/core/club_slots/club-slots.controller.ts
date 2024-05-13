@@ -22,21 +22,17 @@ import {
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
-import { TrainingsService } from '#src/core/trainings/trainings.service';
-import * as console from 'node:console';
+import { GetSlotsForStudio } from '#src/core/club_slots/rdo/get-slots-for-studio';
 
 @ApiTags('Club Slots')
-@Controller('api/clubs/:clubId/slots')
+@Controller('api')
 export class ClubSlotsController {
-  constructor(
-    private readonly clubSlotsService: ClubSlotsService,
-    private readonly trainingsService: TrainingsService,
-  ) {}
+  constructor(private readonly clubSlotsService: ClubSlotsService) {}
 
   @ApiCreatedResponse({ type: GetClubSlotRdo })
   @ApiBody({ type: CreateClubSlotDto })
   @AuthGuard()
-  @Post()
+  @Post('clubs/:clubId/slots')
   async create(
     @Param('clubId') clubId: number,
     @Body() createClubSlotDto: CreateClubSlotDto,
@@ -51,33 +47,27 @@ export class ClubSlotsController {
   @ApiOkResponse({ type: [GetClubSlotRdo] })
   @ApiQuery({ name: 'date' })
   @AuthGuard()
-  @Get()
-  async findAll(@Param('clubId') clubId: number, @Query('date') date: Date) {
-    const trainings = await this.trainingsService.find({
-      where: { date: date, club: { id: clubId } },
-      relations: { slot: true },
-    });
+  @Get('clubs/:clubId/slots')
+  async findAllForClub(
+    @Param('clubId') clubId: number,
+    @Query('date') date: Date,
+  ) {
+    return await this.clubSlotsService.getSlotsForClub(clubId, date);
+  }
 
-    console.log(trainings);
-
-    const slots = await this.clubSlotsService.find({
-      relations: { club: { city: true, studio: true } },
-      order: { id: 'ASC' },
-    });
-
-    return slots.map(
-      (slot) =>
-        new GetClubSlotRdo(
-          slot,
-          trainings.length != 0
-            ? trainings.every((training) => slot.id !== training.slot.id)
-            : true,
-        ),
+  @ApiOkResponse({ type: [GetSlotsForStudio] })
+  @AuthGuard()
+  @Get('studios/:studioId/slots')
+  async findAllForStudio(@Param('studioId') studioId: number) {
+    return await this.clubSlotsService.getSlotsForStudio(
+      studioId,
+      new Date(),
+      7,
     );
   }
 
   @ApiOkResponse({ type: GetClubSlotRdo })
-  @Get(':id')
+  @Get('clubs/:clubId/slots/:id')
   async findOne(@Param('id') id: number) {
     return await this.clubSlotsService.findOne({
       where: { id },
@@ -88,7 +78,7 @@ export class ClubSlotsController {
   @ApiOkResponse({ type: GetClubSlotRdo })
   @ApiBody({ type: UpdateClubSlotDto })
   @AuthGuard()
-  @Patch(':id')
+  @Patch('clubs/:clubId/slots/:id')
   async update(
     @Param('id') id: number,
     @Body() updateSlotDto: UpdateClubSlotDto,
@@ -105,7 +95,7 @@ export class ClubSlotsController {
     );
   }
 
-  @Delete(':id')
+  @Delete('clubs/:clubId/slots/:id')
   async remove(@Param('id') id: number) {
     return await this.clubSlotsService.remove({ where: { id } });
   }
