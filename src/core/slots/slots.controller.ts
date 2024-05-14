@@ -96,6 +96,60 @@ export class SlotsController {
   }
 
   @ApiOkResponse({ type: [GetSlotRdo] })
+  @AuthGuard()
+  @Get('/my/available')
+  async findAllMyAvailable(@User() user: UserRequest) {
+    const trainerTime = await this.slotsService.find({
+      where: {
+        trainer: { id: user.id },
+        date: MoreThanOrEqual(new Date()),
+      },
+      order: { day: 'ASC' },
+      relations: { studio: { city: true }, end: true, beginning: true },
+    });
+
+    const slots = await this.clubSlotsService.find({
+      relations: { club: { city: true, studio: true } },
+      order: { id: 'ASC' },
+    });
+
+    const freeSlots = [];
+
+    for (const trainerSlot of trainerTime) {
+      const trainings = await this.trainingService.find({
+        where: { date: trainerSlot.date },
+        relations: { slot: true },
+      });
+      const trainerClubSlots = [];
+
+      for (const slot of slots) {
+        if (
+          slot.id >= trainerSlot.beginning.id &&
+          slot.id <= trainerSlot.end.id
+        ) {
+          trainerClubSlots.push(
+            new GetClubSlotRdo(
+              slot,
+              trainings.every((training) => slot.id !== training.slot.id),
+            ),
+          );
+        }
+      }
+
+      freeSlots.push({
+        date: trainerSlot.date,
+        count: trainerClubSlots.reduce(
+          (previousValue, currentValue) =>
+            previousValue + Number(currentValue.isAvailable),
+          0,
+        ),
+        slots: trainerClubSlots,
+      });
+    }
+
+    return freeSlots;
+  }
+  @ApiOkResponse({ type: [GetSlotRdo] })
   @ApiQuery({ name: 'date' })
   @AuthGuard()
   @Get('trainers/:trainerId/available')
@@ -128,7 +182,7 @@ export class SlotsController {
       (slot) =>
         new GetClubSlotRdo(
           slot,
-          trainings.some((training) => slot.id !== training.slot.id),
+          trainings.every((training) => slot.id !== training.slot.id),
         ),
     );
   }
