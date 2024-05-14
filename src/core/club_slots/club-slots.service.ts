@@ -10,6 +10,7 @@ import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
 import console from 'node:console';
 import { StudiosService } from '#src/core/studios/studios.service';
 import { GetSlotsForStudio } from '#src/core/club_slots/rdo/get-slots-for-studio';
+import { ClubsService } from '#src/core/clubs/clubs.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
@@ -22,6 +23,7 @@ export class ClubSlotsService extends BaseEntityService<
     private readonly clubsSlotsRepository: Repository<ClubSlots>,
     private readonly trainingsService: TrainingsService,
     private readonly studiosService: StudiosService,
+    private readonly clubsService: ClubsService,
   ) {
     super(
       clubsSlotsRepository,
@@ -36,7 +38,7 @@ export class ClubSlotsService extends BaseEntityService<
   async getSlotsForClub(clubId: number, date: Date): Promise<GetClubSlotRdo[]> {
     const trainings = await this.trainingsService.find({
       where: { date: date, club: { id: clubId } },
-      relations: { slot: true },
+      relations: { slot: true, club: true },
     });
 
     console.log(trainings);
@@ -49,9 +51,7 @@ export class ClubSlotsService extends BaseEntityService<
       (slot) =>
         new GetClubSlotRdo(
           slot,
-          trainings.length != 0
-            ? trainings.every((training) => slot.id !== training.slot.id)
-            : true,
+          trainings.every((training) => slot.id !== training.slot.id),
         ),
     );
   }
@@ -94,12 +94,48 @@ export class ClubSlotsService extends BaseEntityService<
       for (const date of week) {
         const slots = await this.getSlotsForClub(
           club.id,
-          new Date(date.toISOString().split('T')[0]),
+          date.toISOString().split('T')[0] as unknown as Date,
         );
 
         studioSlots.push(
           new GetSlotsForStudio(
-            new Date(date.toISOString().split('T')[0]),
+            date.toISOString().split('T')[0] as unknown as Date,
+            club,
+            slots,
+          ),
+        );
+      }
+    }
+
+    return studioSlots;
+  }
+
+  async getSlotsForStudioAll(
+    weekStart: Date,
+    days: number,
+  ): Promise<GetClubSlotRdo[]> {
+    const clubs = await this.clubsService.find({
+      relations: { studio: true, city: true },
+    });
+
+    if (clubs.length === 0) {
+      return [];
+    }
+
+    const studioSlots = [];
+
+    const week = this.dateRange(weekStart, days);
+
+    for (const club of clubs) {
+      for (const date of week) {
+        const slots = await this.getSlotsForClub(
+          club.id,
+          date.toISOString().split('T')[0] as unknown as Date,
+        );
+
+        studioSlots.push(
+          new GetSlotsForStudio(
+            date.toISOString().split('T')[0] as unknown as Date,
             club,
             slots,
           ),

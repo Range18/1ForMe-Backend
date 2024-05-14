@@ -98,6 +98,7 @@ export class TrainingsService extends BaseEntityService<
         trainer: { id: trainerId },
         tariff: tariff,
         cost: tariff.cost,
+        createdDate: new Date(),
       }),
     });
 

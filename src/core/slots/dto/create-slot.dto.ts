@@ -7,9 +7,6 @@ export class CreateSlotDto {
   @ApiProperty()
   end: number;
 
-  @ApiProperty()
-  day: number;
-
   date: Date;
 
   @ApiProperty()

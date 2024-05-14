@@ -69,6 +69,7 @@ export class SubscriptionsService extends BaseEntityService<
       trainer: { id: trainerId },
       cost: tariff.cost,
       tariff: { id: createSubscriptionDto.tariff },
+      createdDate: new Date(),
     });
 
     const subId = (

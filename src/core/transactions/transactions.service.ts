@@ -156,7 +156,7 @@ export class TransactionsService extends BaseEntityService<
 
   async getTransactionsPerDay(
     trainerId: number,
-    clientId: number,
+    clientId?: number,
     from?: string,
     to?: string,
   ) {
@@ -164,8 +164,8 @@ export class TransactionsService extends BaseEntityService<
       await this.transactionRepository
         .createQueryBuilder('transaction')
         .select([
-          'MONTH(createdAt) as month',
-          'DAY(createdAt) as day',
+          'MONTH(createdDate) as month',
+          'DAY(createdDate) as day',
           'SUM(cost) as costSum',
           'GROUP_CONCAT(id) as transactionsArray',
         ])
@@ -182,9 +182,8 @@ export class TransactionsService extends BaseEntityService<
           'transaction.client = COALESCE(:clientId, transaction.client)',
           { clientId: clientId },
         )
-        .addGroupBy('YEAR(createdAt)')
-        .addGroupBy('DAY(createdAt)')
-        .addOrderBy('createdAt', 'ASC')
+        .addGroupBy('createdDate')
+        .addOrderBy('createdDate', 'ASC')
         .getRawMany();
 
     const transactionsByPeriod: GetAnalyticsRdo[] = [];
@@ -198,7 +197,7 @@ export class TransactionsService extends BaseEntityService<
           client: true,
           tariff: true,
           subscription: true,
-          training: { type: true },
+          training: { type: true, slot: true },
         },
       });
 

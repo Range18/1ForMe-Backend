@@ -43,7 +43,8 @@ export class Training extends BaseEntity {
   client: UserEntity;
 
   @ManyToOne(() => Clubs, (club) => club.trainings, {
-    nullable: false,
+    nullable: true,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'club' })
   club: Clubs;

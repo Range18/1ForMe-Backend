@@ -47,6 +47,9 @@ export class Transaction extends BaseEntity {
   @JoinColumn({ name: 'tariff' })
   tariff: Tariff;
 
+  @Column({ nullable: true, type: 'date' })
+  createdDate: Date;
+
   @OneToOne(() => Training, (training) => training.transaction, {
     nullable: true,
   })

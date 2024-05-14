@@ -37,8 +37,13 @@ export class Sport extends BaseEntity {
   })
   tariffs?: Tariff[];
 
-  @OneToMany(() => UserEntity, (user) => user.sports, {
+  @ManyToMany(() => UserEntity, (user) => user.sports, {
     nullable: true,
+  })
+  @JoinTable({
+    name: 'sports_to_trainers',
+    joinColumn: { name: 'sport', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'trainer', referencedColumnName: 'id' },
   })
   trainers?: UserEntity[];
 }

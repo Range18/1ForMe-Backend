@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Param,
   Patch,
   Post,
@@ -24,10 +23,6 @@ import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 import { UserService } from '#src/core/users/user.service';
-import { ApiException } from '#src/common/exception-handler/api-exception';
-import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { In } from 'typeorm';
-import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('Tariffs')
 @Controller('api')
@@ -102,39 +97,30 @@ export class TariffsController {
   @ApiOkResponse({ type: [Tariff] })
   @ApiQuery({ name: 'isForSubscription' })
   @Get('users/:userId/tariffs')
-  async getAllForTrainer(
+  async getAllForTrainerById(
     @Param('userId') userId: number,
     @Query('isForSubscription')
     isForSubscription?: boolean,
   ) {
-    const trainer = await this.userService.findOne({
-      where: { id: userId },
-      relations: { studios: true },
-    });
+    return await this.tariffsService.getAllForTrainer(
+      userId,
+      isForSubscription,
+    );
+  }
 
-    if (!trainer) {
-      throw new ApiException(
-        HttpStatus.NOT_FOUND,
-        'UserExceptions',
-        UserExceptions.UserNotFound,
-      );
-    }
-
-    const studiosIds = trainer.studios.map((studio) => studio.id);
-
-    const tariffs = await this.tariffsService.find({
-      where: {
-        studio: { id: In(studiosIds) },
-        isForSubscription: isForSubscription ? isForSubscription : undefined,
-      },
-      relations: {
-        studio: true,
-        category: true,
-        sport: true,
-      },
-    });
-
-    return tariffs.map((entity) => new GetTariffRdo(entity));
+  @ApiOkResponse({ type: [Tariff] })
+  @ApiQuery({ name: 'isForSubscription' })
+  @AuthGuard()
+  @Get('users/trainers/my/tariffs')
+  async getAllForTrainer(
+    @User() user: UserRequest,
+    @Query('isForSubscription')
+    isForSubscription?: boolean,
+  ) {
+    return await this.tariffsService.getAllForTrainer(
+      user.id,
+      isForSubscription,
+    );
   }
 
   @ApiOkResponse({ type: Tariff })

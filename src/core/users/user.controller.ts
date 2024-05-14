@@ -96,9 +96,8 @@ export class UserController {
         relations: {
           role: true,
           avatar: true,
-          studios: true,
           category: true,
-          sports: true,
+          studios: true,
         },
       }),
     );
@@ -114,7 +113,7 @@ export class UserController {
   ) {
     const userEntity = await this.userService.findOne({
       where: { id: user.id },
-      relations: { studios: true },
+      relations: { role: true, avatar: true, studios: true, category: true },
     });
     if (userEntity.studios.length === 0) {
       userEntity.studios = [{ id: updateTrainerDto.studio } as Studio];
@@ -122,27 +121,14 @@ export class UserController {
       userEntity.studios.push({ id: updateTrainerDto.studio } as Studio);
     }
 
-    await this.userService.save(userEntity);
-
     return new GetUserRdo(
-      await this.userService.updateOne(
-        {
-          where: { id: user.id },
-          relations: {
-            role: true,
-            avatar: true,
-            studios: true,
-            category: true,
-          },
-        },
-        {
-          ...updateTrainerDto,
-          isTrainerActive: updateTrainerDto.isActive,
-          role: { id: updateTrainerDto.role },
-          studios: userEntity.studios,
-          category: { id: updateTrainerDto.category },
-        },
-      ),
+      await this.userService.updateOne(userEntity, {
+        ...updateTrainerDto,
+        isTrainerActive: updateTrainerDto.isActive,
+        role: { id: updateTrainerDto.role },
+        studios: userEntity.studios,
+        category: { id: updateTrainerDto.category },
+      }),
     );
   }
 

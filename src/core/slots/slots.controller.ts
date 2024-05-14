@@ -71,7 +71,10 @@ export class SlotsController {
     return await this.slotsService.save({
       beginning: beginningSlot,
       end: endSlot,
-      day: createSlotDto.day,
+      day:
+        new Date(createSlotDto.date).getDay() === 0
+          ? 7
+          : new Date(createSlotDto.date).getDay(),
       date: createSlotDto.date,
       studio: { id: createSlotDto.studio },
       trainer: { id: user.id },
@@ -88,7 +91,7 @@ export class SlotsController {
         date: MoreThanOrEqual(new Date()),
       },
       order: { day: 'ASC' },
-      relations: { studio: { city: true } },
+      relations: { studio: { city: true }, end: true, beginning: true },
     });
   }
 

@@ -24,9 +24,13 @@ class GetStudioForSlots extends PickType(GetStudioRdo, [
 export class GetSlotRdo {
   id: number;
 
-  beginning: ClubSlots;
+  beginningSlot: ClubSlots;
 
-  end: ClubSlots;
+  endSlot: ClubSlots;
+
+  beginning: string;
+
+  end: string;
 
   day: number;
 
@@ -36,8 +40,10 @@ export class GetSlotRdo {
 
   constructor(slot: Slot) {
     this.id = slot.id;
-    this.beginning = slot.beginning ?? undefined;
-    this.end = slot.end ?? undefined;
+    this.beginningSlot = slot.beginning ?? undefined;
+    this.endSlot = slot.end ?? undefined;
+    this.beginning = slot.beginning.beginning ?? undefined;
+    this.end = slot.end.end ?? undefined;
     this.day = slot.day;
     this.trainer = slot.trainer ? new GetUserRdo(slot.trainer) : undefined;
     this.studio = slot.studio ? new GetStudioRdo(slot.studio) : undefined;

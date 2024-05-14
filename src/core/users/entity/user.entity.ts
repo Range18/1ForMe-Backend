@@ -124,8 +124,8 @@ export class UserEntity extends BaseEntity {
   })
   @JoinTable({
     name: 'users_to_studios',
-    joinColumn: { name: 'studio', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'user', referencedColumnName: 'id' },
+    joinColumn: { name: 'user', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'studio', referencedColumnName: 'id' },
   })
   studios?: Studio[];
 

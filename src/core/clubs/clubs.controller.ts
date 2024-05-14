@@ -23,8 +23,8 @@ export class ClubsController {
         ...body,
         studio: { id: body.studio },
         city: { id: body.city },
-        startTime: body.startTime,
-        endTime: body.endTime,
+        // startTime: body.startTime,
+        // endTime: body.endTime,
       }),
     );
   }

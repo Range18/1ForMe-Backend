@@ -51,8 +51,8 @@ export class TransactionsController {
         createdAt: dateRange,
       },
       relations: {
-        tariff: true,
-        client: { avatar: true },
+        tariff: { sport: true, category: true },
+        client: true,
         trainer: {
           avatar: true,
           category: true,

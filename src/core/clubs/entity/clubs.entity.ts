@@ -44,20 +44,19 @@ export class Clubs extends BaseEntity {
 
   @OneToMany(() => ClubSlots, (slot) => slot.club, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   slots?: ClubSlots[];
 
   //TODO NOT NULL
-  @Column({ nullable: true })
-  startTime?: string;
-
-  @Column({ nullable: true })
-  endTime?: string;
-
-  @Column({ nullable: true })
-  timeForExercise: Date;
-
-  @Column({ nullable: true })
-  timeForRest: Date;
+  // @Column({ nullable: true })
+  // startTime?: string;
+  //
+  // @Column({ nullable: true })
+  // endTime?: string;
+  //
+  // @Column({ nullable: true })
+  // timeForExercise: Date;
+  //
+  // @Column({ nullable: true })
+  // timeForRest: Date;
 }

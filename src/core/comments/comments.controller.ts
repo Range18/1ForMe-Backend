@@ -34,12 +34,15 @@ export class CommentsController {
     @Param('userId') clientId: number,
     @User() user: UserRequest,
   ) {
-    const comment = await this.commentsService.findOne({
-      where: { client: { id: clientId }, trainer: { id: user.id } },
-      relations: {
-        client: { avatar: true },
+    const comment = await this.commentsService.findOne(
+      {
+        where: { client: { id: clientId }, trainer: { id: user.id } },
+        relations: {
+          client: { avatar: true },
+        },
       },
-    });
+      false,
+    );
 
     if (comment) {
       comment.text = body.text;

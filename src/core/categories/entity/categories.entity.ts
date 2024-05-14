@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '#src/common/base.entity';
@@ -26,7 +20,7 @@ export class Category extends BaseEntity {
   })
   users?: UserEntity[];
 
-  @ManyToOne(() => Tariff, (tariff) => tariff.category, {
+  @OneToMany(() => Tariff, (tariff) => tariff.category, {
     nullable: true,
   })
   tariffs?: Tariff[];

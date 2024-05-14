@@ -66,6 +66,13 @@ export class ClubSlotsController {
     );
   }
 
+  @ApiOkResponse({ type: [GetSlotsForStudio] })
+  @AuthGuard()
+  @Get('studios/slots/all')
+  async findAllForStudios() {
+    return await this.clubSlotsService.getSlotsForStudioAll(new Date(), 7);
+  }
+
   @ApiOkResponse({ type: GetClubSlotRdo })
   @Get('clubs/:clubId/slots/:id')
   async findOne(@Param('id') id: number) {

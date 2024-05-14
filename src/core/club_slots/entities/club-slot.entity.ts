@@ -23,8 +23,8 @@ export class ClubSlots extends BaseEntity {
   end: string;
 
   @ManyToOne(() => Clubs, (club) => club.slots, {
-    nullable: false,
-    onDelete: 'CASCADE',
+    nullable: true,
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'club' })
   club: Clubs;
