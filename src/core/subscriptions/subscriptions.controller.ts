@@ -94,6 +94,7 @@ export class SubscriptionsController {
           trainings: {
             type: true,
             club: { city: true, studio: true },
+            slot: true,
           },
         },
       }),
