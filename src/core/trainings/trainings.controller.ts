@@ -198,18 +198,19 @@ export class TrainingsController {
   }
 
   @ApiOkResponse({ type: GetTrainingRdo })
-  @Get(':id')
+  @Get('byId/:id')
   async findOne(@Param('id') id: number) {
     return new GetTrainingRdo(
       await this.trainingsService.findOne({
         where: { id },
         relations: {
           trainer: true,
-          club: { city: true },
+          club: { city: true, studio: true },
           type: true,
           transaction: { tariff: { sport: true } },
           subscription: { transaction: { tariff: { sport: true } } },
           slot: true,
+          client: true,
         },
       }),
     );
