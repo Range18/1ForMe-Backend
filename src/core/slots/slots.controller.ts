@@ -88,7 +88,9 @@ export class SlotsController {
     return await this.slotsService.find({
       where: {
         trainer: { id: user.id },
-        date: MoreThanOrEqual(new Date()),
+        date: MoreThanOrEqual(
+          new Date().toISOString().split('T')[0] as unknown as Date,
+        ),
       },
       order: { day: 'ASC' },
       relations: { studio: { city: true }, end: true, beginning: true },
@@ -102,7 +104,9 @@ export class SlotsController {
     const trainerTime = await this.slotsService.find({
       where: {
         trainer: { id: user.id },
-        date: MoreThanOrEqual(new Date()),
+        date: MoreThanOrEqual(
+          new Date().toISOString().split('T')[0] as unknown as Date,
+        ),
       },
       order: { day: 'ASC' },
       relations: { studio: { city: true }, end: true, beginning: true },

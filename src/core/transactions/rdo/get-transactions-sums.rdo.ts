@@ -32,17 +32,20 @@ export class GetTransactionSumsRdo {
     };
   }
 
-  constructor(entity: {
-    costSum: number;
-    day?: number;
-    week?: number;
-    month: number;
-    year: number;
-    date?: string;
-  }) {
+  constructor(
+    entity: {
+      costSum: number;
+      day?: number;
+      week?: number;
+      month: number;
+      year: number;
+      date?: string;
+    },
+    tax?: number,
+  ) {
     const date = entity.date ? new Date(entity.date) : undefined;
 
-    this.costSum = entity.costSum;
+    this.costSum = tax ? entity.costSum * (1 - tax / 100) : entity.costSum;
     this.day = entity.day;
     this.month = entity.month;
     this.date = date ? ISODateToString(date) : undefined;

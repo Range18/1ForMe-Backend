@@ -72,6 +72,7 @@ export class TrainingsController {
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
       },
+      order: { date: 'ASC', slot: { id: 'ASC' } },
     });
 
     return trainings.map((training) => new GetTrainingRdo(training));
@@ -120,7 +121,7 @@ export class TrainingsController {
       client.trainers.some((trainer) => trainer.id == user.id),
     );
 
-    const rdo: GetUserRdo[] = [];
+    const clientsWithNextTraining: GetUserRdo[] = [];
 
     for (const client of clients) {
       const trainings = await this.trainingsService.find(
@@ -145,13 +146,27 @@ export class TrainingsController {
       );
 
       if (trainings.length !== 0) {
-        rdo.push(new GetUserRdo(client, trainings[0]));
+        clientsWithNextTraining.push(new GetUserRdo(client, trainings[0]));
       } else {
-        rdo.push(new GetUserRdo(client));
+        clientsWithNextTraining.push(new GetUserRdo(client));
       }
     }
 
-    return rdo;
+    clientsWithNextTraining.sort((a, b) => {
+      if (!a.closestTraining) {
+        return 1;
+      }
+      if (!b.closestTraining) {
+        return -1;
+      }
+
+      return (
+        new Date(a.closestTraining.date).getTime() -
+        new Date(b.closestTraining.date).getTime()
+      );
+    });
+
+    return clientsWithNextTraining;
   }
 
   //Get client`s trainings
@@ -169,6 +184,7 @@ export class TrainingsController {
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
       },
+      order: { date: 'ASC', slot: { id: 'ASC' } },
     });
 
     return trainings.map((training) => new GetTrainingRdo(training));
@@ -192,6 +208,7 @@ export class TrainingsController {
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
       },
+      order: { date: 'ASC', slot: { id: 'ASC' } },
     });
 
     return trainings.map((training) => new GetTrainingRdo(training));

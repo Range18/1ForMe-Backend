@@ -10,6 +10,7 @@ import { SqlPeriodsEnum } from '#src/core/transactions/types/sql-periods.enum';
 import { TransactionsByPeriodType } from '#src/core/transactions/types/transactions-by-period.type';
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
+import { UserService } from '#src/core/users/user.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
@@ -20,6 +21,7 @@ export class TransactionsService extends BaseEntityService<
   constructor(
     @InjectRepository(Transaction)
     readonly transactionRepository: Repository<Transaction>,
+    private readonly userService: UserService,
   ) {
     super(
       transactionRepository,
@@ -37,6 +39,10 @@ export class TransactionsService extends BaseEntityService<
     period?: string,
     to?: string,
   ) {
+    const trainer = await this.userService.findOne({
+      where: { id: trainerId },
+    });
+
     const selectQuery = [
       'MONTH(createdAt) as month',
       'YEAR(createdAt) as year',
@@ -63,11 +69,12 @@ export class TransactionsService extends BaseEntityService<
           'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
           { to: to },
         )
+        .andWhere('transaction.status = :status', { status: 'Paid' })
         .addGroupBy('YEAR(createdAt)')
         .addGroupBy(period ? SqlPeriodsEnum[period] : SqlPeriodsEnum.day)
         .addOrderBy('createdAt', 'ASC')
         .getRawMany()
-    ).map((entity) => new GetTransactionSumsRdo(entity));
+    ).map((entity) => new GetTransactionSumsRdo(entity, trainer.tax));
 
     if (
       from &&
@@ -182,6 +189,7 @@ export class TransactionsService extends BaseEntityService<
           'transaction.client = COALESCE(:clientId, transaction.client)',
           { clientId: clientId },
         )
+        .andWhere('transaction.status = :status', { status: 'Paid' })
         .addGroupBy('createdDate')
         .addOrderBy('createdDate', 'ASC')
         .getRawMany();

@@ -62,7 +62,7 @@ export class ClubSlotsController {
     return await this.clubSlotsService.getSlotsForStudio(
       studioId,
       new Date(),
-      7,
+      6,
     );
   }
 
@@ -70,7 +70,7 @@ export class ClubSlotsController {
   @AuthGuard()
   @Get('studios/slots/all')
   async findAllForStudios() {
-    return await this.clubSlotsService.getSlotsForStudioAll(new Date(), 7);
+    return await this.clubSlotsService.getSlotsForStudioAll(new Date(), 6);
   }
 
   @ApiOkResponse({ type: GetClubSlotRdo })
