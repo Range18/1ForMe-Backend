@@ -121,7 +121,7 @@ export class SlotsController {
 
     for (const trainerSlot of trainerTime) {
       const trainings = await this.trainingService.find({
-        where: { date: trainerSlot.date },
+        where: { trainer: { id: user.id }, date: trainerSlot.date },
         relations: { slot: true },
       });
       const trainerClubSlots = [];
