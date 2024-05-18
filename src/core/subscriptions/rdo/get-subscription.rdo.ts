@@ -71,16 +71,21 @@ export class GetSubscriptionRdo {
       this.trainings = sortedTrainings.map(
         (training) => new GetTrainingRdo(training),
       );
-      this.finishedTrainingsCount = this.trainings.reduce(
-        (previousValue, entity) =>
-          previousValue +
-          Number(
-            new Date(entity.date).getTime() <= new Date(Date.now()).getTime(),
-          ),
-
-        0,
-      );
       if (extraInfo) {
+        this.finishedTrainingsCount = this.trainings.reduce(
+          (previousValue, entity) => {
+            const [hours, minutes] = entity.slot.beginning.split(':');
+            return (
+              previousValue +
+              Number(
+                new Date(entity.date).getTime() +
+                  (Number(hours) * 60 + Number(minutes)) * 60 * 1000 <=
+                  new Date().getTime(),
+              )
+            );
+          },
+          0,
+        );
         this.isFinished = this.finishedTrainingsCount === this.trainings.length;
         this.costForOne = this.transaction.cost / this.trainings.length;
         this.nextTraining = this.trainings[0];

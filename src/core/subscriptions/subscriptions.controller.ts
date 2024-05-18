@@ -46,7 +46,7 @@ export class SubscriptionsController {
         client: true,
         trainer: true,
         transaction: { tariff: { sport: true } },
-        trainings: { type: true, club: true },
+        trainings: { type: true, club: true, slot: true },
       },
     });
 
