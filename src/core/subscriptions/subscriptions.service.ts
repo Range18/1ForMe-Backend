@@ -77,6 +77,9 @@ export class SubscriptionsService extends BaseEntityService<
         client: client,
         trainer: { id: trainerId },
         transaction: transaction,
+        expireAt: tariff.subExpireAt
+          ? new Date(Date.now() + tariff.subExpireAt * 24 * 60 * 60 * 1000)
+          : undefined,
       })
     ).id;
 

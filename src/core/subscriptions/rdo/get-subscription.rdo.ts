@@ -37,6 +37,8 @@ export class GetSubscriptionRdo {
 
   transaction: GetTransactionRdo;
 
+  expireAt: Date;
+
   costForOne: number;
 
   nextTraining: GetTrainingRdo;
@@ -59,6 +61,8 @@ export class GetSubscriptionRdo {
     this.trainer = subscription.trainer
       ? new GetUserRdo(subscription.trainer)
       : undefined;
+
+    this.expireAt = subscription.expireAt;
 
     if (subscription.trainings && subscription.trainings.length > 0) {
       const sortedTrainings = subscription.trainings.sort(
