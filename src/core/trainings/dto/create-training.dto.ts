@@ -7,8 +7,8 @@ export class CreateTrainingDto {
   @ApiProperty()
   readonly date: Date;
 
-  @ApiProperty()
-  readonly client: number;
+  @ApiProperty({ type: [Number] })
+  readonly client: number[];
 
   @ApiProperty()
   readonly type?: number;

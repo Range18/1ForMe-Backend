@@ -44,9 +44,12 @@ export class TrainingsController {
     @Body() createTrainingDto: CreateTrainingDto,
     @User() user: UserRequest,
   ) {
-    return new GetTrainingRdo(
-      await this.trainingsService.create(createTrainingDto, user.id),
+    const trainings = await this.trainingsService.create(
+      createTrainingDto,
+      user.id,
     );
+
+    return trainings.map((training) => new GetTrainingRdo(training));
   }
 
   @ApiOkResponse({ type: [GetTrainingRdo] })

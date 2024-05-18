@@ -18,6 +18,10 @@ export class UpdateTariffDto {
 
   category: number;
 
+  //Only for groups, pairs
+
+  clientsAmount?: number;
+
   //only for subs
   readonly subExpireAt?: number;
 

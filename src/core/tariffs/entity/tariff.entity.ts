@@ -52,6 +52,10 @@ export class Tariff extends BaseEntity {
   @JoinColumn({ name: 'category' })
   category?: Category;
 
+  //Only for groups, pairs
+  @Column({ nullable: true })
+  clientsAmount?: number;
+
   //only for subs
   @Column({ nullable: true })
   subExpireAt?: number;

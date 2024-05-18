@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
@@ -54,14 +54,27 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    const client = await this.userService.findOne({
-      where: { id: createTrainingDto.client },
-      relations: {
-        trainers: true,
-      },
-    });
+    let clients: UserEntity[] = [];
 
-    if (!client) {
+    if (tariff.clientsAmount) {
+      clients = await this.userService.find({
+        where: { id: In(createTrainingDto.client) },
+        relations: {
+          trainers: true,
+        },
+      });
+    } else {
+      clients = [
+        await this.userService.findOne({
+          where: { id: createTrainingDto.client[0] },
+          relations: {
+            trainers: true,
+          },
+        }),
+      ];
+    }
+
+    if (!clients && clients.length == 0) {
       throw new ApiException(
         HttpStatus.NOT_FOUND,
         'UserExceptions',
@@ -82,28 +95,37 @@ export class TrainingsService extends BaseEntityService<
     //   endTimeMin = `0${endTimeMin}`;
     // }
 
-    client.trainers.push({ id: trainerId } as UserEntity);
+    const trainingsIds: number[] = [];
 
-    await this.userService.save(client);
+    for (const client of clients) {
+      client.trainers.push({ id: trainerId } as UserEntity);
 
-    const training = await this.save({
-      type: createTrainingDto.type ? { id: createTrainingDto.type } : undefined,
-      slot: { id: createTrainingDto.slot },
-      date: createTrainingDto.date,
-      client: { id: createTrainingDto.client },
-      trainer: { id: trainerId },
-      club: { id: createTrainingDto.club },
-      transaction: await this.transactionsService.save({
-        client: { id: createTrainingDto.client },
+      await this.userService.save(client);
+
+      const training = await this.save({
+        type: createTrainingDto.type
+          ? { id: createTrainingDto.type }
+          : undefined,
+        slot: { id: createTrainingDto.slot },
+        date: createTrainingDto.date,
+        client: { id: client.id },
         trainer: { id: trainerId },
-        tariff: tariff,
-        cost: tariff.cost,
-        createdDate: new Date(),
-      }),
-    });
+        club: { id: createTrainingDto.club },
+        transaction: await this.transactionsService.save({
+          client: { id: client.id },
+          trainer: { id: trainerId },
+          tariff: tariff,
+          cost: tariff.clientsAmount
+            ? tariff.cost / tariff.clientsAmount
+            : tariff.cost,
+          createdDate: new Date(),
+        }),
+      });
 
-    return await this.findOne({
-      where: { id: training.id },
+      trainingsIds.push(training.id);
+    }
+    return await this.find({
+      where: { id: In(trainingsIds) },
       relations: {
         client: { avatar: true },
         trainer: { avatar: true },
