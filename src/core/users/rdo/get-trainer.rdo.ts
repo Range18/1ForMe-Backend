@@ -29,6 +29,8 @@ export class GetTrainerRdo {
   @ApiProperty({ nullable: true })
   readonly tax?: number;
 
+  readonly sports?: string[];
+
   readonly isActive: boolean;
 
   constructor(user: UserEntity) {
@@ -45,6 +47,9 @@ export class GetTrainerRdo {
     //TODO
     this.link = user.link
       ? `${frontendServer.url}/trainers?link=${user.link}`
+      : undefined;
+    this.sports = user.sports
+      ? user.sports.map((sport) => sport.name)
       : undefined;
     this.tax = user.tax ?? undefined;
     this.isActive = user.isTrainerActive;

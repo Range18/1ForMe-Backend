@@ -14,6 +14,7 @@ import { TrainingCountPerDateRdo } from './rdo/training-count-per-date.rdo';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
+import TrainerExceptions = AllExceptions.TrainerExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -42,6 +43,21 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async create(createTrainingDto: CreateTrainingDto, trainerId: number) {
+    const trainer = await this.userService.findOne({
+      where: { id: trainerId },
+      relations: { slots: true },
+    });
+
+    if (!trainer.isTrainerActive) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainerExceptions',
+        TrainerExceptions.NotWorking,
+      );
+    }
+
+    //TODO check slots
+
     const tariff = await this.tariffsService.findOne({
       where: { id: createTrainingDto.tariff },
     });
@@ -54,7 +70,7 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    let clients: UserEntity[] = [];
+    let clients: UserEntity[];
 
     if (tariff.clientsAmount) {
       clients = await this.userService.find({

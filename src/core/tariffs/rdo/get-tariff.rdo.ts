@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
-import { Category } from '#src/core/categories/entity/categories.entity';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
 
 export class GetTariffRdo {
@@ -22,8 +21,7 @@ export class GetTariffRdo {
   @ApiProperty({ type: Sport })
   sport?: Sport;
 
-  @ApiProperty({ type: Sport })
-  category: Category;
+  trainerCategory: string;
 
   readonly subExpireAt?: number;
 
@@ -38,7 +36,7 @@ export class GetTariffRdo {
     this.duration = tariff.duration;
     this.studio = tariff.studio ? new GetStudioRdo(tariff.studio) : undefined;
     this.sport = tariff.sport ? tariff.sport : undefined;
-    this.category = tariff.category ?? undefined;
+    this.trainerCategory = tariff.category ? tariff.category.name : undefined;
     this.subExpireAt = tariff.subExpireAt;
     this.trainingAmount = tariff.trainingAmount;
     this.clientsAmount = tariff.clientsAmount;

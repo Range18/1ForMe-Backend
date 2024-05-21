@@ -22,6 +22,10 @@ export namespace AllExceptions {
     UserAlreadyExists = 'User already exists',
   }
 
+  export enum TrainerExceptions {
+    NotWorking = 'Trainer is not working',
+  }
+
   export enum RolesExceptions {
     NotFound = 'Role is not found',
   }

@@ -22,6 +22,7 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
 import { Studio } from '#src/core/studios/entities/studio.entity';
+import { Sport } from '#src/core/sports/entity/sports.entity';
 
 @ApiTags('users')
 @Controller('api/users')
@@ -39,6 +40,7 @@ export class UserController {
         avatar: true,
         studios: true,
         category: true,
+        sports: true,
         // tariffs: true,
       },
     });
@@ -78,6 +80,7 @@ export class UserController {
             avatar: true,
             studios: true,
             category: true,
+            sports: true,
             // tariffs: true,
           },
         },
@@ -98,6 +101,7 @@ export class UserController {
           avatar: true,
           category: true,
           studios: true,
+          sports: true,
         },
       }),
     );
@@ -113,12 +117,25 @@ export class UserController {
   ) {
     const userEntity = await this.userService.findOne({
       where: { id: user.id },
-      relations: { role: true, avatar: true, studios: true, category: true },
+      relations: {
+        role: true,
+        avatar: true,
+        studios: true,
+        category: true,
+        sports: true,
+      },
     });
     if (userEntity.studios.length === 0) {
       userEntity.studios = [{ id: updateTrainerDto.studio } as Studio];
     } else {
       userEntity.studios.push({ id: updateTrainerDto.studio } as Studio);
+    }
+
+    if (userEntity.sports.length === 0) {
+      userEntity.sports = [{ id: updateTrainerDto.sports[0] } as Sport];
+    } else {
+      for (const sport of updateTrainerDto.sports)
+        userEntity.sports.push({ id: sport } as Sport);
     }
 
     return new GetUserRdo(
@@ -128,6 +145,7 @@ export class UserController {
         role: { id: updateTrainerDto.role },
         studios: userEntity.studios,
         category: { id: updateTrainerDto.category },
+        sports: userEntity.sports,
       }),
     );
   }

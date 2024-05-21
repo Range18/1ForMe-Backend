@@ -27,4 +27,6 @@ export class UpdateTrainerDto extends UpdateUserDto {
   readonly link?: string;
 
   readonly isActive?: boolean;
+
+  readonly sports?: number[];
 }
