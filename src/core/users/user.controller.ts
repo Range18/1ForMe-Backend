@@ -138,15 +138,16 @@ export class UserController {
         userEntity.sports.push({ id: sport } as Sport);
     }
 
+    await this.userService.updateOne(userEntity, {
+      ...updateTrainerDto,
+      isTrainerActive: updateTrainerDto.isActive,
+      role: { id: updateTrainerDto.role },
+      studios: userEntity.studios,
+      category: { id: updateTrainerDto.category },
+      sports: userEntity.sports,
+    });
     return new GetUserRdo(
-      await this.userService.updateOne(userEntity, {
-        ...updateTrainerDto,
-        isTrainerActive: updateTrainerDto.isActive,
-        role: { id: updateTrainerDto.role },
-        studios: userEntity.studios,
-        category: { id: updateTrainerDto.category },
-        sports: userEntity.sports,
-      }),
+      await this.userService.findOne({ where: { id: user.id } }),
     );
   }
 
