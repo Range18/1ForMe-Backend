@@ -130,21 +130,18 @@ export class UserController {
     } else {
       userEntity.studios.push({ id: updateTrainerDto.studio } as Studio);
     }
+    const sports = [];
 
-    if (userEntity.sports.length === 0) {
-      userEntity.sports = [{ id: updateTrainerDto.sports[0] } as Sport];
-    } else {
-      for (const sport of updateTrainerDto.sports)
-        userEntity.sports.push({ id: sport } as Sport);
+    for (const sport of updateTrainerDto.sports) {
+      sports.push({ id: sport } as Sport);
     }
-
     await this.userService.updateOne(userEntity, {
       ...updateTrainerDto,
       isTrainerActive: updateTrainerDto.isActive,
       role: { id: updateTrainerDto.role },
       studios: userEntity.studios,
       category: { id: updateTrainerDto.category },
-      sports: userEntity.sports,
+      sports: sports,
     });
     return new GetUserRdo(
       await this.userService.findOne({ where: { id: user.id } }),
