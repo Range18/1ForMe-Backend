@@ -12,6 +12,7 @@ import { Studio } from '#src/core/studios/entities/studio.entity';
 import { AssetEntity } from '#src/core/assets/entities/asset.entity';
 import { RolesModule } from '#src/core/roles/roles.module';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
+import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
       Studio,
       AssetEntity,
       Tariff,
+      ChatTypes,
     ]),
     RolesModule,
   ],
