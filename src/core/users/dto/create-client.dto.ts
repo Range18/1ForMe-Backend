@@ -22,4 +22,6 @@ export class CreateClientDto
 
   @ApiProperty({ nullable: true, required: false })
   comment?: string;
+
+  chatType?: number;
 }

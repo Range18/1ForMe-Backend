@@ -41,7 +41,7 @@ export class UserController {
         studios: true,
         category: true,
         sports: true,
-        // tariffs: true,
+        chatType: true,
       },
     });
 
@@ -59,7 +59,9 @@ export class UserController {
           avatar: true,
           relatedComments: { trainer: true },
           role: true,
+          chatType: true,
         },
+        chatType: true,
       },
     });
 
@@ -81,7 +83,7 @@ export class UserController {
             studios: true,
             category: true,
             sports: true,
-            // tariffs: true,
+            chatType: true,
           },
         },
         true,
@@ -102,6 +104,7 @@ export class UserController {
           category: true,
           studios: true,
           sports: true,
+          chatType: true,
         },
       }),
     );
@@ -123,6 +126,7 @@ export class UserController {
         studios: true,
         category: true,
         sports: true,
+        chatType: true,
       },
     });
     if (userEntity.studios.length === 0) {
@@ -183,6 +187,7 @@ export class UserController {
             role: true,
             avatar: true,
             relatedComments: true,
+            chatType: true,
           },
         },
         {

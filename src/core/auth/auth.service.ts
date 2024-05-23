@@ -197,6 +197,7 @@ export class AuthService {
         where: { name: createClientDto.role },
       }),
       trainers: [{ id: trainerId }],
+      chatType: { id: createClientDto.chatType },
     });
 
     if (createClientDto.comment) {

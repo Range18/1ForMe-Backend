@@ -5,6 +5,7 @@ import { backendServer } from '#src/common/configs/config';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
 import { GetTrainerRdo } from '#src/core/users/rdo/get-trainer.rdo';
+import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 
 export class GetUserRdo {
   @ApiProperty()
@@ -38,6 +39,8 @@ export class GetUserRdo {
   // @ApiProperty({ nullable: true })
   // readonly comment?: string;
 
+  chatType: ChatTypes;
+
   @ApiProperty()
   readonly updatedAt: Date;
 
@@ -61,6 +64,7 @@ export class GetUserRdo {
     //     ? user?.relatedComments[0].text
     //     : undefined;
     this.birthday = user.birthday;
+    this.chatType = user.chatType ?? undefined;
 
     this.updatedAt = user.updatedAt;
     this.createdAt = user.createdAt;
