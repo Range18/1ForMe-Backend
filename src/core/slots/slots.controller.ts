@@ -26,7 +26,7 @@ import { User } from '#src/common/decorators/User.decorator';
 import { ClubSlotsService } from '#src/core/club_slots/club-slots.service';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { In, MoreThanOrEqual } from 'typeorm';
+import { MoreThanOrEqual } from 'typeorm';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
 import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
@@ -155,40 +155,63 @@ export class SlotsController {
   }
   @ApiOkResponse({ type: [GetSlotRdo] })
   @ApiQuery({ name: 'date' })
-  @AuthGuard()
   @Get('trainers/:trainerId/available')
   async getAllTrainerTime(
     @User() user: UserRequest,
     @Param('trainerId') trainerId: number,
     @Query('date') date: Date,
   ) {
-    const trainings = await this.trainingService.find({
-      where: { date: date },
-      relations: { slot: true },
-    });
-
-    const trainerTime = await this.slotsService.findOne({
+    const trainerTime = await this.slotsService.find({
       where: {
         trainer: { id: trainerId },
-        date: date,
+        date: MoreThanOrEqual(
+          new Date().toISOString().split('T')[0] as unknown as Date,
+        ),
       },
       order: { day: 'ASC' },
       relations: { studio: { city: true }, end: true, beginning: true },
     });
 
     const slots = await this.clubSlotsService.find({
-      where: { id: In(range(trainerTime.beginning.id, trainerTime.end.id)) },
       relations: { club: { city: true, studio: true } },
       order: { id: 'ASC' },
     });
 
-    return slots.map(
-      (slot) =>
-        new GetClubSlotRdo(
-          slot,
-          trainings.every((training) => slot.id !== training.slot.id),
+    const freeSlots = [];
+
+    for (const trainerSlot of trainerTime) {
+      const trainings = await this.trainingService.find({
+        where: { trainer: { id: trainerId }, date: trainerSlot.date },
+        relations: { slot: true },
+      });
+      const trainerClubSlots = [];
+
+      for (const slot of slots) {
+        if (
+          slot.id >= trainerSlot.beginning.id &&
+          slot.id <= trainerSlot.end.id
+        ) {
+          trainerClubSlots.push(
+            new GetClubSlotRdo(
+              slot,
+              trainings.every((training) => slot.id !== training.slot.id),
+            ),
+          );
+        }
+      }
+
+      freeSlots.push({
+        date: trainerSlot.date,
+        count: trainerClubSlots.reduce(
+          (previousValue, currentValue) =>
+            previousValue + Number(currentValue.isAvailable),
+          0,
         ),
-    );
+        slots: trainerClubSlots,
+      });
+    }
+
+    return freeSlots;
   }
 
   @ApiOkResponse({ type: GetSlotRdo })
