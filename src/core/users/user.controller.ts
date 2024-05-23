@@ -146,6 +146,7 @@ export class UserController {
       studios: userEntity.studios,
       category: { id: updateTrainerDto.category },
       sports: sports,
+      chatType: { id: updateTrainerDto.chatType },
     });
     return new GetUserRdo(
       await this.userService.findOne({ where: { id: user.id } }),
@@ -193,6 +194,7 @@ export class UserController {
         {
           ...updateUserDto,
           role: { id: updateUserDto.role },
+          chatType: { id: updateUserDto.chatType },
         },
       ),
     );

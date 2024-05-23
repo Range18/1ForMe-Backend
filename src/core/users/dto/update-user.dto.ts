@@ -32,4 +32,6 @@ export class UpdateUserDto {
 
   @ApiProperty({ nullable: true, required: false })
   birthday?: Date;
+
+  chatType?: number;
 }

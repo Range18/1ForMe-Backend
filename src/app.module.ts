@@ -22,6 +22,7 @@ import { ClubsModule } from '#src/core/clubs/clubs.module';
 import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.module';
 import { SlotsModule } from '#src/core/slots/slots.module';
 import { ClubSlotsModule } from '#src/core/club_slots/club-slots.module';
+import { ChatTypesModule } from '#src/core/chat-types/chat-types.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ClubSlotsModule } from '#src/core/club_slots/club-slots.module';
     SubscriptionsModule,
     SlotsModule,
     ClubSlotsModule,
+    ChatTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
