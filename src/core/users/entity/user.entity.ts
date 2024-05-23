@@ -22,6 +22,7 @@ import { Code } from '#src/core/verification-codes/entity/verification-codes.ent
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { Slot } from '#src/core/slots/entities/slot.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
+import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -166,4 +167,8 @@ export class UserEntity extends BaseEntity {
     nullable: true,
   })
   slots?: Slot[];
+
+  @ManyToOne(() => ChatTypes, (chatType) => chatType.users, { nullable: true })
+  @JoinColumn({ name: 'chatType' })
+  chatType?: ChatTypes;
 }
