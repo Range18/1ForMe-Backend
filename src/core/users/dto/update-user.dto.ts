@@ -34,4 +34,6 @@ export class UpdateUserDto {
   birthday?: Date;
 
   chatType?: number;
+
+  userNameInMessenger?: string;
 }

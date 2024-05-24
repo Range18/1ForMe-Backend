@@ -39,6 +39,8 @@ export class GetUserRdo {
   // @ApiProperty({ nullable: true })
   // readonly comment?: string;
 
+  userNameInMessenger?: string;
+
   chatType: ChatTypes;
 
   @ApiProperty()
@@ -65,6 +67,7 @@ export class GetUserRdo {
     //     : undefined;
     this.birthday = user.birthday;
     this.chatType = user.chatType ?? undefined;
+    this.userNameInMessenger = user.userNameInMessenger;
 
     this.updatedAt = user.updatedAt;
     this.createdAt = user.createdAt;

@@ -24,4 +24,6 @@ export class CreateClientDto
   comment?: string;
 
   chatType?: number;
+
+  userNameInMessenger?: string;
 }

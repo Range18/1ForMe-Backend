@@ -47,6 +47,13 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   birthday?: Date;
 
+  @Column({ nullable: true })
+  userNameInMessenger?: string;
+
+  @ManyToOne(() => ChatTypes, (chatType) => chatType.users, { nullable: true })
+  @JoinColumn({ name: 'chatType' })
+  chatType?: ChatTypes;
+
   @ManyToOne(() => RolesEntity, (role) => role.users, {
     nullable: false,
   })
@@ -67,6 +74,7 @@ export class UserEntity extends BaseEntity {
 
   @ManyToMany(() => UserEntity, (trainer) => trainer.clients, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   trainers?: UserEntity[];
 
@@ -130,7 +138,9 @@ export class UserEntity extends BaseEntity {
   })
   studios?: Studio[];
 
-  @ManyToMany(() => UserEntity, (client) => client.trainers)
+  @ManyToMany(() => UserEntity, (client) => client.trainers, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable({
     name: 'clients-to-trainers',
     joinColumn: { name: 'trainer' },
@@ -167,8 +177,4 @@ export class UserEntity extends BaseEntity {
     nullable: true,
   })
   slots?: Slot[];
-
-  @ManyToOne(() => ChatTypes, (chatType) => chatType.users, { nullable: true })
-  @JoinColumn({ name: 'chatType' })
-  chatType?: ChatTypes;
 }
