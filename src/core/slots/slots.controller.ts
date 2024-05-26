@@ -23,12 +23,12 @@ import {
 import { GetSlotRdo } from '#src/core/slots/rdo/get-slot.rdo';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
-import { ClubSlotsService } from '#src/core/club_slots/club-slots.service';
+import { ClubSlotsService } from '#src/core/club-slots/club-slots.service';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { MoreThanOrEqual } from 'typeorm';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
-import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
+import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 function range(start: number, stop: number) {

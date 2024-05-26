@@ -11,6 +11,7 @@ import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
+import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -20,8 +21,12 @@ export class Transaction extends BaseEntity {
   @Column({ nullable: false })
   cost: number;
 
-  @Column({ nullable: false, default: 'Unpaid' })
-  status: string;
+  @Column({
+    nullable: false,
+    default: TransactionStatus.Unpaid,
+    type: 'simple-enum',
+  })
+  status: TransactionStatus;
 
   @OneToOne(() => Subscription, (subs) => subs.transaction, {
     nullable: true,

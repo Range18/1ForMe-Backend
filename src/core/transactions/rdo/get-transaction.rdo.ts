@@ -2,9 +2,9 @@ import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
-import { TransactionStatus } from '#src/core/transactions/transaction-status.type';
 import { GetTrainingRdo } from '#src/core/trainings/rdo/get-training.rdo';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
+import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 
 export class GetTransactionRdo {
   @ApiProperty()
@@ -17,7 +17,7 @@ export class GetTransactionRdo {
   trainer: GetUserRdo;
 
   @ApiProperty()
-  status: string;
+  status: TransactionStatus;
 
   @ApiProperty()
   cost: number;
@@ -58,7 +58,7 @@ export class GetTransactionRdo {
       : undefined;
 
     this.cost = transaction.cost;
-    this.status = TransactionStatus[transaction.status];
+    this.status = transaction.status;
 
     this.createdAt = transaction.createdAt;
     this.updatedAt = transaction.updatedAt;

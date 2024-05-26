@@ -21,8 +21,8 @@ import {
 } from '@nestjs/swagger';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
-import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
-import { GetSlotsForStudio } from '#src/core/club_slots/rdo/get-slots-for-studio';
+import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
+import { GetSlotsForStudio } from '#src/core/club-slots/rdo/get-slots-for-studio';
 
 @ApiTags('Club Slots')
 @Controller('api')

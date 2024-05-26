@@ -7,7 +7,7 @@ import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes';
 import { TrainingStatusType } from '#src/core/trainings/training-status.type';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
-import { ClubSlots } from '#src/core/club_slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 
 export class GetTrainingRdo {
   @ApiProperty()

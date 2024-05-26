@@ -15,6 +15,9 @@ import { UserEntity } from '#src/core/users/entity/user.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
+import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
+import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
+import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -27,6 +30,8 @@ export class TrainingsService extends BaseEntityService<
     private readonly transactionsService: TransactionsService,
     private readonly tariffsService: TariffsService,
     private readonly userService: UserService,
+    private readonly tinkoffPaymentsService: TinkoffPaymentsService,
+    private readonly wazzupMessagingService: WazzupMessagingService,
   ) {
     super(
       trainingRepository,
@@ -77,6 +82,7 @@ export class TrainingsService extends BaseEntityService<
         where: { id: In(createTrainingDto.client) },
         relations: {
           trainers: true,
+          chatType: true,
         },
       });
     } else {
@@ -85,6 +91,7 @@ export class TrainingsService extends BaseEntityService<
           where: { id: createTrainingDto.client[0] },
           relations: {
             trainers: true,
+            chatType: true,
           },
         }),
       ];
@@ -118,6 +125,39 @@ export class TrainingsService extends BaseEntityService<
 
       await this.userService.save(client);
 
+      const transaction = await this.transactionsService.save({
+        client: { id: client.id },
+        trainer: { id: trainerId },
+        tariff: tariff,
+        cost: tariff.clientsAmount
+          ? tariff.cost / tariff.clientsAmount
+          : tariff.cost,
+        createdDate: new Date(),
+      });
+
+      const paymentURL = await this.tinkoffPaymentsService.createPayment({
+        transactionId: transaction.id,
+        amount: transaction.cost,
+        quantity: 1,
+        user: {
+          id: client.id,
+          phone: client.phone,
+        },
+        metadata: {
+          name: tariff.name,
+          description: `Заказ №${transaction.id}`,
+        },
+      });
+
+      await this.wazzupMessagingService.sendMessage(
+        client.chatType.name,
+        client.phone,
+        messageTemplates['single-training-booking'](
+          transaction.cost,
+          paymentURL,
+        ),
+      );
+
       const training = await this.save({
         type: createTrainingDto.type
           ? { id: createTrainingDto.type }
@@ -127,19 +167,12 @@ export class TrainingsService extends BaseEntityService<
         client: { id: client.id },
         trainer: { id: trainerId },
         club: { id: createTrainingDto.club },
-        transaction: await this.transactionsService.save({
-          client: { id: client.id },
-          trainer: { id: trainerId },
-          tariff: tariff,
-          cost: tariff.clientsAmount
-            ? tariff.cost / tariff.clientsAmount
-            : tariff.cost,
-          createdDate: new Date(),
-        }),
+        transaction: transaction,
       });
 
       trainingsIds.push(training.id);
     }
+
     return await this.find({
       where: { id: In(trainingsIds) },
       relations: {
@@ -165,21 +198,6 @@ export class TrainingsService extends BaseEntityService<
   ) {
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
-        // const [hours, minutes] = this.parseTime(
-        //   subscriptionEntity.transaction.tariff.duration,
-        // );
-        // const [startHours, startMin] = this.parseTime(training.startTime);
-        //
-        // const endTimeHours =
-        //   startHours + hours + Math.floor((startMin + minutes) / 60);
-        //
-        // let endTimeMin =
-        //   (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
-        //
-        // if (isNumber(endTimeMin) && endTimeMin < 10) {
-        //   endTimeMin = `0${endTimeMin}`;
-        // }
-
         return await this.save({
           type: { id: trainingType },
           date: training.date,
@@ -191,6 +209,18 @@ export class TrainingsService extends BaseEntityService<
         });
       }),
     );
+  }
+
+  async cancelTraining(id: number): Promise<void> {
+    const training = await this.findOne({
+      where: { id: id },
+      relations: { transaction: true },
+    });
+
+    await this.tinkoffPaymentsService.cancelOrRefundPayment(
+      training.transaction.id,
+    );
+    await this.updateOne(training, { isCanceled: true });
   }
 
   async getTrainingsPerDay(trainerId: number, from?: string, to?: string) {

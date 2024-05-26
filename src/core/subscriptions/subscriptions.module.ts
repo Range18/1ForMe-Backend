@@ -11,6 +11,8 @@ import { TokenModule } from '#src/core/token/token.module';
 import { TrainingsModule } from '#src/core/trainings/trainings.module';
 import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { TariffsModule } from '#src/core/tariffs/tariffs.module';
+import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
+import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { TariffsModule } from '#src/core/tariffs/tariffs.module';
     TrainingsModule,
     TransactionsModule,
     TariffsModule,
+    TinkoffPaymentsModule,
+    WazzupMessagingModule,
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],

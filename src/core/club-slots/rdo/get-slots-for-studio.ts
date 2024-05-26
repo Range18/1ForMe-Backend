@@ -1,4 +1,4 @@
-import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
+import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 

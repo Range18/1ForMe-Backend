@@ -34,7 +34,8 @@ export class TrainingsController {
   constructor(
     private readonly trainingsService: TrainingsService,
     private readonly userService: UserService,
-  ) {}
+  ) {
+  }
 
   @ApiBody({ type: CreateTrainingDto })
   @ApiCreatedResponse({ type: GetTrainingRdo })
@@ -270,6 +271,11 @@ export class TrainingsController {
         },
       ),
     );
+  }
+
+  @Post('cancel/:id')
+  async cancelPayment(@Param('id') id: number) {
+    return this.trainingsService.cancelTraining(id);
   }
 
   @Delete(':id')

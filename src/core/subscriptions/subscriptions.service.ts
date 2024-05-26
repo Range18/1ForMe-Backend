@@ -12,6 +12,9 @@ import { TransactionsService } from '#src/core/transactions/transactions.service
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
+import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
+import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
+import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 
 @Injectable()
 export class SubscriptionsService extends BaseEntityService<
@@ -25,6 +28,8 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly userService: UserService,
     private readonly transactionsService: TransactionsService,
     private readonly tariffsService: TariffsService,
+    private readonly tinkoffPaymentsService: TinkoffPaymentsService,
+    private readonly wazzupMessagingService: WazzupMessagingService,
   ) {
     super(
       subscriptionRepository,
@@ -94,6 +99,30 @@ export class SubscriptionsService extends BaseEntityService<
       client.id,
       subscription,
       createSubscriptionDto.type,
+    );
+
+    const paymentURL = await this.tinkoffPaymentsService.createPayment({
+      transactionId: transaction.id,
+      amount: transaction.cost,
+      quantity: 1,
+      user: {
+        id: client.id,
+        phone: client.phone,
+      },
+      metadata: {
+        name: tariff.name,
+        description: `Заказ №${transaction.id}`,
+      },
+    });
+
+    await this.wazzupMessagingService.sendMessage(
+      client.chatType.name,
+      client.phone,
+      messageTemplates['subscription-booking'](
+        createSubscriptionDto.createTrainingDto.length,
+        transaction.cost,
+        paymentURL,
+      ),
     );
 
     return await this.findOne({

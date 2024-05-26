@@ -4,12 +4,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { ClubSlots } from '#src/core/club_slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
-import { GetClubSlotRdo } from '#src/core/club_slots/rdo/get-club-slot.rdo';
+import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
 import console from 'node:console';
 import { StudiosService } from '#src/core/studios/studios.service';
-import { GetSlotsForStudio } from '#src/core/club_slots/rdo/get-slots-for-studio';
+import { GetSlotsForStudio } from '#src/core/club-slots/rdo/get-slots-for-studio';
 import { ClubsService } from '#src/core/clubs/clubs.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
