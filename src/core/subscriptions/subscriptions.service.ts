@@ -101,19 +101,25 @@ export class SubscriptionsService extends BaseEntityService<
       createSubscriptionDto.type,
     );
 
-    const paymentURL = await this.tinkoffPaymentsService.createPayment({
-      transactionId: transaction.id,
-      amount: transaction.cost,
-      quantity: 1,
-      user: {
-        id: client.id,
-        phone: client.phone,
-      },
-      metadata: {
-        name: tariff.name,
-        description: `Заказ №${transaction.id}`,
-      },
-    });
+    const paymentURL = await this.tinkoffPaymentsService
+      .createPayment({
+        transactionId: transaction.id,
+        amount: transaction.cost,
+        quantity: 1,
+        user: {
+          id: client.id,
+          phone: client.phone,
+        },
+        metadata: {
+          name: tariff.name,
+          description: `Заказ №${transaction.id}`,
+        },
+      })
+      .catch(async () => {
+        await this.transactionsService.removeOne(transaction);
+      });
+
+    if (!paymentURL) return;
 
     await this.wazzupMessagingService.sendMessage(
       client.chatType.name,

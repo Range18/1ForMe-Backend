@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { BlockList } from 'node:net';
-import { Axios } from 'axios';
+import axios from 'axios';
 import { PaymentInitDto } from '#src/core/tinkoff-payments/sdk/dto/payment-init.dto';
 import { tinkoffConfig } from '#src/common/configs/tinkoff.config';
 import { PaymentInitRdo } from '#src/core/tinkoff-payments/sdk/rdo/payment-init.rdo';
@@ -23,13 +23,15 @@ import { PaymentStatus } from '#src/core/tinkoff-payments/enums/payment-status.e
 import { TinkoffPaymentEntity } from '#src/core/tinkoff-payments/entities/tinkoff-payment.entity';
 import { CreatePaymentOptions } from '#src/core/tinkoff-payments/types/create-payment-options.interface';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
+import console from 'node:console';
 
 @Injectable()
 export class TinkoffPaymentsService extends BaseEntityService<
   TinkoffPaymentEntity,
   'PaymentExceptions'
 > {
-  private readonly httpClient = new Axios({
+  private readonly httpClient = axios.create({
+    ...axios.defaults,
     baseURL: 'https://securepay.tinkoff.ru/v2',
   });
   private readonly ipWhitelist = new BlockList();
@@ -102,7 +104,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
         'PaymentExceptions',
-        PaymentExceptions.FailedToCreateURL,
+        PaymentExceptions.FailedToCreatePayment,
       );
     }
 
@@ -124,10 +126,18 @@ export class TinkoffPaymentsService extends BaseEntityService<
 
     const paymentState = await this.getPaymentState(tinkoffPayment.paymentId);
 
+    console.log(paymentState);
+    if (!paymentState.Success) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'PaymentExceptions',
+        PaymentExceptions.PaymentNotFound,
+      );
+    }
+
     if (
-      paymentState.Status !== PaymentStatus.Confirmed ||
-      // @ts-ignore
-      paymentState.Status !== PaymentStatus.New
+      paymentState.Status === PaymentStatus.Canceled ||
+      paymentState.Status === PaymentStatus.Refunded
     ) {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
@@ -148,22 +158,24 @@ export class TinkoffPaymentsService extends BaseEntityService<
 
     if (
       paymentCancelResponse.data.Success === false ||
-      paymentCancelResponse.data.Status !== PaymentStatus.Refunded ||
-      // @ts-ignore
-      paymentCancelResponse.data.Status !== PaymentStatus.Canceled
+      (paymentCancelResponse.data.Status !== PaymentStatus.Refunded &&
+        paymentCancelResponse.data.Status !== PaymentStatus.Canceled)
     ) {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
         'PaymentExceptions',
-        PaymentExceptions.FailedToRefundPayment,
+        PaymentExceptions.FailedToCancelOrRefundPayment,
       );
     }
 
-    if (paymentCancelResponse.data.Status === PaymentStatus.New) {
+    console.log(paymentCancelResponse.data);
+    // @ts-ignore
+    if (paymentCancelResponse.data.Status === PaymentStatus.Canceled) {
       await this.transactionsService.updateOne(transaction, {
         status: TransactionStatus.Canceled,
       });
-    } else if (paymentCancelResponse.data.Status === PaymentStatus.Confirmed) {
+      // @ts-ignore
+    } else if (paymentCancelResponse.data.Status === PaymentStatus.Refunded) {
       await this.transactionsService.updateOne(transaction, {
         status: TransactionStatus.Refunded,
       });
@@ -174,7 +186,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
     ip: string,
     notificationDto: PaymentNotificationDto,
   ): Promise<'OK'> {
-    if (!this.ipWhitelist.check(ip)) {
+    if (!this.ipWhitelist.check(ip.replace('::ffff:', ''))) {
       throw new ApiException(
         HttpStatus.FORBIDDEN,
         'PaymentExceptions',
@@ -197,9 +209,12 @@ export class TinkoffPaymentsService extends BaseEntityService<
 
     if (notificationDto.Status !== PaymentStatus.Confirmed) return 'OK';
 
+    console.log(notificationDto);
+
     const tinkoffPayment = await this.findOne({
       where: { paymentId: notificationDto.PaymentId },
     });
+    console.log(tinkoffPayment);
     await this.transactionsService.updateOne(
       { where: { id: tinkoffPayment.transactionId } },
       { status: TransactionStatus.Paid },

@@ -52,12 +52,9 @@ export namespace AllExceptions {
   }
 
   export enum PaymentExceptions {
-    FailedToCreateURL = 'Failed to create payment URL',
-    FailedToCancelPayment = 'Failed to cancel payment',
-    FailedToRefundPayment = 'Failed to refund payment',
+    FailedToCreatePayment = 'Failed to create payment',
+    FailedToCancelOrRefundPayment = 'Failed to cancel or refund payment',
     PaymentNotFound = 'Payment not found',
-    PaymentAlreadyCanceled = 'Payment already canceled',
-    PaymentAlreadyRefunded = 'Payment already refunded',
     PaymentAlreadyCanceledOrRefunded = 'Payment already canceled or refunded',
     WrongToken = 'Wrong data Token',
     BadIp = 'Bad request IP',

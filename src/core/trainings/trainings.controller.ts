@@ -274,7 +274,7 @@ export class TrainingsController {
   }
 
   @Post('cancel/:id')
-  async cancelPayment(@Param('id') id: number) {
+  async cancelTraining(@Param('id') id: number) {
     return this.trainingsService.cancelTraining(id);
   }
 

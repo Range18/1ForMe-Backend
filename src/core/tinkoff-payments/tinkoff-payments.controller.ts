@@ -2,7 +2,7 @@ import { Body, Controller, Ip, Post } from '@nestjs/common';
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { PaymentNotificationDto } from '#src/core/tinkoff-payments/dto/payment-notification.dto';
 
-@Controller('payments/tinkoff-payments')
+@Controller('payments/tinkoff')
 export class TinkoffPaymentsController {
   constructor(
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,

@@ -21,7 +21,8 @@ import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactio
 @ApiTags('Transactions')
 @Controller('api/transactions')
 export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(private readonly transactionsService: TransactionsService) {
+  }
 
   @ApiOkResponse({ type: [GetTransactionRdo] })
   @ApiQuery({ name: 'clientId' })
@@ -102,7 +103,9 @@ export class TransactionsController {
             category: true,
             studios: true,
           },
-          training: true,
+          training: {
+            slot: true,
+          },
         },
       }),
     );

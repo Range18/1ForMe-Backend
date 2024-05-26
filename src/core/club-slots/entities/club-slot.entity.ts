@@ -11,7 +11,7 @@ import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { Slot } from '#src/core/slots/entities/slot.entity';
 
-@Entity('club-slots')
+@Entity('club_slots')
 export class ClubSlots extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;

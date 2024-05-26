@@ -23,7 +23,7 @@ export class Training extends BaseEntity {
   isCanceled: boolean;
 
   @ManyToOne(() => ClubSlots, (slot) => slot.trainings, { nullable: false })
-  @JoinColumn({ name: 'slots' })
+  @JoinColumn({ name: 'slot' })
   slot: ClubSlots;
 
   @Column({ type: 'date', nullable: false })

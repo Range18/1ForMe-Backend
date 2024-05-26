@@ -50,7 +50,7 @@ import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messagi
     ClubSlotsModule,
     ChatTypesModule,
     TinkoffPaymentsModule,
-    WazzupMessagingModule
+    WazzupMessagingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

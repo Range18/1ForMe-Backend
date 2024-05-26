@@ -3,7 +3,7 @@ import {
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { Axios, AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { wazzupConfig } from '#src/common/configs/wazzup.config';
 import {
   ChatType,
@@ -12,15 +12,17 @@ import {
 
 @Injectable()
 export class WazzupMessagingService implements OnModuleInit {
-  private readonly httpClient = new Axios({
+  private readonly httpClient = axios.create({
+    ...axios.defaults,
     baseURL: 'https://api.wazzup24.com/v3',
     headers: {
       Authorization: `Bearer ${wazzupConfig.apiKey}`,
     },
   });
-  private readonly messengersChannels: Record<NormalizedChatType, string>;
+  private readonly messengersChannels: Record<string, string> = {};
 
   async onModuleInit(): Promise<void> {
+    await this.fetchChannelsAndCacheIt();
     setInterval(async () => await this.fetchChannelsAndCacheIt(), 1800000);
   }
 
@@ -29,6 +31,8 @@ export class WazzupMessagingService implements OnModuleInit {
     userPhone: string,
     message: string,
   ): Promise<void> {
+    chatType = chatType.toLowerCase() as NormalizedChatType;
+
     if (chatType === 'telegram') {
       await this.sendTelegramMessage(userPhone, message);
     } else {

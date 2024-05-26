@@ -135,19 +135,25 @@ export class TrainingsService extends BaseEntityService<
         createdDate: new Date(),
       });
 
-      const paymentURL = await this.tinkoffPaymentsService.createPayment({
-        transactionId: transaction.id,
-        amount: transaction.cost,
-        quantity: 1,
-        user: {
-          id: client.id,
-          phone: client.phone,
-        },
-        metadata: {
-          name: tariff.name,
-          description: `Заказ №${transaction.id}`,
-        },
-      });
+      const paymentURL = await this.tinkoffPaymentsService
+        .createPayment({
+          transactionId: transaction.id,
+          amount: transaction.cost,
+          quantity: 1,
+          user: {
+            id: client.id,
+            phone: client.phone,
+          },
+          metadata: {
+            name: tariff.name,
+            description: `Заказ №${transaction.id}`,
+          },
+        })
+        .catch(async () => {
+          await this.transactionsService.removeOne(transaction);
+        });
+
+      if (!paymentURL) return;
 
       await this.wazzupMessagingService.sendMessage(
         client.chatType.name,
@@ -213,7 +219,7 @@ export class TrainingsService extends BaseEntityService<
 
   async cancelTraining(id: number): Promise<void> {
     const training = await this.findOne({
-      where: { id: id },
+      where: { id: id, isCanceled: false },
       relations: { transaction: true },
     });
 

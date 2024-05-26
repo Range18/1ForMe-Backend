@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class PaymentNotificationDto {
   @IsNotEmpty()
@@ -31,7 +32,8 @@ export class PaymentNotificationDto {
   Status: PaymentStatus;
 
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
+  @Transform(({ value }) => value.toString())
   PaymentId: string;
 
   @IsNotEmpty()
@@ -46,13 +48,13 @@ export class PaymentNotificationDto {
   @IsString()
   Details: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   RebillId: string;
 
   @IsNotEmpty()
-  @IsString()
-  CardId: string;
+  @IsNumber()
+  CardId: number;
 
   @IsNotEmpty()
   @IsString()

@@ -24,7 +24,7 @@ export class Transaction extends BaseEntity {
   @Column({
     nullable: false,
     default: TransactionStatus.Unpaid,
-    type: 'simple-enum',
+    type: 'varchar',
   })
   status: TransactionStatus;
 

@@ -48,7 +48,7 @@ export class ItemFFD105Dto {
     this.Name = name;
     this.Price = price * 100;
     this.Quantity = quantity;
-    this.Amount = quantity * price;
+    this.Amount = quantity * this.Price;
     this.PaymentMethod = paymentMethod;
     this.PaymentObject = paymentObject;
     this.Tax = tax;

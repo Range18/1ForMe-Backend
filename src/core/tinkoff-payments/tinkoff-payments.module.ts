@@ -12,5 +12,6 @@ import { TinkoffPaymentsController } from '#src/core/tinkoff-payments/tinkoff-pa
   ],
   providers: [TinkoffPaymentsService],
   controllers: [TinkoffPaymentsController],
+  exports: [TinkoffPaymentsService],
 })
 export class TinkoffPaymentsModule {}
