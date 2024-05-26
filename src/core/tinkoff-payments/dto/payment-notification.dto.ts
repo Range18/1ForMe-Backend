@@ -33,8 +33,7 @@ export class PaymentNotificationDto {
 
   @IsNotEmpty()
   @IsNumber()
-  @Transform(({ value }) => value.toString())
-  PaymentId: string;
+  PaymentId: number;
 
   @IsNotEmpty()
   @IsString()

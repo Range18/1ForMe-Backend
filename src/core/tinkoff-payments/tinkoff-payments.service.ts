@@ -23,13 +23,13 @@ import { PaymentStatus } from '#src/core/tinkoff-payments/enums/payment-status.e
 import { TinkoffPaymentEntity } from '#src/core/tinkoff-payments/entities/tinkoff-payment.entity';
 import { CreatePaymentOptions } from '#src/core/tinkoff-payments/types/create-payment-options.interface';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
-import console from 'node:console';
 
 @Injectable()
 export class TinkoffPaymentsService extends BaseEntityService<
   TinkoffPaymentEntity,
   'PaymentExceptions'
 > {
+  // @ts-ignore
   private readonly httpClient = axios.create({
     ...axios.defaults,
     baseURL: 'https://securepay.tinkoff.ru/v2',
@@ -209,12 +209,10 @@ export class TinkoffPaymentsService extends BaseEntityService<
 
     if (notificationDto.Status !== PaymentStatus.Confirmed) return 'OK';
 
-    console.log(notificationDto);
-
     const tinkoffPayment = await this.findOne({
-      where: { paymentId: notificationDto.PaymentId },
+      where: { paymentId: notificationDto.PaymentId.toString() },
     });
-    console.log(tinkoffPayment);
+
     await this.transactionsService.updateOne(
       { where: { id: tinkoffPayment.transactionId } },
       { status: TransactionStatus.Paid },
