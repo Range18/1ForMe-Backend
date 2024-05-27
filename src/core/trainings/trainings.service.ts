@@ -18,6 +18,7 @@ import TrainerExceptions = AllExceptions.TrainerExceptions;
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
+import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -160,6 +161,7 @@ export class TrainingsService extends BaseEntityService<
         client.phone,
         messageTemplates['single-training-booking'](
           transaction.cost,
+          dateToRecordString(createTrainingDto.date),
           paymentURL,
         ),
       );
