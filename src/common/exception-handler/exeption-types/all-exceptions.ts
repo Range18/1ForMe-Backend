@@ -42,6 +42,11 @@ export namespace AllExceptions {
     NotFound = 'Entity is not found',
   }
 
+  export enum TrainingExceptions {
+    NotFound = 'Training is not found',
+    TrainingAlreadyExists = 'На это время и в этот зал уже есть запись',
+  }
+
   export enum SubscriptionExceptions {
     NotFound = 'Entity is not found',
     TrainingAmountErr = 'tariff.trainingAmount != trainings.length',

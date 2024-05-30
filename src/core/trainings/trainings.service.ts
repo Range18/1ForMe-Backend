@@ -21,6 +21,7 @@ import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
+import TrainingExceptions = AllExceptions.TrainingExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -124,6 +125,22 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
+    const existingTraining = await this.findOne({
+      where: {
+        slot: { id: slot.id },
+        date: createTrainingDto.date,
+        club: { id: createTrainingDto.club },
+      },
+    });
+
+    if (!existingTraining) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'TrainingExceptions',
+        TrainingExceptions.TrainingAlreadyExists,
+      );
+    }
+
     for (const client of clients) {
       client.trainers.push({ id: trainerId } as UserEntity);
 
@@ -207,6 +224,26 @@ export class TrainingsService extends BaseEntityService<
     subscriptionEntity: Subscription,
     trainingType?: number,
   ) {
+    await Promise.all(
+      createTrainingDtoArray.map(async (training) => {
+        const existingTraining = await this.findOne({
+          where: {
+            slot: { id: training.slot },
+            date: training.date,
+            club: { id: training.club },
+          },
+        });
+
+        if (!existingTraining) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'TrainingExceptions',
+            TrainingExceptions.TrainingAlreadyExists,
+          );
+        }
+      }),
+    );
+
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
         return await this.save({
