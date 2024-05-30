@@ -34,8 +34,17 @@ export namespace AllExceptions {
     NotFound = 'Studio is not found',
   }
 
+  export enum ClubSlotsExceptions {
+    NotFound = 'Club slot is not found',
+  }
+
   export enum EntityExceptions {
     NotFound = 'Entity is not found',
+  }
+
+  export enum SubscriptionExceptions {
+    NotFound = 'Entity is not found',
+    TrainingAmountErr = 'tariff.trainingAmount != trainings.length',
   }
 
   export enum StorageExceptions {

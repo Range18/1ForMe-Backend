@@ -61,7 +61,7 @@ export class WazzupMessagingService implements OnModuleInit {
         text: message,
         chatId: userPhone,
       })
-      .catch((err: AxiosError) => {
+      .catch(async (err: AxiosError) => {
         throw new ServiceUnavailableException(err?.response?.data);
       });
   }

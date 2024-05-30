@@ -16,9 +16,10 @@ export const messageTemplates = {
     trainingsCount: number,
     subscriptionCost: number,
     paymentURL: string,
+    date: string,
   ) => {
     return (
-      `Вы забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса 1forme по адресу Революции 21в, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в пятницу 24.05 в 18:00.` +
+      `Вы забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса 1forme по адресу Революции 21в, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
       '\n' +
       `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
       '\n' +

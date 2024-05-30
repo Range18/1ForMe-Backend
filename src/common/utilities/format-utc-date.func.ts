@@ -8,11 +8,14 @@ const daysOfWeek: string[] = [
   'субботу',
 ];
 
-export function dateToRecordString(date: Date): string {
+export function dateToRecordString(
+  date: Date,
+  hoursAndMinutes: string,
+): string {
+  date = new Date(date);
   const dayOfWeek = daysOfWeek[date.getDay()];
   const dayOfMonth = date.getDate();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const hoursAndMinutes = date.toLocaleTimeString().substring(0, 4);
 
   return `${dayOfWeek} ${dayOfMonth}.${month} в ${hoursAndMinutes}`;
 }

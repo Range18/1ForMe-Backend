@@ -12,13 +12,15 @@ import { Subscription } from '#src/core/subscriptions/entities/subscription.enti
 import { UserService } from '#src/core/users/user.service';
 import { TrainingCountPerDateRdo } from './rdo/training-count-per-date.rdo';
 import { UserEntity } from '#src/core/users/entity/user.entity';
-import EntityExceptions = AllExceptions.EntityExceptions;
-import UserExceptions = AllExceptions.UserExceptions;
-import TrainerExceptions = AllExceptions.TrainerExceptions;
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
+import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import EntityExceptions = AllExceptions.EntityExceptions;
+import UserExceptions = AllExceptions.UserExceptions;
+import TrainerExceptions = AllExceptions.TrainerExceptions;
+import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -28,6 +30,8 @@ export class TrainingsService extends BaseEntityService<
   constructor(
     @InjectRepository(Training)
     private readonly trainingRepository: Repository<Training>,
+    @InjectRepository(ClubSlots)
+    private readonly clubSlotsRepository: Repository<ClubSlots>,
     private readonly transactionsService: TransactionsService,
     private readonly tariffsService: TariffsService,
     private readonly userService: UserService,
@@ -106,20 +110,19 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    // const [hours, minutes] = this.parseTime(tariff.duration);
-    // const [startHours, startMin] = this.parseTime(createTrainingDto.startTime);
-    //
-    // const endTimeHours =
-    //   startHours + hours + Math.floor((startMin + minutes) / 60);
-    //
-    // let endTimeMin =
-    //   (startMin + minutes) % 60 == 0 ? '00' : (startMin + minutes) % 60;
-    //
-    // if (isNumber(endTimeMin) && endTimeMin < 10) {
-    //   endTimeMin = `0${endTimeMin}`;
-    // }
-
     const trainingsIds: number[] = [];
+
+    const slot = await this.clubSlotsRepository.findOne({
+      where: { id: createTrainingDto.slot },
+    });
+
+    if (!slot) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'ClubSlotsExceptions',
+        ClubSlotsExceptions.NotFound,
+      );
+    }
 
     for (const client of clients) {
       client.trainers.push({ id: trainerId } as UserEntity);
@@ -161,7 +164,7 @@ export class TrainingsService extends BaseEntityService<
         client.phone,
         messageTemplates['single-training-booking'](
           transaction.cost,
-          dateToRecordString(createTrainingDto.date),
+          dateToRecordString(createTrainingDto.date, slot.beginning),
           paymentURL,
         ),
       );
@@ -170,7 +173,7 @@ export class TrainingsService extends BaseEntityService<
         type: createTrainingDto.type
           ? { id: createTrainingDto.type }
           : undefined,
-        slot: { id: createTrainingDto.slot },
+        slot: slot,
         date: createTrainingDto.date,
         client: { id: client.id },
         trainer: { id: trainerId },

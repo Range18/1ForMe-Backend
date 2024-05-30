@@ -13,6 +13,7 @@ import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { TariffsModule } from '#src/core/tariffs/tariffs.module';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
+import { ClubSlotsModule } from '#src/core/club-slots/club-slots.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messagi
     TariffsModule,
     TinkoffPaymentsModule,
     WazzupMessagingModule,
+    ClubSlotsModule,
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],

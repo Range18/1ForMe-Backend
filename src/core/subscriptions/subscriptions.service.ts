@@ -10,11 +10,15 @@ import { TrainingsService } from '#src/core/trainings/trainings.service';
 import { UserService } from '#src/core/users/user.service';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
-import EntityExceptions = AllExceptions.EntityExceptions;
-import UserExceptions = AllExceptions.UserExceptions;
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
+import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
+import { ClubSlotsService } from '#src/core/club-slots/club-slots.service';
+import EntityExceptions = AllExceptions.EntityExceptions;
+import UserExceptions = AllExceptions.UserExceptions;
+import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
+import SubscriptionExceptions = AllExceptions.SubscriptionExceptions;
 
 @Injectable()
 export class SubscriptionsService extends BaseEntityService<
@@ -30,6 +34,7 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly tariffsService: TariffsService,
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly wazzupMessagingService: WazzupMessagingService,
+    private readonly clubSlotsService: ClubSlotsService,
   ) {
     super(
       subscriptionRepository,
@@ -66,6 +71,28 @@ export class SubscriptionsService extends BaseEntityService<
         HttpStatus.NOT_FOUND,
         'EntityExceptions',
         EntityExceptions.NotFound,
+      );
+    }
+
+    if (
+      tariff.trainingAmount != createSubscriptionDto.createTrainingDto.length
+    ) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'SubscriptionExceptions',
+        SubscriptionExceptions.TrainingAmountErr,
+      );
+    }
+
+    const firstTrainingSlot = await this.clubSlotsService.findOne({
+      where: { id: createSubscriptionDto.createTrainingDto[0].slot },
+    });
+
+    if (!firstTrainingSlot) {
+      new ApiException(
+        HttpStatus.NOT_FOUND,
+        'ClubSlotsExceptions',
+        ClubSlotsExceptions.NotFound,
       );
     }
 
@@ -128,6 +155,10 @@ export class SubscriptionsService extends BaseEntityService<
         createSubscriptionDto.createTrainingDto.length,
         transaction.cost,
         paymentURL,
+        dateToRecordString(
+          createSubscriptionDto.createTrainingDto[0].date,
+          firstTrainingSlot.beginning,
+        ),
       ),
     );
 

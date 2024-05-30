@@ -34,8 +34,7 @@ export class TrainingsController {
   constructor(
     private readonly trainingsService: TrainingsService,
     private readonly userService: UserService,
-  ) {
-  }
+  ) {}
 
   @ApiBody({ type: CreateTrainingDto })
   @ApiCreatedResponse({ type: GetTrainingRdo })
