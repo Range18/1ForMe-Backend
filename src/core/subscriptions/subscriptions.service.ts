@@ -15,6 +15,7 @@ import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messag
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { ClubSlotsService } from '#src/core/club-slots/club-slots.service';
+import console from 'node:console';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -52,6 +53,7 @@ export class SubscriptionsService extends BaseEntityService<
   ) {
     const client = await this.userService.findOne({
       where: { id: createSubscriptionDto.client },
+      relations: { chatType: true },
     });
 
     if (!client) {
@@ -127,6 +129,8 @@ export class SubscriptionsService extends BaseEntityService<
       subscription,
       createSubscriptionDto.type,
     );
+
+    console.log(tariff);
 
     const paymentURL = await this.tinkoffPaymentsService
       .createPayment({

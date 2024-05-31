@@ -5,9 +5,10 @@ import { HttpExceptionFilter } from '#src/common/exception-handler/exception.fil
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { backendServer } from '#src/common/configs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
     origin: ['http://localhost:3000', 'https://1-for-me-frontend.vercel.app'],
@@ -19,6 +20,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
+  app.enable('trust proxy');
   app.enableShutdownHooks();
 
   const config = new DocumentBuilder()

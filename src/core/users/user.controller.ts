@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -23,6 +24,9 @@ import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
+import { ApiException } from '#src/common/exception-handler/api-exception';
+import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('users')
 @Controller('api/users')
@@ -129,25 +133,52 @@ export class UserController {
         chatType: true,
       },
     });
-    if (userEntity.studios.length === 0) {
-      userEntity.studios = [{ id: updateTrainerDto.studio } as Studio];
-    } else {
-      userEntity.studios.push({ id: updateTrainerDto.studio } as Studio);
-    }
-    const sports = [];
 
-    for (const sport of updateTrainerDto.sports) {
-      sports.push({ id: sport } as Sport);
+    if (updateTrainerDto.phone) {
+      const userWithSamePhone = await this.userService.findOne({
+        where: { phone: updateTrainerDto.phone },
+      });
+
+      if (!userWithSamePhone) {
+        throw new ApiException(
+          HttpStatus.BAD_REQUEST,
+          'UserExceptions',
+          UserExceptions.UserAlreadyExists,
+        );
+      }
     }
+
+    if (updateTrainerDto.studio) {
+      if (userEntity.studios.length === 0) {
+        userEntity.studios = [{ id: updateTrainerDto.studio } as Studio];
+      } else {
+        userEntity.studios.push({ id: updateTrainerDto.studio } as Studio);
+      }
+    }
+
+    const sports = [];
+    if (updateTrainerDto.sports) {
+      for (const sport of updateTrainerDto.sports) {
+        sports.push({ id: sport } as Sport);
+      }
+    }
+
+    userEntity.sports = null;
+
+    await this.userService.save(userEntity);
+
+    userEntity.sports = sports;
+
     await this.userService.updateOne(userEntity, {
       ...updateTrainerDto,
       isTrainerActive: updateTrainerDto.isActive,
       role: { id: updateTrainerDto.role },
       studios: userEntity.studios,
       category: { id: updateTrainerDto.category },
-      sports: sports,
+      sports: [],
       chatType: { id: updateTrainerDto.chatType },
     });
+
     return new GetUserRdo(
       await this.userService.findOne({ where: { id: user.id } }),
     );

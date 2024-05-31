@@ -17,4 +17,6 @@ export class CreateTrainingDto {
   readonly club: number;
 
   tariff?: number;
+
+  trainerId?: number;
 }

@@ -58,7 +58,7 @@ export class TransactionsController {
           category: true,
           studios: true,
         },
-        training: { type: true },
+        training: { type: true, slot: true },
         subscription: { trainings: { type: true, slot: true } },
       },
     });

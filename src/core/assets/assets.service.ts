@@ -10,6 +10,7 @@ import { storageConfig } from '#src/common/configs/storage.config';
 import { createReadStream } from 'fs';
 import { UserService } from '#src/core/users/user.service';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { join } from 'path';
 import StorageExceptions = AllExceptions.StorageExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import FileExceptions = AllExceptions.FileExceptions;
@@ -63,7 +64,7 @@ export class AssetsService extends BaseEntityService<
     return await this.save({
       name: file.filename,
       user: { id: id },
-      path: file.path,
+      path: `/avatars/${file.filename}`,
       mimetype: file.mimetype,
     });
   }
@@ -80,7 +81,7 @@ export class AssetsService extends BaseEntityService<
     }
 
     try {
-      const stream = createReadStream(image.path);
+      const stream = createReadStream(join(storageConfig.path, image.path));
 
       return { buffer: new StreamableFile(stream), mimetype: image.mimetype };
     } catch (error) {

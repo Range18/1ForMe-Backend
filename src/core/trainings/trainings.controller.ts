@@ -52,6 +52,18 @@ export class TrainingsController {
     return trainings.map((training) => new GetTrainingRdo(training));
   }
 
+  @ApiBody({ type: CreateTrainingDto })
+  @ApiCreatedResponse({ type: GetTrainingRdo })
+  @Post('clientForm')
+  async createWithoutToken(@Body() createTrainingDto: CreateTrainingDto) {
+    const trainings = await this.trainingsService.create(
+      createTrainingDto,
+      createTrainingDto.trainerId,
+    );
+
+    return trainings.map((training) => new GetTrainingRdo(training));
+  }
+
   @ApiOkResponse({ type: [GetTrainingRdo] })
   @AuthGuard()
   @Get()

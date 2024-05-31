@@ -54,6 +54,7 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async create(createTrainingDto: CreateTrainingDto, trainerId: number) {
+    createTrainingDto.tariff = Number(createTrainingDto.tariff)
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
       relations: { slots: true },
@@ -131,11 +132,11 @@ export class TrainingsService extends BaseEntityService<
         date: createTrainingDto.date,
         club: { id: createTrainingDto.club },
       },
-    });
+    }, false);
 
-    if (!existingTraining) {
+    if (existingTraining) {
       throw new ApiException(
-        HttpStatus.NOT_FOUND,
+        HttpStatus.BAD_REQUEST,
         'TrainingExceptions',
         TrainingExceptions.TrainingAlreadyExists,
       );
@@ -232,11 +233,11 @@ export class TrainingsService extends BaseEntityService<
             date: training.date,
             club: { id: training.club },
           },
-        });
+        }, false);
 
-        if (!existingTraining) {
+        if (existingTraining) {
           throw new ApiException(
-            HttpStatus.NOT_FOUND,
+            HttpStatus.BAD_REQUEST,
             'TrainingExceptions',
             TrainingExceptions.TrainingAlreadyExists,
           );
