@@ -8,7 +8,7 @@ import {
 import { BaseEntity } from '#src/common/base.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 
 @Entity('trainer_slots')
 export class Slot extends BaseEntity {

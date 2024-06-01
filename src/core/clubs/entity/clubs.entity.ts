@@ -10,7 +10,7 @@ import { BaseEntity } from '#src/common/base.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { City } from '#src/core/city/entity/cities.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 
 @Entity('clubs')
 export class Clubs extends BaseEntity {

@@ -1,5 +1,5 @@
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 
 export class GetClubSlotRdo {
   id: number;

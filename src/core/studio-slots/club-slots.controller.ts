@@ -21,9 +21,9 @@ import {
 } from '@nestjs/swagger';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
-import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
-import { GetSlotsForStudio } from '#src/core/club-slots/rdo/get-slots-for-studio';
-import { GetTimeTableRdo } from '#src/core/club-slots/rdo/get-time-table.rdo';
+import { GetClubSlotRdo } from '#src/core/studio-slots/rdo/get-club-slot.rdo';
+import { GetSlotsForStudio } from '#src/core/studio-slots/rdo/get-slots-for-studio';
+import { GetTimeTableRdo } from '#src/core/studio-slots/rdo/get-time-table.rdo';
 
 @ApiTags('Club Slots')
 @Controller('api')
@@ -47,7 +47,6 @@ export class ClubSlotsController {
 
   @ApiOkResponse({ type: [GetClubSlotRdo] })
   @ApiQuery({ name: 'date' })
-  @AuthGuard()
   @Get('clubs/:clubId/slots')
   async findAllForClub(
     @Param('clubId') clubId: number,

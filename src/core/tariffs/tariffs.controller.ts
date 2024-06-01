@@ -52,8 +52,8 @@ export class TariffsController {
 
   @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
-  @Get('studios/:studioId/tariffs')
-  async getAll(
+  @Get('studios/byId/:studioId/tariffs')
+  async getAllForStudio(
     @Param('studioId') studioId: number,
     @Query('isForSubscription')
     isForSubscription?: boolean,
@@ -76,7 +76,7 @@ export class TariffsController {
   @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
   @Get('studios/tariffs')
-  async getAllForStudio(
+  async getAll(
     @Query('isForSubscription')
     isForSubscription?: boolean,
   ) {

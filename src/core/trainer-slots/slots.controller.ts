@@ -27,9 +27,9 @@ import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
-import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
+import { GetClubSlotRdo } from '#src/core/studio-slots/rdo/get-club-slot.rdo';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @ApiTags('Slots')
