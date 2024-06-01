@@ -32,5 +32,6 @@ import { CommentsModule } from '#src/core/comments/comments.module';
   ],
   controllers: [AuthController],
   providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}

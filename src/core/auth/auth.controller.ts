@@ -14,7 +14,7 @@ import { Session } from '#src/common/decorators/session.decorator';
 import { type RequestSession } from '#src/common/types/request-session.type';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { User } from '#src/common/decorators/User.decorator';
-import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
+import { CreateClientViaTrainerDto } from '#src/core/users/dto/create-client-via-trainer.dto';
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 
 @ApiTags('auth')
@@ -53,12 +53,12 @@ export class AuthController {
   }
 
   @ApiCreatedResponse({ type: GetUserRdo })
-  @ApiBody({ type: CreateClientDto })
+  @ApiBody({ type: CreateClientViaTrainerDto })
   @AuthGuard()
   @Post('/register/byTrainer')
   async signUpToCoach(
     @User('id') trainerId: number,
-    @Body() createClientDto: CreateClientDto,
+    @Body() createClientDto: CreateClientViaTrainerDto,
   ) {
     return new GetUserRdo(
       await this.authService.signUpByTrainer(createClientDto, trainerId),

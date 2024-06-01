@@ -8,7 +8,7 @@ import { LoginUserDto } from '../users/dto/login-user.dto';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { RolesService } from '#src/core/roles/roles.service';
 import { uid } from 'uid';
-import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
+import { CreateClientViaTrainerDto } from '#src/core/users/dto/create-client-via-trainer.dto';
 import { VerificationService } from '#src/core/verification-codes/verification.service';
 import { CommentsService } from '#src/core/comments/comments.service';
 import AuthExceptions = AllExceptions.AuthExceptions;
@@ -52,6 +52,7 @@ export class AuthService {
       }),
       birthday: createUserDto.birthday,
       trainers: [{ id: createUserDto.trainer }],
+      userNameInMessenger: createUserDto.userNameInMessenger,
     });
 
     // await this.verificationService.createAndSend(1234, userEntity);
@@ -103,6 +104,7 @@ export class AuthService {
       category: createUserDto.category ? { id: createUserDto.category } : null,
       description: createUserDto.description,
       whatsApp: createUserDto.whatsApp,
+      userNameInMessenger: createUserDto.userNameInMessenger,
     });
 
     const session = await this.sessionService.createSession({
@@ -161,7 +163,10 @@ export class AuthService {
     });
   }
 
-  async signUpByTrainer(createClientDto: CreateClientDto, trainerId: number) {
+  async signUpByTrainer(
+    createClientDto: CreateClientViaTrainerDto,
+    trainerId: number,
+  ) {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
     });

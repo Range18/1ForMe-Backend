@@ -189,7 +189,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
     console.log(ip);
     console.log(notificationDto);
     if (!this.ipWhitelist.check(ip.replace('::ffff:', ''))) {
-      console.log(2, ip)
+      console.log(2, ip);
       throw new ApiException(
         HttpStatus.FORBIDDEN,
         'PaymentExceptions',

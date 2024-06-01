@@ -20,6 +20,7 @@ export namespace AllExceptions {
   export enum UserExceptions {
     UserNotFound = 'User is not found',
     UserAlreadyExists = 'User already exists',
+    NoClientData = 'No client data',
   }
 
   export enum TrainerExceptions {

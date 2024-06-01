@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
-import { Slot } from '#src/core/slots/entities/slot.entity';
+import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';

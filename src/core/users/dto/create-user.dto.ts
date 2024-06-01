@@ -26,7 +26,9 @@ export class CreateUserDto {
   readonly role: string;
 
   @ApiProperty()
-  readonly birthday: Date;
+  readonly birthday?: Date;
+
+  userNameInMessenger?: string;
 
   //If registered by trainer
   @IsNumber()

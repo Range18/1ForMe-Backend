@@ -15,7 +15,7 @@ import { UserComment } from '#src/core/comments/entity/comment.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
-import { Slot } from '#src/core/slots/entities/slot.entity';
+import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 
 export const adminOptions = {

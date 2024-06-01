@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { DeepPartial, FindOneOptions, In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
@@ -53,8 +53,12 @@ export class TrainingsService extends BaseEntityService<
     return time.split(':').map((el) => Number(el)) as [number, number];
   }
 
-  async create(createTrainingDto: CreateTrainingDto, trainerId: number) {
-    createTrainingDto.tariff = Number(createTrainingDto.tariff)
+  async create(
+    createTrainingDto: CreateTrainingDto,
+    trainerId: number,
+    clientIds: number[],
+  ) {
+    createTrainingDto.tariff = Number(createTrainingDto.tariff);
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
       relations: { slots: true },
@@ -86,7 +90,7 @@ export class TrainingsService extends BaseEntityService<
 
     if (tariff.clientsAmount) {
       clients = await this.userService.find({
-        where: { id: In(createTrainingDto.client) },
+        where: { id: In(clientIds) },
         relations: {
           trainers: true,
           chatType: true,
@@ -95,7 +99,7 @@ export class TrainingsService extends BaseEntityService<
     } else {
       clients = [
         await this.userService.findOne({
-          where: { id: createTrainingDto.client[0] },
+          where: { id: clientIds[0] },
           relations: {
             trainers: true,
             chatType: true,
@@ -126,13 +130,16 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    const existingTraining = await this.findOne({
-      where: {
-        slot: { id: slot.id },
-        date: createTrainingDto.date,
-        club: { id: createTrainingDto.club },
+    const existingTraining = await this.findOne(
+      {
+        where: {
+          slot: { id: slot.id },
+          date: createTrainingDto.date,
+          club: { id: createTrainingDto.club },
+        },
       },
-    }, false);
+      false,
+    );
 
     if (existingTraining) {
       throw new ApiException(
@@ -227,13 +234,16 @@ export class TrainingsService extends BaseEntityService<
   ) {
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
-        const existingTraining = await this.findOne({
-          where: {
-            slot: { id: training.slot },
-            date: training.date,
-            club: { id: training.club },
+        const existingTraining = await this.findOne(
+          {
+            where: {
+              slot: { id: training.slot },
+              date: training.date,
+              club: { id: training.club },
+            },
           },
-        }, false);
+          false,
+        );
 
         if (existingTraining) {
           throw new ApiException(
@@ -273,7 +283,7 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async getTrainingsPerDay(trainerId: number, from?: string, to?: string) {
-    const trainingsPerDay = (
+    return (
       await this.trainingRepository
         .createQueryBuilder('training')
         .select([
@@ -293,7 +303,27 @@ export class TrainingsService extends BaseEntityService<
           entity.month,
         ),
     );
+  }
 
-    return trainingsPerDay;
+  async updateOneWithMsg(
+    optionsOrEntity: FindOneOptions<Training>,
+    toUpdate: DeepPartial<Training>,
+    throwError = true,
+  ) {
+    const training = await this.findOne(optionsOrEntity);
+
+    const newTraining = await super.updateOne(training, toUpdate, throwError);
+
+    // await this.wazzupMessagingService.sendMessage(
+    //   training.client.chatType,
+    //   training.client.phone,
+    //   messageTemplates['training-date-is-changed'](
+    //     newTraining,
+    //     training.date,
+    //     training.slot.beginning,
+    //   ),
+    // );
+
+    return newTraining;
   }
 }

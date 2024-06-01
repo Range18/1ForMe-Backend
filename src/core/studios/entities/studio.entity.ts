@@ -12,7 +12,7 @@ import { BaseEntity } from '#src/common/base.entity';
 import { City } from '#src/core/city/entity/cities.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
-import { Slot } from '#src/core/slots/entities/slot.entity';
+import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Entity('studios')

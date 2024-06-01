@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateClientDto } from '#src/core/users/dto/create-client1.dto';
 
-export class CreateTrainingDto {
+export class CreateTrainingViaClientDto {
   @ApiProperty()
   readonly slot: number;
 
@@ -16,5 +17,9 @@ export class CreateTrainingDto {
   @ApiProperty()
   readonly club: number;
 
-  tariff: number;
+  readonly tariff: number;
+
+  readonly trainerId: number;
+
+  readonly createClient?: CreateClientDto;
 }

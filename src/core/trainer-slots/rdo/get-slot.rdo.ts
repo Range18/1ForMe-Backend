@@ -1,4 +1,4 @@
-import { Slot } from '#src/core/slots/entities/slot.entity';
+import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
 import { PickType } from '@nestjs/swagger';

@@ -23,6 +23,7 @@ import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
 import { GetSlotsForStudio } from '#src/core/club-slots/rdo/get-slots-for-studio';
+import { GetTimeTableRdo } from '#src/core/club-slots/rdo/get-time-table.rdo';
 
 @ApiTags('Club Slots')
 @Controller('api')
@@ -71,6 +72,12 @@ export class ClubSlotsController {
   @Get('studios/slots/all')
   async findAllForStudios() {
     return await this.clubSlotsService.getSlotsForStudioAll(new Date(), 6);
+  }
+
+  @ApiOkResponse({ type: GetTimeTableRdo })
+  @Get('studios/:studioId/timetable')
+  async getTimeTable(@Param('studioId') studioId: number) {
+    return await this.clubSlotsService.getStudioTimeTable(14, studioId);
   }
 
   @ApiOkResponse({ type: GetClubSlotRdo })

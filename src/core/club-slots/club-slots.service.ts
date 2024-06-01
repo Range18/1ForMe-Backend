@@ -1,16 +1,22 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
 import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
-import console from 'node:console';
 import { StudiosService } from '#src/core/studios/studios.service';
 import { GetSlotsForStudio } from '#src/core/club-slots/rdo/get-slots-for-studio';
 import { ClubsService } from '#src/core/clubs/clubs.service';
+import { getDateRange } from '#src/common/utilities/date-range.func';
+import { UserService } from '#src/core/users/user.service';
+import { SlotsService } from '#src/core/trainer-slots/slots.service';
+import { GetTimeTableForStudioRdo } from '#src/core/club-slots/rdo/get-time-table-for-studio.rdo';
+import { GetTimeTableRdo } from '#src/core/club-slots/rdo/get-time-table.rdo';
+import { GetSlotForTimeTableRdo } from '#src/core/club-slots/rdo/get-slot-for-time-table.rdo';
+import { UserEntity } from '#src/core/users/entity/user.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
@@ -24,6 +30,9 @@ export class ClubSlotsService extends BaseEntityService<
     private readonly trainingsService: TrainingsService,
     private readonly studiosService: StudiosService,
     private readonly clubsService: ClubsService,
+    private readonly userService: UserService,
+    private readonly trainingService: TrainingsService,
+    private readonly trainerSlotsService: SlotsService,
   ) {
     super(
       clubsSlotsRepository,
@@ -41,8 +50,6 @@ export class ClubSlotsService extends BaseEntityService<
       relations: { slot: true, club: true },
     });
 
-    console.log(trainings);
-
     const slots = await this.find({
       order: { id: 'ASC' },
     });
@@ -54,18 +61,6 @@ export class ClubSlotsService extends BaseEntityService<
           trainings.every((training) => slot.id !== training.slot.id),
         ),
     );
-  }
-
-  private dateRange(start: Date, days: number): Date[] {
-    const dates: Date[] = [];
-
-    for (let i = 0; i <= days; i++) {
-      const newDate = new Date(start);
-      newDate.setDate(start.getDate() + i);
-      dates.push(newDate);
-    }
-
-    return dates;
   }
 
   async getSlotsForStudio(
@@ -88,7 +83,7 @@ export class ClubSlotsService extends BaseEntityService<
 
     const studioSlots = [];
 
-    const week = this.dateRange(weekStart, days);
+    const week = getDateRange(weekStart, days);
 
     for (const club of studio.clubs) {
       for (const date of week) {
@@ -124,7 +119,7 @@ export class ClubSlotsService extends BaseEntityService<
 
     const studioSlots = [];
 
-    const week = this.dateRange(weekStart, days);
+    const week = getDateRange(weekStart, days);
 
     for (const club of clubs) {
       for (const date of week) {
@@ -144,5 +139,83 @@ export class ClubSlotsService extends BaseEntityService<
     }
 
     return studioSlots;
+  }
+
+  async getStudioTimeTable(
+    days: number,
+    studioId: number,
+  ): Promise<GetTimeTableRdo> {
+    const studio = await this.studiosService.findOne({
+      where: { id: studioId },
+      relations: { clubs: true },
+    });
+
+    if (!studio) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
+
+    const trainers = await this.userService.find({
+      where: { role: { name: 'trainer' } },
+    });
+
+    if (trainers.length === 0) {
+      return new GetTimeTableRdo(studio, []);
+    }
+
+    const dateRange = getDateRange(new Date(), days);
+
+    const timeTable: GetTimeTableForStudioRdo[] = [];
+
+    for (const date of dateRange) {
+      for (const club of studio.clubs) {
+        const slots = await this.getSlotsForClub(
+          club.id,
+          date.toISOString().split('T')[0] as unknown as Date,
+        );
+
+        const slotsForTimeTable: GetSlotForTimeTableRdo[] = [];
+
+        const trainerSlots = await this.trainerSlotsService.find({
+          where: {
+            date: date.toISOString().split('T')[0] as unknown as Date,
+            trainer: { id: In(trainers.map((trainer) => trainer.id)) },
+          },
+          relations: { trainer: true, beginning: true, end: true },
+        });
+
+        for (const slot of slots) {
+          const availableTrainers: UserEntity[] = [];
+          for (const trainerSlot of trainerSlots) {
+            if (
+              trainerSlot.beginning.id <= slot.id &&
+              slot.id <= trainerSlot.end.id
+            ) {
+              availableTrainers.push(trainerSlot.trainer);
+            }
+
+            slotsForTimeTable.push(
+              new GetSlotForTimeTableRdo(
+                slot,
+                slot.isAvailable,
+                availableTrainers,
+              ),
+            );
+          }
+        }
+
+        timeTable.push(
+          new GetTimeTableForStudioRdo(
+            date.toISOString().split('T')[0],
+            slotsForTimeTable,
+          ),
+        );
+      }
+    }
+
+    return new GetTimeTableRdo(studio, timeTable);
   }
 }

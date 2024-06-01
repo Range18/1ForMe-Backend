@@ -1,3 +1,5 @@
+import { Training } from '#src/core/trainings/entities/training.entity';
+
 export const messageTemplates = {
   'single-training-booking': (
     trainingCost: number,
@@ -39,5 +41,13 @@ export const messageTemplates = {
       '\n' +
       'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
     );
+  },
+  //TODO
+  'training-date-is-changed': (
+    training: Training,
+    oldDate: number,
+    oldTime: number,
+  ) => {
+    return 'ТЕКСТ ТЕКСТ ТЕКСТ';
   },
 } as const;

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -27,6 +28,12 @@ import { UserService } from '#src/core/users/user.service';
 import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 import { MoreThanOrEqual } from 'typeorm';
 import { TrainingCountPerDateRdo } from '#src/core/trainings/rdo/training-count-per-date.rdo';
+import { CreateTrainingViaClientDto } from '#src/core/trainings/dto/create-training-via-client.dto';
+import { AuthService } from '#src/core/auth/auth.service';
+import { ApiException } from '#src/common/exception-handler/api-exception';
+import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { Training } from '#src/core/trainings/entities/training.entity';
+import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('Trainings')
 @Controller('api/trainings')
@@ -34,6 +41,7 @@ export class TrainingsController {
   constructor(
     private readonly trainingsService: TrainingsService,
     private readonly userService: UserService,
+    private readonly authService: AuthService,
   ) {}
 
   @ApiBody({ type: CreateTrainingDto })
@@ -47,19 +55,51 @@ export class TrainingsController {
     const trainings = await this.trainingsService.create(
       createTrainingDto,
       user.id,
+      createTrainingDto.client,
     );
 
     return trainings.map((training) => new GetTrainingRdo(training));
   }
 
-  @ApiBody({ type: CreateTrainingDto })
+  @ApiBody({ type: CreateTrainingViaClientDto })
   @ApiCreatedResponse({ type: GetTrainingRdo })
   @Post('clientForm')
-  async createWithoutToken(@Body() createTrainingDto: CreateTrainingDto) {
-    const trainings = await this.trainingsService.create(
-      createTrainingDto,
-      createTrainingDto.trainerId,
-    );
+  async createClientForm(
+    @Body() createTrainingDto: CreateTrainingViaClientDto,
+  ) {
+    let trainings: Training[];
+
+    if (
+      !createTrainingDto.client &&
+      createTrainingDto.client?.length == 0 &&
+      !createTrainingDto.createClient
+    ) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'UserExceptions',
+        UserExceptions.NoClientData,
+      );
+    }
+
+    if (createTrainingDto.client && createTrainingDto.client?.length > 0) {
+      trainings = await this.trainingsService.create(
+        createTrainingDto,
+        createTrainingDto.trainerId,
+        createTrainingDto.client,
+      );
+    } else {
+      const { phone } = await this.authService.register(
+        createTrainingDto.createClient,
+      );
+
+      const client = await this.userService.findOne({ where: { phone } });
+
+      trainings = await this.trainingsService.create(
+        createTrainingDto,
+        createTrainingDto.trainerId,
+        [client.id],
+      );
+    }
 
     return trainings.map((training) => new GetTrainingRdo(training));
   }
@@ -263,25 +303,25 @@ export class TrainingsController {
     @Body() updateTrainingDto: UpdateTrainingDto,
     @User() user: UserRequest,
   ): Promise<GetTrainingRdo> {
-    return new GetTrainingRdo(
-      await this.trainingsService.updateOne(
-        {
-          where: { id, trainer: { id: user.id } },
-          relations: {
-            trainer: true,
-            club: { city: true },
-            type: true,
-            transaction: { tariff: { sport: true } },
-            subscription: { transaction: { tariff: { sport: true } } },
-            slot: true,
-          },
+    const training = await this.trainingsService.updateOneWithMsg(
+      {
+        where: { id, trainer: { id: user.id } },
+        relations: {
+          trainer: true,
+          club: { city: true },
+          type: true,
+          transaction: { tariff: { sport: true } },
+          subscription: { transaction: { tariff: { sport: true } } },
+          slot: true,
         },
-        {
-          club: { id: updateTrainingDto.club },
-          date: updateTrainingDto.date,
-        },
-      ),
+      },
+      {
+        club: { id: updateTrainingDto.club },
+        date: updateTrainingDto.date,
+      },
     );
+
+    return new GetTrainingRdo(training);
   }
 
   @Post('cancel/:id')

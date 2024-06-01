@@ -20,27 +20,25 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { GetSlotRdo } from '#src/core/slots/rdo/get-slot.rdo';
+import { GetSlotRdo } from '#src/core/trainer-slots/rdo/get-slot.rdo';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
-import { ClubSlotsService } from '#src/core/club-slots/club-slots.service';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { MoreThanOrEqual } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
 import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
-
-function range(start: number, stop: number) {
-  return [...Array(stop).keys()].map((key) => ++key).splice(start - 1);
-}
 
 @ApiTags('Slots')
 @Controller('api/slots')
 export class SlotsController {
   constructor(
     private readonly slotsService: SlotsService,
-    private readonly clubSlotsService: ClubSlotsService,
+    @InjectRepository(ClubSlots)
+    private readonly clubsRepository: Repository<ClubSlots>,
     private readonly trainingService: TrainingsService,
   ) {}
 
@@ -52,11 +50,11 @@ export class SlotsController {
     @Body() createSlotDto: CreateSlotDto,
     @User() user: UserRequest,
   ) {
-    const beginningSlot = await this.clubSlotsService.findOne({
+    const beginningSlot = await this.clubsRepository.findOne({
       where: { id: createSlotDto.beginning },
     });
 
-    const endSlot = await this.clubSlotsService.findOne({
+    const endSlot = await this.clubsRepository.findOne({
       where: { id: createSlotDto.end },
     });
 
@@ -112,7 +110,7 @@ export class SlotsController {
       relations: { studio: { city: true }, end: true, beginning: true },
     });
 
-    const slots = await this.clubSlotsService.find({
+    const slots = await this.clubsRepository.find({
       relations: { club: { city: true, studio: true } },
       order: { id: 'ASC' },
     });
@@ -172,7 +170,7 @@ export class SlotsController {
       relations: { studio: { city: true }, end: true, beginning: true },
     });
 
-    const slots = await this.clubSlotsService.find({
+    const slots = await this.clubsRepository.find({
       relations: { club: { city: true, studio: true } },
       order: { id: 'ASC' },
     });
@@ -232,11 +230,11 @@ export class SlotsController {
     @Body() updateSlotDto: UpdateSlotDto,
     @User() user: UserRequest,
   ) {
-    const beginningSlot = await this.clubSlotsService.findOne({
+    const beginningSlot = await this.clubsRepository.findOne({
       where: { id: updateSlotDto.beginning },
     });
 
-    const endSlot = await this.clubSlotsService.findOne({
+    const endSlot = await this.clubsRepository.findOne({
       where: { id: updateSlotDto.end },
     });
 

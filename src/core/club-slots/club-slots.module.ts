@@ -9,6 +9,7 @@ import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import { TrainingsModule } from '#src/core/trainings/trainings.module';
 import { StudiosModule } from '#src/core/studios/studios.module';
 import { ClubsModule } from '#src/core/clubs/clubs.module';
+import { SlotsModule } from '#src/core/trainer-slots/slots.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ClubsModule } from '#src/core/clubs/clubs.module';
     TrainingsModule,
     StudiosModule,
     ClubsModule,
+    SlotsModule,
   ],
   controllers: [ClubSlotsController],
   providers: [ClubSlotsService],
