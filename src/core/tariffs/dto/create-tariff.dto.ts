@@ -14,6 +14,8 @@ export class CreateTariffDto {
 
   readonly category: number;
 
+  type: number;
+
   //Only for groups, pairs
   clientsAmount?: number;
 

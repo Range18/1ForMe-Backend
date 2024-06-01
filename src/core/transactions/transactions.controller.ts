@@ -51,15 +51,15 @@ export class TransactionsController {
         createdAt: dateRange,
       },
       relations: {
-        tariff: { sport: true, category: true },
+        tariff: { type: true, sport: true, category: true },
         client: true,
         trainer: {
           avatar: true,
           category: true,
           studios: true,
         },
-        training: { type: true, slot: true },
-        subscription: { trainings: { type: true, slot: true } },
+        training: { slot: true },
+        subscription: { trainings: { slot: true } },
       },
     });
 

@@ -14,7 +14,7 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
-import { ClubSlotsService } from '#src/core/studio-slots/club-slots.service';
+import { ClubSlotsService } from '#src/core/club-slots/club-slots.service';
 import console from 'node:console';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
@@ -127,7 +127,6 @@ export class SubscriptionsService extends BaseEntityService<
       trainerId,
       client.id,
       subscription,
-      createSubscriptionDto.type,
     );
 
     console.log(tariff);
@@ -171,8 +170,8 @@ export class SubscriptionsService extends BaseEntityService<
       relations: {
         client: true,
         trainer: true,
-        transaction: { tariff: { sport: true } },
-        trainings: { type: true, club: true, slot: true },
+        transaction: { tariff: { sport: true, type: true } },
+        trainings: { club: true, slot: true },
       },
     });
   }

@@ -1,6 +1,6 @@
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
-import { GetSlotForTimeTableRdo } from '#src/core/studio-slots/rdo/get-slot-for-time-table.rdo';
+import { GetSlotForTimeTableRdo } from '#src/core/club-slots/rdo/get-slot-for-time-table.rdo';
 
 export class GetClubScheduleRdo {
   club: GetClubRdo;

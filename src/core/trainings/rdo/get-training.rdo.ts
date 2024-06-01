@@ -1,5 +1,4 @@
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
-import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
@@ -7,7 +6,7 @@ import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes';
 import { TrainingStatusType } from '#src/core/trainings/training-status.type';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
-import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 
 export class GetTrainingRdo {
   @ApiProperty()
@@ -27,9 +26,6 @@ export class GetTrainingRdo {
 
   @ApiProperty({ type: () => GetUserRdo })
   trainer: GetUserRdo;
-
-  @ApiProperty({ type: TrainingType })
-  type?: TrainingType;
 
   @ApiProperty({ type: () => GetClubRdo })
   club?: GetClubRdo;
@@ -53,7 +49,6 @@ export class GetTrainingRdo {
       : undefined;
     this.date = training.date;
     this.slot = training.slot ?? undefined;
-    this.type = training?.type ?? undefined;
     this.club = training.club ? new GetClubRdo(training.club) : undefined;
     this.transaction = training.transaction
       ? new GetTransactionRdo(training.transaction)

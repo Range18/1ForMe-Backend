@@ -11,6 +11,7 @@ import { Transaction } from '#src/core/transactions/entities/transaction.entity'
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { Category } from '#src/core/categories/entity/categories.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
+import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
 
 @Entity('tariffs')
 export class Tariff extends BaseEntity {
@@ -51,6 +52,10 @@ export class Tariff extends BaseEntity {
   })
   @JoinColumn({ name: 'category' })
   category?: Category;
+
+  @ManyToOne(() => TrainingType, (type) => type.tariffs, { nullable: true })
+  @JoinColumn({ name: 'type' })
+  type?: TrainingType;
 
   //Only for groups, pairs
   @Column({ nullable: true })

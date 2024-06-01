@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '#src/common/base.entity';
-import { Training } from '#src/core/trainings/entities/training.entity';
+import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Entity('training_types')
 export class TrainingType extends BaseEntity {
@@ -13,6 +13,6 @@ export class TrainingType extends BaseEntity {
   @Column({ nullable: false })
   name: string;
 
-  @OneToMany(() => Training, (training) => training.type, { nullable: true })
-  trainings?: Training[];
+  @OneToMany(() => Tariff, (tariff) => tariff.type, { nullable: true })
+  tariffs?: Tariff[];
 }

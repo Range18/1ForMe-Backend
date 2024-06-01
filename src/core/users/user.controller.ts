@@ -36,9 +36,11 @@ export class UserController {
   ) {}
 
   @ApiOkResponse({ type: [GetUserRdo] })
+  @ApiQuery({ name: 'role' })
   @Get()
-  async getAllUsers() {
+  async getAllUsers(@Query('role') role?: string) {
     const users = await this.userService.find({
+      where: { role: role ? { name: role } : undefined },
       relations: {
         role: true,
         avatar: true,

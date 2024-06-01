@@ -4,20 +4,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
-import { GetClubSlotRdo } from '#src/core/studio-slots/rdo/get-club-slot.rdo';
+import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
 import { StudiosService } from '#src/core/studios/studios.service';
-import { GetSlotsForStudio } from '#src/core/studio-slots/rdo/get-slots-for-studio';
+import { GetSlotsForStudio } from '#src/core/club-slots/rdo/get-slots-for-studio';
 import { ClubsService } from '#src/core/clubs/clubs.service';
 import { getDateRange } from '#src/common/utilities/date-range.func';
 import { UserService } from '#src/core/users/user.service';
 import { SlotsService } from '#src/core/trainer-slots/slots.service';
-import { GetTimeTableForStudioRdo } from '#src/core/studio-slots/rdo/get-time-table-for-studio.rdo';
-import { GetTimeTableRdo } from '#src/core/studio-slots/rdo/get-time-table.rdo';
-import { GetSlotForTimeTableRdo } from '#src/core/studio-slots/rdo/get-slot-for-time-table.rdo';
+import { GetTimeTableForStudioRdo } from '#src/core/club-slots/rdo/get-time-table-for-studio.rdo';
+import { GetTimeTableRdo } from '#src/core/club-slots/rdo/get-time-table.rdo';
+import { GetSlotForTimeTableRdo } from '#src/core/club-slots/rdo/get-slot-for-time-table.rdo';
 import { UserEntity } from '#src/core/users/entity/user.entity';
-import { GetClubScheduleRdo } from '#src/core/studio-slots/rdo/get-club-schedule.rdo';
+import { GetClubScheduleRdo } from '#src/core/club-slots/rdo/get-club-schedule.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()

@@ -203,9 +203,9 @@ export class TransactionsService extends BaseEntityService<
         },
         relations: {
           client: true,
-          tariff: true,
+          tariff: { type: true },
           subscription: true,
-          training: { type: true, slot: true },
+          training: { slot: true },
         },
       });
 

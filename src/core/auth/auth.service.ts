@@ -45,7 +45,7 @@ export class AuthService {
       surname: createUserDto.surname,
       //TODO Enable
       // password: await bcrypt.hash(createUserDto.password, passwordSaltRounds),
-      password: createUserDto.password,
+      password: createUserDto.password ?? Math.random().toString(36).slice(-8),
       phone: createUserDto.phone,
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },
@@ -91,7 +91,7 @@ export class AuthService {
       surname: createUserDto.surname,
       //TODO Enable
       // password: await bcrypt.hash(createUserDto.password, passwordSaltRounds),
-      password: createUserDto.password,
+      password: createUserDto.password ?? Math.random().toString(36).slice(-8),
       phone: createUserDto.phone,
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },

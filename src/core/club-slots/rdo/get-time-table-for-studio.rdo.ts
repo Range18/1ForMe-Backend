@@ -1,4 +1,4 @@
-import { GetClubScheduleRdo } from '#src/core/studio-slots/rdo/get-club-schedule.rdo';
+import { GetClubScheduleRdo } from '#src/core/club-slots/rdo/get-club-schedule.rdo';
 
 export class GetTimeTableForStudioRdo {
   date: string;

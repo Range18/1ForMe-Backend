@@ -12,9 +12,6 @@ export class CreateTrainingViaClientDto {
   readonly client: number[];
 
   @ApiProperty()
-  readonly type?: number;
-
-  @ApiProperty()
   readonly club: number;
 
   readonly tariff: number;

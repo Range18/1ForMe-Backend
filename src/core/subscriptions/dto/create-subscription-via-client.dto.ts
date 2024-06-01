@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateClientDto } from '#src/core/users/dto/create-client1.dto';
 
 class CreateTrainingDtoForSub {
   readonly date: Date;
@@ -6,14 +7,15 @@ class CreateTrainingDtoForSub {
   readonly club: number;
 }
 
-export class CreateSubscriptionDto {
-  @ApiProperty()
-  client: number;
+export class CreateSubscriptionViaClientDto {
+  readonly trainerId: number;
 
   @ApiProperty({
     type: () => [CreateTrainingDtoForSub],
   })
   createTrainingDto: CreateTrainingDtoForSub[];
 
-  tariff: number;
+  readonly tariff: number;
+
+  readonly createClient?: CreateClientDto;
 }

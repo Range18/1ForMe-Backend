@@ -94,10 +94,13 @@ export class TrainingsController {
 
       const client = await this.userService.findOne({ where: { phone } });
 
+      const clients = createTrainingDto.client;
+      clients.push(client.id);
+
       trainings = await this.trainingsService.create(
         createTrainingDto,
         createTrainingDto.trainerId,
-        [client.id],
+        clients,
       );
     }
 
@@ -121,8 +124,7 @@ export class TrainingsController {
       relations: {
         client: true,
         trainer: true,
-        transaction: { tariff: { sport: true } },
-        type: true,
+        transaction: { tariff: { sport: true, type: true } },
         club: { city: true, studio: { city: true } },
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
@@ -144,9 +146,8 @@ export class TrainingsController {
       relations: {
         client: true,
         trainer: true,
-        type: true,
         club: { city: true, studio: { city: true } },
-        transaction: { tariff: { sport: true } },
+        transaction: { tariff: { sport: true, type: true } },
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
       },
@@ -190,8 +191,7 @@ export class TrainingsController {
           relations: {
             trainer: true,
             club: { city: true, studio: true },
-            type: true,
-            transaction: { tariff: { sport: true } },
+            transaction: { tariff: { sport: true, type: true } },
             subscription: { transaction: { tariff: { sport: true } } },
             slot: true,
           },
@@ -234,8 +234,7 @@ export class TrainingsController {
       relations: {
         trainer: true,
         club: { city: true },
-        type: true,
-        transaction: { tariff: { sport: true } },
+        transaction: { tariff: { sport: true, type: true } },
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
       },
@@ -258,8 +257,7 @@ export class TrainingsController {
       relations: {
         trainer: true,
         club: { city: true },
-        type: true,
-        transaction: { tariff: { sport: true } },
+        transaction: { tariff: { sport: true, type: true } },
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
       },
@@ -278,8 +276,7 @@ export class TrainingsController {
         relations: {
           trainer: true,
           club: { city: true, studio: true },
-          type: true,
-          transaction: { tariff: { sport: true } },
+          transaction: { tariff: { sport: true, type: true } },
           subscription: { transaction: { tariff: { sport: true } } },
           slot: true,
           client: true,
@@ -309,8 +306,7 @@ export class TrainingsController {
         relations: {
           trainer: true,
           club: { city: true },
-          type: true,
-          transaction: { tariff: { sport: true } },
+          transaction: { tariff: { sport: true, type: true } },
           subscription: { transaction: { tariff: { sport: true } } },
           slot: true,
         },

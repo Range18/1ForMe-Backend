@@ -20,11 +20,18 @@ import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import * as console from 'node:console';
+import { CreateSubscriptionViaClientDto } from '#src/core/subscriptions/dto/create-subscription-via-client.dto';
+import { AuthService } from '#src/core/auth/auth.service';
+import { UserService } from '#src/core/users/user.service';
 
 @ApiTags('Subscriptions')
 @Controller('api/subscriptions')
 export class SubscriptionsController {
-  constructor(private readonly subscriptionsService: SubscriptionsService) {}
+  constructor(
+    private readonly subscriptionsService: SubscriptionsService,
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
 
   @ApiBody({ type: CreateSubscriptionDto })
   @ApiCreatedResponse({ type: GetSubscriptionRdo })
@@ -39,14 +46,34 @@ export class SubscriptionsController {
     );
   }
 
+  @ApiBody({ type: CreateSubscriptionDto })
+  @ApiCreatedResponse({ type: GetSubscriptionRdo })
+  @Post('clientForm')
+  async createViaClient(
+    @Body() createSubscriptionDto: CreateSubscriptionViaClientDto,
+  ) {
+    const { phone } = await this.authService.register(
+      createSubscriptionDto.createClient,
+    );
+
+    const client = await this.userService.findOne({ where: { phone } });
+
+    return new GetSubscriptionRdo(
+      await this.subscriptionsService.create(
+        { client: client.id, ...createSubscriptionDto },
+        createSubscriptionDto.trainerId,
+      ),
+    );
+  }
+
   @Get()
   async findAll() {
     const subscriptions = await this.subscriptionsService.find({
       relations: {
         client: true,
         trainer: true,
-        transaction: { tariff: { sport: true } },
-        trainings: { type: true, club: true, slot: true },
+        transaction: { tariff: { type: true, sport: true } },
+        trainings: { club: true, slot: true },
       },
     });
 
@@ -70,8 +97,8 @@ export class SubscriptionsController {
       relations: {
         client: true,
         trainer: true,
-        transaction: { tariff: { sport: true } },
-        trainings: { type: true, club: true, slot: true },
+        transaction: { tariff: { type: true, sport: true } },
+        trainings: { club: true, slot: true },
       },
     });
 
@@ -90,9 +117,8 @@ export class SubscriptionsController {
         relations: {
           client: true,
           trainer: true,
-          transaction: { tariff: true },
+          transaction: { tariff: { type: true, sport: true } },
           trainings: {
-            type: true,
             club: { city: true, studio: true },
             slot: true,
           },

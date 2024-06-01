@@ -29,6 +29,8 @@ export class GetTariffRdo {
 
   clientsAmount: number;
 
+  type: string;
+
   constructor(tariff: Tariff) {
     this.id = tariff.id;
     this.name = tariff.name;
@@ -40,5 +42,6 @@ export class GetTariffRdo {
     this.subExpireAt = tariff.subExpireAt;
     this.trainingAmount = tariff.trainingAmount;
     this.clientsAmount = tariff.clientsAmount;
+    this.type = tariff.type ? tariff.type.name : undefined;
   }
 }

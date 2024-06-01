@@ -16,7 +16,7 @@ import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messag
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
-import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -195,9 +195,6 @@ export class TrainingsService extends BaseEntityService<
       );
 
       const training = await this.save({
-        type: createTrainingDto.type
-          ? { id: createTrainingDto.type }
-          : undefined,
         slot: slot,
         date: createTrainingDto.date,
         client: { id: client.id },
@@ -214,8 +211,7 @@ export class TrainingsService extends BaseEntityService<
       relations: {
         client: { avatar: true },
         trainer: { avatar: true },
-        transaction: { tariff: true },
-        type: true,
+        transaction: { tariff: { type: true } },
         club: { city: true },
         slot: true,
       },
@@ -230,7 +226,6 @@ export class TrainingsService extends BaseEntityService<
     trainerId: number,
     clientId: number,
     subscriptionEntity: Subscription,
-    trainingType?: number,
   ) {
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
@@ -258,7 +253,6 @@ export class TrainingsService extends BaseEntityService<
     await Promise.all(
       createTrainingDtoArray.map(async (training) => {
         return await this.save({
-          type: { id: trainingType },
           date: training.date,
           slot: { id: training.slot },
           client: { id: clientId },

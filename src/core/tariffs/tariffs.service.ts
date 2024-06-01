@@ -55,6 +55,7 @@ export class TariffsService extends BaseEntityService<
         studio: true,
         category: true,
         sport: true,
+        type: true,
       },
     });
 

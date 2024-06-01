@@ -46,6 +46,7 @@ export class TariffsController {
         category: { id: body.category },
         sport: { id: body.sport },
         studio: { id: studioId },
+        type: { id: body.type },
       }),
     );
   }
@@ -67,6 +68,7 @@ export class TariffsController {
         studio: true,
         sport: true,
         category: true,
+        type: true,
       },
     });
 
@@ -88,6 +90,7 @@ export class TariffsController {
         studio: true,
         sport: true,
         category: true,
+        type: true,
       },
     });
 
@@ -133,6 +136,7 @@ export class TariffsController {
           studio: true,
           category: true,
           sport: true,
+          type: true,
         },
       }),
     );
@@ -154,6 +158,7 @@ export class TariffsController {
             studio: true,
             category: true,
             sport: true,
+            type: true,
           },
         },
         {
