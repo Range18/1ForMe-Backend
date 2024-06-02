@@ -203,18 +203,17 @@ export class ClubSlotsService extends BaseEntityService<
               trainerSlot.beginning.id <= slot.id &&
               slot.id <= trainerSlot.end.id
             ) {
-              if (trainerSlot.studio.id === slot.club.studio.id) {
-                availableTrainers.push(trainerSlot.trainer);
-              }
+              availableTrainers.push(trainerSlot.trainer);
             }
-
-            slotsForTimeTable.push(
-              new GetSlotForTimeTableRdo(
-                slot,
-                slot.isAvailable,
-                availableTrainers,
-              ),
-            );
+            if (availableTrainers.length > 0) {
+              slotsForTimeTable.push(
+                new GetSlotForTimeTableRdo(
+                  slot,
+                  slot.isAvailable,
+                  availableTrainers,
+                ),
+              );
+            }
           }
         }
         clubTimeTable.push(new GetClubScheduleRdo(club, slotsForTimeTable));
