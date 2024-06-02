@@ -17,6 +17,7 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import console from 'node:console';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -150,9 +151,12 @@ export class TrainingsService extends BaseEntityService<
     }
 
     for (const client of clients) {
-      client.trainers.push({ id: trainerId } as UserEntity);
+      // if (client.trainers.every((trainer) => trainer.id !== trainerId)) {
+      //   client.trainers.push({ id: trainerId } as UserEntity);
+      //   await this.userService.save(client);
+      // }
 
-      await this.userService.save(client);
+      console.log(client.trainers.every((trainer) => trainer.id !== trainerId));
 
       const transaction = await this.transactionsService.save({
         client: { id: client.id },
@@ -286,7 +290,6 @@ export class TrainingsService extends BaseEntityService<
           'COUNT(training.`id`) as trainingCount',
         ])
         .where('training.trainer = :trainerId', { trainerId })
-        .addGroupBy('DAY(training.`date`)')
         .addGroupBy('DAY(training.`date`)')
         .getRawMany()
     ).map(

@@ -50,7 +50,9 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   userNameInMessenger?: string;
 
-  @ManyToOne(() => ChatTypes, (chatType) => chatType.users, { nullable: true })
+  @ManyToOne(() => ChatTypes, (chatType) => chatType.users, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'chatType' })
   chatType?: ChatTypes;
 

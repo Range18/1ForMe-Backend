@@ -88,13 +88,19 @@ export class TrainingsController {
         createTrainingDto.client,
       );
     } else {
-      const { phone } = await this.authService.register(
-        createTrainingDto.createClient,
-      );
+      let client = await this.userService.findOne({
+        where: { phone: createTrainingDto.createClient.phone },
+      });
 
-      const client = await this.userService.findOne({ where: { phone } });
+      if (!client) {
+        const { phone } = await this.authService.register(
+          createTrainingDto.createClient,
+        );
 
-      const clients = createTrainingDto.client;
+        client = await this.userService.findOne({ where: { phone } });
+      }
+
+      const clients = createTrainingDto.client ? createTrainingDto.client : [];
       clients.push(client.id);
 
       trainings = await this.trainingsService.create(

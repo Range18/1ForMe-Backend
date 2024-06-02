@@ -52,8 +52,9 @@ export class ClubSlotsService extends BaseEntityService<
     });
 
     const slots = await this.find({
-      where: { club: { id: clubId } },
+      // where: { club: { id: clubId } },
       order: { id: 'ASC' },
+      relations: { club: { studio: true } },
     });
 
     return slots.map(
@@ -161,7 +162,7 @@ export class ClubSlotsService extends BaseEntityService<
     }
 
     const trainers = await this.userService.find({
-      where: { role: { name: 'trainer' } },
+      where: { role: { name: 'trainer' }, isTrainerActive: true },
     });
 
     if (trainers.length === 0) {
@@ -187,7 +188,12 @@ export class ClubSlotsService extends BaseEntityService<
             date: date.toISOString().split('T')[0] as unknown as Date,
             trainer: { id: In(trainers.map((trainer) => trainer.id)) },
           },
-          relations: { trainer: true, beginning: true, end: true },
+          relations: {
+            trainer: true,
+            beginning: true,
+            end: true,
+            studio: true,
+          },
         });
 
         for (const slot of slots) {
@@ -197,7 +203,9 @@ export class ClubSlotsService extends BaseEntityService<
               trainerSlot.beginning.id <= slot.id &&
               slot.id <= trainerSlot.end.id
             ) {
-              availableTrainers.push(trainerSlot.trainer);
+              if (trainerSlot.studio.id === slot.club.studio.id) {
+                availableTrainers.push(trainerSlot.trainer);
+              }
             }
 
             slotsForTimeTable.push(

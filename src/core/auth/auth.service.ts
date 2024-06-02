@@ -11,6 +11,7 @@ import { uid } from 'uid';
 import { CreateClientViaTrainerDto } from '#src/core/users/dto/create-client-via-trainer.dto';
 import { VerificationService } from '#src/core/verification-codes/verification.service';
 import { CommentsService } from '#src/core/comments/comments.service';
+import { CreateClientDto } from '#src/core/users/dto/create-client1.dto';
 import AuthExceptions = AllExceptions.AuthExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -24,7 +25,9 @@ export class AuthService {
     private readonly commentsService: CommentsService,
   ) {}
 
-  async register(createUserDto: CreateUserDto): Promise<LoggedUserRdo> {
+  async register(
+    createUserDto: CreateUserDto | CreateClientDto,
+  ): Promise<LoggedUserRdo> {
     const user = await this.userService.findOne(
       {
         where: { phone: createUserDto.phone },
@@ -50,9 +53,10 @@ export class AuthService {
       role: await this.rolesService.findOne({
         where: { name: createUserDto.role },
       }),
-      birthday: createUserDto.birthday,
-      trainers: [{ id: createUserDto.trainer }],
+      birthday: createUserDto['birthday'],
+      trainers: [{ id: createUserDto['trainer'] }],
       userNameInMessenger: createUserDto.userNameInMessenger,
+      chatType: { id: createUserDto['chatType'] },
     });
 
     // await this.verificationService.createAndSend(1234, userEntity);
