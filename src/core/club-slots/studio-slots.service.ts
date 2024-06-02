@@ -21,7 +21,7 @@ import { GetClubScheduleRdo } from '#src/core/club-slots/rdo/get-club-schedule.r
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
-export class ClubSlotsService extends BaseEntityService<
+export class StudioSlotsService extends BaseEntityService<
   ClubSlots,
   'EntityExceptions'
 > {
@@ -51,10 +51,42 @@ export class ClubSlotsService extends BaseEntityService<
       relations: { slot: true, club: true },
     });
 
+    const club = await this.clubsService.findOne({
+      where: { id: clubId },
+      relations: { studio: true },
+    });
+
+    if (!club) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
+
     const slots = await this.find({
-      // where: { club: { id: clubId } },
+      where: { studio: { id: club.studio.id } },
       order: { id: 'ASC' },
-      relations: { club: { studio: true } },
+      relations: { studio: true },
+    });
+
+    return slots.map(
+      (slot) =>
+        new GetClubSlotRdo(
+          slot,
+          trainings.every((training) => slot.id !== training.slot.id),
+          club,
+        ),
+    );
+  }
+
+  async getSlotsForStudio(studioId: number): Promise<GetClubSlotRdo[]> {
+    const trainings = [];
+
+    const slots = await this.find({
+      where: { studio: { id: studioId } },
+      order: { id: 'ASC' },
+      relations: { studio: true },
     });
 
     return slots.map(
@@ -66,7 +98,7 @@ export class ClubSlotsService extends BaseEntityService<
     );
   }
 
-  async getSlotsForStudio(
+  async getSlotsForClubsOfStudio(
     studioId: number,
     weekStart: Date,
     days: number,
@@ -85,6 +117,7 @@ export class ClubSlotsService extends BaseEntityService<
     }
 
     const studioSlots = [];
+    weekStart.setHours(weekStart.getHours() + 5);
 
     const week = getDateRange(weekStart, days);
 

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateClubSlotDto {
+export class CreateStudioSlotDto {
   @ApiProperty()
   beginning: string;
 

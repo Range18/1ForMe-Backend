@@ -111,7 +111,7 @@ export class SlotsController {
     });
 
     const slots = await this.clubsRepository.find({
-      relations: { club: { city: true, studio: true } },
+      relations: { studio: { city: true } },
       order: { id: 'ASC' },
     });
 
@@ -171,7 +171,7 @@ export class SlotsController {
     });
 
     const slots = await this.clubsRepository.find({
-      relations: { club: { city: true, studio: true } },
+      relations: { studio: { city: true } },
       order: { id: 'ASC' },
     });
 

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ClubSlotsService } from './club-slots.service';
-import { ClubSlotsController } from './club-slots.controller';
+import { StudioSlotsService } from './studio-slots.service';
+import { StudioSlotsController } from './studio-slots.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '#src/core/users/user.module';
 import { SessionModule } from '#src/core/session/session.module';
@@ -22,8 +22,8 @@ import { SlotsModule } from '#src/core/trainer-slots/slots.module';
     ClubsModule,
     SlotsModule,
   ],
-  controllers: [ClubSlotsController],
-  providers: [ClubSlotsService],
-  exports: [ClubSlotsService],
+  controllers: [StudioSlotsController],
+  providers: [StudioSlotsService],
+  exports: [StudioSlotsService],
 })
-export class ClubSlotsModule {}
+export class StudioSlotsModule {}

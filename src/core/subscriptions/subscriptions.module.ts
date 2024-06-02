@@ -13,7 +13,7 @@ import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { TariffsModule } from '#src/core/tariffs/tariffs.module';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
-import { ClubSlotsModule } from '#src/core/club-slots/club-slots.module';
+import { StudioSlotsModule } from '#src/core/club-slots/studio-slots.module';
 import { AuthModule } from '#src/core/auth/auth.module';
 
 @Module({
@@ -27,7 +27,7 @@ import { AuthModule } from '#src/core/auth/auth.module';
     TariffsModule,
     TinkoffPaymentsModule,
     WazzupMessagingModule,
-    ClubSlotsModule,
+    StudioSlotsModule,
     AuthModule,
   ],
   controllers: [SubscriptionsController],

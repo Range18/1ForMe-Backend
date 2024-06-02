@@ -14,7 +14,7 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
-import { ClubSlotsService } from '#src/core/club-slots/club-slots.service';
+import { StudioSlotsService } from '#src/core/club-slots/studio-slots.service';
 import console from 'node:console';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
@@ -35,7 +35,7 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly tariffsService: TariffsService,
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly wazzupMessagingService: WazzupMessagingService,
-    private readonly clubSlotsService: ClubSlotsService,
+    private readonly clubSlotsService: StudioSlotsService,
   ) {
     super(
       subscriptionRepository,

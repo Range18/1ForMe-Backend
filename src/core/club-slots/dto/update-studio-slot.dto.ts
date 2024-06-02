@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdateClubSlotDto {
+export class UpdateStudioSlotDto {
   @ApiProperty({ required: false })
   beginning?: string;
 

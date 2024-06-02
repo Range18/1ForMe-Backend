@@ -19,7 +19,7 @@ export namespace AllExceptions {
 
   export enum UserExceptions {
     UserNotFound = 'User is not found',
-    UserAlreadyExists = 'User already exists',
+    UserAlreadyExists = 'Пользователь с таким номером телефона уже существет',
     NoClientData = 'No client data',
   }
 
