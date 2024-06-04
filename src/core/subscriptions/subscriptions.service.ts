@@ -16,10 +16,12 @@ import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { StudioSlotsService } from '#src/core/club-slots/studio-slots.service';
 import console from 'node:console';
+import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 import SubscriptionExceptions = AllExceptions.SubscriptionExceptions;
+import PermissionExceptions = AllExceptions.PermissionExceptions;
 
 @Injectable()
 export class SubscriptionsService extends BaseEntityService<
@@ -174,5 +176,69 @@ export class SubscriptionsService extends BaseEntityService<
         trainings: { club: true, slot: true },
       },
     });
+  }
+
+  async cancelSubscription(id: number, userId: number): Promise<void> {
+    const user = await this.userService.findOne({
+      where: { id: userId },
+      relations: { role: true },
+    });
+
+    if (!user) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
+    const subscription = await this.findOne({
+      where: { id: id },
+      relations: { transaction: true, client: true, trainer: true },
+    });
+
+    if (!subscription) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'SubscriptionExceptions',
+        SubscriptionExceptions.NotFound,
+      );
+    }
+
+    if (new GetSubscriptionRdo(subscription).finishedTrainingsCount !== 0) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'SubscriptionExceptions',
+        SubscriptionExceptions.CancelingForbidden,
+      );
+    }
+
+    if (user.role.name === 'client' && subscription.client.id !== user.id) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        'PermissionExceptions',
+        PermissionExceptions.NoRequiredRole,
+      );
+    } else if (
+      user.role.name === 'trainer' &&
+      subscription.trainer.id !== user.id
+    ) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        'PermissionExceptions',
+        PermissionExceptions.NoRequiredRole,
+      );
+    }
+
+    await this.tinkoffPaymentsService.cancelOrRefundPayment(
+      subscription.transaction.id,
+    );
+
+    await Promise.all(
+      subscription?.trainings?.map(
+        async (training) =>
+          await this.trainingsService.updateOne(training, { isCanceled: true }),
+      ),
+    );
   }
 }

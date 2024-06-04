@@ -327,8 +327,9 @@ export class TrainingsController {
   }
 
   @Post('cancel/:id')
-  async cancelTraining(@Param('id') id: number) {
-    return this.trainingsService.cancelTraining(id);
+  @AuthGuard()
+  async cancelTraining(@Param('id') id: number, @User() user: UserRequest) {
+    return this.trainingsService.cancelTraining(id, user.id);
   }
 
   @Delete(':id')

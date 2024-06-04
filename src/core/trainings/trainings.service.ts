@@ -23,6 +23,7 @@ import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 import TrainingExceptions = AllExceptions.TrainingExceptions;
+import PermissionExceptions = AllExceptions.PermissionExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -268,11 +269,49 @@ export class TrainingsService extends BaseEntityService<
     );
   }
 
-  async cancelTraining(id: number): Promise<void> {
+  async cancelTraining(id: number, userId: number): Promise<void> {
+    const user = await this.userService.findOne({
+      where: { id: userId },
+      relations: { role: true },
+    });
+
+    if (!user) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
     const training = await this.findOne({
       where: { id: id, isCanceled: false },
-      relations: { transaction: true },
+      relations: { transaction: true, client: true, trainer: true },
     });
+
+    if (!training) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'TrainingExceptions',
+        TrainingExceptions.NotFound,
+      );
+    }
+
+    if (user.role.name === 'client' && training.client.id !== user.id) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        'PermissionExceptions',
+        PermissionExceptions.NoRequiredRole,
+      );
+    } else if (
+      user.role.name === 'trainer' &&
+      training.trainer.id !== user.id
+    ) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        'PermissionExceptions',
+        PermissionExceptions.NoRequiredRole,
+      );
+    }
 
     await this.tinkoffPaymentsService.cancelOrRefundPayment(
       training.transaction.id,
