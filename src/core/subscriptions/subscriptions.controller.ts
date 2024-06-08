@@ -52,11 +52,20 @@ export class SubscriptionsController {
   async createViaClient(
     @Body() createSubscriptionDto: CreateSubscriptionViaClientDto,
   ) {
-    const { phone } = await this.authService.register(
-      createSubscriptionDto.createClient,
+    let client = await this.userService.findOne(
+      {
+        where: { phone: createSubscriptionDto.createClient.phone },
+      },
+      false,
     );
 
-    const client = await this.userService.findOne({ where: { phone } });
+    if (!client) {
+      const { phone } = await this.authService.register(
+        createSubscriptionDto.createClient,
+      );
+
+      client = await this.userService.findOne({ where: { phone } });
+    }
 
     return new GetSubscriptionRdo(
       await this.subscriptionsService.create(

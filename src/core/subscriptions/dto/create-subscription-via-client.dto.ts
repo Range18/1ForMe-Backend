@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateClientDto } from '#src/core/users/dto/create-client1.dto';
+import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 
 class CreateTrainingDtoForSub {
   readonly date: Date;

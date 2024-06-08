@@ -15,6 +15,7 @@ import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-paymen
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
 import { StudioSlotsModule } from '#src/core/club-slots/studio-slots.module';
 import { AuthModule } from '#src/core/auth/auth.module';
+import { ClubsModule } from '#src/core/clubs/clubs.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from '#src/core/auth/auth.module';
     WazzupMessagingModule,
     StudioSlotsModule,
     AuthModule,
+    ClubsModule,
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],

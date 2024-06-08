@@ -18,6 +18,10 @@ import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import console from 'node:console';
+import { Cron } from '@nestjs/schedule';
+import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
+import { ClubsService } from '#src/core/clubs/clubs.service';
+import { NormalizedChatType } from '#src/core/wazzup-messaging/types/chat.type';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -40,6 +44,7 @@ export class TrainingsService extends BaseEntityService<
     private readonly userService: UserService,
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly wazzupMessagingService: WazzupMessagingService,
+    private readonly clubsService: ClubsService,
   ) {
     super(
       trainingRepository,
@@ -49,10 +54,6 @@ export class TrainingsService extends BaseEntityService<
         EntityExceptions.NotFound,
       ),
     );
-  }
-
-  private parseTime(time: string): [number, number] {
-    return time.split(':').map((el) => Number(el)) as [number, number];
   }
 
   async create(
@@ -151,12 +152,25 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    for (const client of clients) {
-      // if (client.trainers.every((trainer) => trainer.id !== trainerId)) {
-      //   client.trainers.push({ id: trainerId } as UserEntity);
-      //   await this.userService.save(client);
-      // }
+    const club = await this.clubsService.findOne({
+      where: { id: createTrainingDto.club },
+      relations: { studio: true },
+    });
 
+    if (!club) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
+
+    for (const client of clients) {
+      if (client.trainers.every((trainer) => trainer.id !== trainerId)) {
+        client.trainers.push({ id: trainerId } as UserEntity);
+        await this.userService.save(client);
+      }
+      console.log(client.trainers);
       console.log(client.trainers.every((trainer) => trainer.id !== trainerId));
 
       const transaction = await this.transactionsService.save({
@@ -196,6 +210,8 @@ export class TrainingsService extends BaseEntityService<
           transaction.cost,
           dateToRecordString(createTrainingDto.date, slot.beginning),
           paymentURL,
+          club.studio.name,
+          club.studio.address,
         ),
       );
 
@@ -285,7 +301,12 @@ export class TrainingsService extends BaseEntityService<
 
     const training = await this.findOne({
       where: { id: id, isCanceled: false },
-      relations: { transaction: true, client: true, trainer: true },
+      relations: {
+        transaction: true,
+        client: { chatType: true },
+        trainer: true,
+        slot: true,
+      },
     });
 
     if (!training) {
@@ -313,9 +334,38 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    await this.tinkoffPaymentsService.cancelOrRefundPayment(
-      training.transaction.id,
-    );
+    const chatType = training.client.chatType
+      ? training.client.chatType.name.toLowerCase()
+      : 'whatsapp';
+    const transactionStatus = training.transaction.status;
+
+    if (training.transaction.status === TransactionStatus.Paid) {
+      await this.tinkoffPaymentsService.cancelOrRefundPayment(
+        training.transaction.id,
+      );
+
+      await this.wazzupMessagingService.sendMessage(
+        chatType as unknown as NormalizedChatType,
+        training.client.phone,
+        messageTemplates['training-is-refunded'](
+          dateToRecordString(training.date, training.slot.beginning),
+          training.transaction.cost,
+        ),
+      );
+    } else if (training.transaction.status === TransactionStatus.Unpaid) {
+      await this.transactionsService.updateOne(training.transaction, {
+        status: TransactionStatus.Canceled,
+      });
+
+      await this.wazzupMessagingService.sendMessage(
+        chatType as unknown as NormalizedChatType,
+        training.client.phone,
+        messageTemplates['training-is-canceled'](
+          dateToRecordString(training.date, training.slot.beginning),
+        ),
+      );
+    }
+
     await this.updateOne(training, { isCanceled: true });
   }
 
@@ -347,19 +397,115 @@ export class TrainingsService extends BaseEntityService<
     throwError = true,
   ) {
     const training = await this.findOne(optionsOrEntity);
+    const oldDate = dateToRecordString(training.date, training.slot.beginning);
+    await super.updateOne(training, toUpdate, throwError);
 
-    const newTraining = await super.updateOne(training, toUpdate, throwError);
+    const newTraining = await this.findOne({
+      where: { id: training.id },
+      relations: { slot: true },
+    });
 
-    // await this.wazzupMessagingService.sendMessage(
-    //   training.client.chatType,
-    //   training.client.phone,
-    //   messageTemplates['training-date-is-changed'](
-    //     newTraining,
-    //     training.date,
-    //     training.slot.beginning,
-    //   ),
-    // );
+    await this.wazzupMessagingService.sendMessage(
+      training.client.chatType.name as unknown as NormalizedChatType,
+      training.client.phone,
+      messageTemplates['training-date-is-changed'](
+        oldDate,
+        dateToRecordString(newTraining.date, newTraining.slot.beginning),
+      ),
+    );
 
     return newTraining;
+  }
+
+  @Cron('0 0 12 * * *', { name: 'notificationsAboutCloseTraining' })
+  async notifyAboutCloseTraining() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    console.log(tomorrow);
+
+    const closeTrainings = await this.find({
+      where: {
+        date: tomorrow.toISOString().split('T')[0] as unknown as Date,
+        isCanceled: false,
+      },
+      relations: {
+        transaction: true,
+        client: { chatType: true },
+        club: { studio: true },
+        slot: true,
+        subscription: { transaction: true },
+      },
+    });
+
+    if (!closeTrainings || closeTrainings.length === 0) {
+      return;
+    }
+
+    await Promise.all(
+      closeTrainings.map(async (training) => {
+        const chatType = training.client.chatType.name
+          ? training.client.chatType.name.toLowerCase()
+          : 'whatsapp';
+
+        const transaction = training.subscription
+          ? training.subscription.transaction
+          : training.transaction;
+
+        if (chatType === 'telegram') {
+          if (transaction.status === TransactionStatus.Paid) {
+            //Paid training notification in telegram
+            await this.wazzupMessagingService.sendTelegramMessage(
+              training.client.phone,
+              messageTemplates['notify-about-tomorrow-paid-training'](
+                training.club.address,
+                training.slot.beginning,
+              ),
+            );
+          } else if (transaction.status === TransactionStatus.Unpaid) {
+            //Unpaid training notification in telegram
+            const tinkoffTransaction =
+              await this.tinkoffPaymentsService.findOne({
+                where: { transactionId: training.transaction.id },
+              });
+
+            await this.wazzupMessagingService.sendTelegramMessage(
+              training.client.phone,
+              messageTemplates['notify-about-tomorrow-unpaid-training'](
+                training.club.studio.address,
+                training.slot.beginning,
+                tinkoffTransaction.paymentURL,
+              ),
+            );
+          }
+        } else {
+          if (transaction.status === TransactionStatus.Paid) {
+            //Paid training notification in whatsapp
+            await this.wazzupMessagingService.sendWhatsAppMessage(
+              training.client.phone,
+              messageTemplates['notify-about-tomorrow-paid-training'](
+                training.club.address,
+                training.slot.beginning,
+              ),
+            );
+          } else if (transaction.status === TransactionStatus.Unpaid) {
+            //Unpaid training notification in whatsapp
+            const tinkoffTransaction =
+              await this.tinkoffPaymentsService.findOne({
+                where: { transactionId: training.transaction.id },
+              });
+
+            await this.wazzupMessagingService.sendWhatsAppMessage(
+              training.client.phone,
+              messageTemplates['notify-about-tomorrow-unpaid-training'](
+                training.club.address,
+                training.slot.beginning,
+                tinkoffTransaction.paymentURL,
+              ),
+            );
+          }
+        }
+      }),
+    );
   }
 }

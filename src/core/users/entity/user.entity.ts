@@ -29,11 +29,11 @@ export class UserEntity extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;
 
-  @Column({ nullable: false })
-  name: string;
+  @Column({ nullable: true })
+  name?: string;
 
-  @Column({ nullable: false })
-  surname: string;
+  @Column({ nullable: true })
+  surname?: string;
 
   @Column({ nullable: true, unique: true })
   phone: string;

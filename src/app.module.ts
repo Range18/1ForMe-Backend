@@ -25,10 +25,12 @@ import { StudioSlotsModule } from '#src/core/club-slots/studio-slots.module';
 import { ChatTypesModule } from '#src/core/chat-types/chat-types.module';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeOrmConfig),
+    ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
     SessionModule,

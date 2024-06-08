@@ -150,13 +150,23 @@ export class UserController {
       }
     }
 
-    if (updateTrainerDto.studio) {
-      if (userEntity.studios.length === 0) {
-        userEntity.studios = [{ id: updateTrainerDto.studio } as Studio];
-      } else {
-        userEntity.studios.push({ id: updateTrainerDto.studio } as Studio);
+    if (updateTrainerDto.sports) {
+      userEntity.sports = null;
+    }
+    if (updateTrainerDto.studios) {
+      userEntity.studios = null;
+    }
+    if (updateTrainerDto.sports || updateTrainerDto.studios) {
+      await this.userService.save(userEntity);
+    }
+
+    const studios = [];
+    if (updateTrainerDto.studios) {
+      for (const studio of updateTrainerDto.studios) {
+        studios.push({ id: studio } as Studio);
       }
     }
+    userEntity.studios = studios;
 
     const sports = [];
     if (updateTrainerDto.sports) {
@@ -164,18 +174,13 @@ export class UserController {
         sports.push({ id: sport } as Sport);
       }
     }
-
-    userEntity.sports = null;
-
-    await this.userService.save(userEntity);
-
     userEntity.sports = sports;
 
     await this.userService.updateOne(userEntity, {
       ...updateTrainerDto,
       isTrainerActive: updateTrainerDto.isActive,
       role: { id: updateTrainerDto.role },
-      studios: userEntity.studios,
+      studios: [],
       category: { id: updateTrainerDto.category },
       sports: [],
       chatType: { id: updateTrainerDto.chatType },

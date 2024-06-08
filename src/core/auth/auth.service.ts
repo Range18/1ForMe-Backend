@@ -11,7 +11,7 @@ import { uid } from 'uid';
 import { CreateClientViaTrainerDto } from '#src/core/users/dto/create-client-via-trainer.dto';
 import { VerificationService } from '#src/core/verification-codes/verification.service';
 import { CommentsService } from '#src/core/comments/comments.service';
-import { CreateClientDto } from '#src/core/users/dto/create-client1.dto';
+import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 import AuthExceptions = AllExceptions.AuthExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 

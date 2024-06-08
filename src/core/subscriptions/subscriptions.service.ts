@@ -15,8 +15,8 @@ import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messag
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { StudioSlotsService } from '#src/core/club-slots/studio-slots.service';
-import console from 'node:console';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
+import { ClubsService } from '#src/core/clubs/clubs.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -38,6 +38,7 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly wazzupMessagingService: WazzupMessagingService,
     private readonly clubSlotsService: StudioSlotsService,
+    private readonly clubsService: ClubsService,
   ) {
     super(
       subscriptionRepository,
@@ -71,6 +72,19 @@ export class SubscriptionsService extends BaseEntityService<
     });
 
     if (!tariff) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
+
+    const club = await this.clubsService.findOne({
+      where: { id: createSubscriptionDto.createTrainingDto[0].club },
+      relations: { studio: true },
+    });
+
+    if (!club) {
       throw new ApiException(
         HttpStatus.NOT_FOUND,
         'EntityExceptions',
@@ -131,8 +145,6 @@ export class SubscriptionsService extends BaseEntityService<
       subscription,
     );
 
-    console.log(tariff);
-
     const paymentURL = await this.tinkoffPaymentsService
       .createPayment({
         transactionId: transaction.id,
@@ -164,6 +176,8 @@ export class SubscriptionsService extends BaseEntityService<
           createSubscriptionDto.createTrainingDto[0].date,
           firstTrainingSlot.beginning,
         ),
+        club.studio.name,
+        club.studio.address,
       ),
     );
 

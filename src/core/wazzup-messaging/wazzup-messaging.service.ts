@@ -31,7 +31,7 @@ export class WazzupMessagingService implements OnModuleInit {
     userPhone: string,
     message: string,
   ): Promise<void> {
-    chatType = chatType.toLowerCase() as NormalizedChatType;
+    chatType = String(chatType).toLowerCase() as NormalizedChatType;
 
     if (chatType === 'telegram') {
       await this.sendTelegramMessage(userPhone, message);
