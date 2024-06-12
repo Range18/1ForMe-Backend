@@ -1,13 +1,13 @@
-import { Training } from '#src/core/trainings/entities/training.entity';
-
 export const messageTemplates = {
   'single-training-booking': (
     trainingCost: number,
     date: string,
     paymentURL: string,
+    studioName: string,
+    studioAddress: string,
   ) => {
     return (
-      `Вы забронировали персональную тренировку в студии пилатеса 1forme по адресу Революции 21в, в ${date}, стоимость тренировки ${trainingCost} руб.` +
+      `Вы забронировали тренировку в студии пилатеса ${studioName} по адресу ${studioAddress}, в ${date}, стоимость тренировки ${trainingCost} руб.` +
       '\n' +
       `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
       '\n' +
@@ -19,9 +19,11 @@ export const messageTemplates = {
     subscriptionCost: number,
     paymentURL: string,
     date: string,
+    studioName: string,
+    studioAddress: string,
   ) => {
     return (
-      `Вы забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса 1forme по адресу Революции 21в, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
+      `Вы забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса ${studioName} по адресу ${studioAddress}, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
       '\n' +
       `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
       '\n' +
@@ -42,12 +44,44 @@ export const messageTemplates = {
       'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
     );
   },
-  //TODO
-  'training-date-is-changed': (
-    training: Training,
-    oldDate: number,
-    oldTime: number,
+  'notify-about-tomorrow-paid-training': (
+    studioAddress: string,
+    time: string,
   ) => {
-    return 'ТЕКСТ ТЕКСТ ТЕКСТ';
+    return (
+      `Добрый день! Ждём вас завтра по тренировку по адресу ${studioAddress} в ${time}, ваша тренировка оплачена. ` +
+      '\n' +
+      'Отменить или перенести тренировку возможно не менее чем за 12 часов.'
+    );
+  },
+  'notify-about-tomorrow-unpaid-training': (
+    studioAddress: string,
+    time: string,
+    paymentURL: string,
+  ) => {
+    return (
+      `Добрый день! Ждём вас завтра по тренировку по адресу ${studioAddress} в ${time}, ваша тренировка не оплачена.` +
+      '\n' +
+      `Для подтверждения записи оплатите пожалуйста тренировку по ссылке: ${paymentURL}`
+    );
+  },
+
+  'training-is-canceled': (date: string) => {
+    return 'Здравствуйте!' + '\n' + `Ваша тренировка на ${date} отменена.`;
+  },
+
+  'training-is-refunded': (date: string, cost: number) => {
+    return (
+      'Здравствуйте!' +
+      '\n' +
+      `Ваша тренировка на ${date} отменена. В ближайшее время оплата в размере ${cost} руб. поступят на счёт, с которого вы оплачивали тренировку`
+    );
+  },
+  'training-date-is-changed': (oldDate: string, newDate: string) => {
+    return (
+      'Здравствуйте!' +
+      '\n' +
+      `Ваша тренировка на ${oldDate} перенесена на ${newDate}.`
+    );
   },
 } as const;

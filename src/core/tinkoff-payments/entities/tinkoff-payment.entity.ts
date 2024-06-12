@@ -10,4 +10,8 @@ export class TinkoffPaymentEntity {
 
   @Column()
   transactionId: number;
+
+  //TODO not null
+  @Column({ nullable: true })
+  paymentURL?: string;
 }

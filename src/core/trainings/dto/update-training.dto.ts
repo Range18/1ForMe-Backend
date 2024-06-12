@@ -6,4 +6,6 @@ export class UpdateTrainingDto {
 
   @ApiProperty({ required: false })
   readonly club?: number;
+
+  readonly slot: number;
 }

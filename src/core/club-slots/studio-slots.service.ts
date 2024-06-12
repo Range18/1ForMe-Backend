@@ -238,15 +238,15 @@ export class StudioSlotsService extends BaseEntityService<
             ) {
               availableTrainers.push(trainerSlot.trainer);
             }
-            if (availableTrainers.length > 0) {
-              slotsForTimeTable.push(
-                new GetSlotForTimeTableRdo(
-                  slot,
-                  slot.isAvailable,
-                  availableTrainers,
-                ),
-              );
-            }
+          }
+          if (availableTrainers.length > 0) {
+            slotsForTimeTable.push(
+              new GetSlotForTimeTableRdo(
+                slot,
+                slot.isAvailable,
+                availableTrainers,
+              ),
+            );
           }
         }
         clubTimeTable.push(new GetClubScheduleRdo(club, slotsForTimeTable));

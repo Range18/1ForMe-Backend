@@ -9,7 +9,7 @@ export class UpdateTrainerDto extends UpdateUserDto {
   tax?: number;
 
   @ApiProperty({ nullable: true, required: false })
-  studio?: number;
+  studios?: number[];
 
   @ApiProperty({ nullable: true, required: false })
   category?: number;

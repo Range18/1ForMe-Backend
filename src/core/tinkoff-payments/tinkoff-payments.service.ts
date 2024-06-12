@@ -111,6 +111,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
     await this.save({
       paymentId: paymentInitResponse.data.PaymentId,
       transactionId: createPaymentOptions.transactionId,
+      paymentURL: paymentInitResponse.data.PaymentURL,
     });
 
     return paymentInitResponse.data.PaymentURL;

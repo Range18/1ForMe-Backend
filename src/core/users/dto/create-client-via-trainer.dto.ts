@@ -9,7 +9,7 @@ export class CreateClientViaTrainerDto
   name: string;
 
   @ApiProperty()
-  surname: string;
+  surname?: string;
 
   @ApiProperty()
   password?: string;

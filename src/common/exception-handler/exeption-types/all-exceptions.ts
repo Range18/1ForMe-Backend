@@ -51,6 +51,7 @@ export namespace AllExceptions {
   export enum SubscriptionExceptions {
     NotFound = 'Entity is not found',
     TrainingAmountErr = 'tariff.trainingAmount != trainings.length',
+    CancelingForbidden = 'Нельзя вернуть деньги за абонемент, тренировки по которому частично или полностью использованы.',
   }
 
   export enum StorageExceptions {

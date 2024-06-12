@@ -88,9 +88,12 @@ export class TrainingsController {
         createTrainingDto.client,
       );
     } else {
-      let client = await this.userService.findOne({
-        where: { phone: createTrainingDto.createClient.phone },
-      });
+      let client = await this.userService.findOne(
+        {
+          where: { phone: createTrainingDto.createClient.phone },
+        },
+        false,
+      );
 
       if (!client) {
         const { phone } = await this.authService.register(
@@ -315,10 +318,12 @@ export class TrainingsController {
           transaction: { tariff: { sport: true, type: true } },
           subscription: { transaction: { tariff: { sport: true } } },
           slot: true,
+          client: { chatType: true },
         },
       },
       {
         club: { id: updateTrainingDto.club },
+        slot: { id: updateTrainingDto.slot },
         date: updateTrainingDto.date,
       },
     );
@@ -327,8 +332,9 @@ export class TrainingsController {
   }
 
   @Post('cancel/:id')
-  async cancelTraining(@Param('id') id: number) {
-    return this.trainingsService.cancelTraining(id);
+  @AuthGuard()
+  async cancelTraining(@Param('id') id: number, @User() user: UserRequest) {
+    return this.trainingsService.cancelTraining(id, user.id);
   }
 
   @Delete(':id')
