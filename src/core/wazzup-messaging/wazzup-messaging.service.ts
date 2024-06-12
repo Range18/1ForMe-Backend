@@ -1,4 +1,6 @@
 import {
+  HttpException,
+  HttpStatus,
   Injectable,
   OnModuleInit,
   ServiceUnavailableException,
@@ -67,9 +69,13 @@ export class WazzupMessagingService implements OnModuleInit {
   }
 
   private async fetchChannelsAndCacheIt(): Promise<void> {
-    const channelsResponse = await this.httpClient.get<
-      { channelId: string; transport: ChatType; state: string }[]
-    >('channels');
+    const channelsResponse = await this.httpClient
+      .get<{ channelId: string; transport: ChatType; state: string }[]>(
+        'channels',
+      )
+      .catch((error: AxiosError) => {
+        throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      });
 
     channelsResponse.data.forEach((channel) => {
       if (channel.state !== 'active') {

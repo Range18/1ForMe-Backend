@@ -32,7 +32,7 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: false })
   name: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true, default: '' })
   surname: string;
 
   @Column({ nullable: true, unique: true })
