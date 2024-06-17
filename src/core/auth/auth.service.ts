@@ -9,9 +9,9 @@ import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-
 import { RolesService } from '#src/core/roles/roles.service';
 import { uid } from 'uid';
 import { CreateClientViaTrainerDto } from '#src/core/users/dto/create-client-via-trainer.dto';
-import { VerificationService } from '#src/core/verification-codes/verification.service';
 import { CommentsService } from '#src/core/comments/comments.service';
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
+import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import AuthExceptions = AllExceptions.AuthExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -21,7 +21,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly rolesService: RolesService,
     private readonly sessionService: SessionService,
-    private readonly verificationService: VerificationService,
+    private readonly wazzupMessagingService: WazzupMessagingService,
     private readonly commentsService: CommentsService,
   ) {}
 
@@ -42,6 +42,17 @@ export class AuthService {
         UserExceptions.UserAlreadyExists,
       );
     }
+    const trainer = await this.userService.findOne({
+      where: { id: createUserDto['trainer'] },
+    });
+
+    if (!trainer) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
 
     const userEntity = await this.userService.save({
       name: createUserDto.name,
@@ -58,6 +69,8 @@ export class AuthService {
       userNameInMessenger: createUserDto.userNameInMessenger,
       chatType: { id: createUserDto['chatType'] },
     });
+
+    await this.wazzupMessagingService.createContact(trainer.id, userEntity);
 
     // await this.verificationService.createAndSend(1234, userEntity);
 
@@ -110,6 +123,8 @@ export class AuthService {
       whatsApp: createUserDto.whatsApp,
       userNameInMessenger: createUserDto.userNameInMessenger,
     });
+
+    await this.wazzupMessagingService.createUser(userEntity);
 
     const session = await this.sessionService.createSession({
       userId: userEntity.id,
@@ -208,6 +223,14 @@ export class AuthService {
       trainers: [{ id: trainerId }],
       chatType: { id: createClientDto.chatType },
     });
+
+    await this.wazzupMessagingService.createContact(
+      trainer.id,
+      await this.userService.findOne({
+        where: { id: client.id },
+        relations: { chatType: true },
+      }),
+    );
 
     if (createClientDto.comment) {
       await this.commentsService.save({

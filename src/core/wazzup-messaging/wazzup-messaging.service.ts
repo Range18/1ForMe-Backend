@@ -11,6 +11,9 @@ import {
   ChatType,
   NormalizedChatType,
 } from '#src/core/wazzup-messaging/types/chat.type';
+import { UserEntity } from '#src/core/users/entity/user.entity';
+import { WazzupContactRdo } from '#src/core/wazzup-messaging/rdo/wazzup-contact.rdo';
+import console from 'node:console';
 
 @Injectable()
 export class WazzupMessagingService implements OnModuleInit {
@@ -74,6 +77,7 @@ export class WazzupMessagingService implements OnModuleInit {
         'channels',
       )
       .catch((error: AxiosError) => {
+        console.log('77 строка wazzup что-то творит');
         throw new HttpException(error, HttpStatus.BAD_REQUEST);
       });
 
@@ -85,5 +89,57 @@ export class WazzupMessagingService implements OnModuleInit {
 
       this.messengersChannels[channel.transport] = channel.channelId;
     });
+  }
+
+  async createUser(user: UserEntity): Promise<void> {
+    await this.httpClient
+      .post('/users', [
+        {
+          id: user.id.toString(),
+          name: user.surname ? user.name + ' ' + user.surname : user.name,
+          phone: user.phone,
+        },
+      ])
+      .catch((err: AxiosError) => {
+        throw new ServiceUnavailableException(err?.response?.data);
+      });
+  }
+
+  async createContact(
+    responsibleUserId: number,
+    userEntity: UserEntity,
+  ): Promise<void> {
+    const chatType = userEntity.chatType.name.toLowerCase();
+
+    await this.httpClient
+      .post('/contacts', [
+        {
+          id: userEntity.id.toString(),
+          responsibleUserId: responsibleUserId.toString(),
+          name:
+            userEntity.surname.length !== 0
+              ? `${userEntity.name} ${userEntity.surname}`
+              : `${userEntity.name}`,
+          contactData: [
+            {
+              chatType: chatType,
+              chatId: userEntity.phone,
+              username: userEntity.userNameInMessenger,
+              phone: chatType === 'telegram' ? userEntity.phone : undefined,
+            },
+          ],
+        },
+      ])
+      .catch((err: AxiosError) => {
+        throw new ServiceUnavailableException(err?.response?.data);
+      });
+  }
+
+  async getContact(id: number | string): Promise<WazzupContactRdo> {
+    const response = await this.httpClient.get<WazzupContactRdo>(
+      `/contacts/${id}`,
+    );
+
+    return response.data;
   }
 }

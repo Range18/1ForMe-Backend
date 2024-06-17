@@ -11,6 +11,7 @@ import { Database, Resource } from '@adminjs/typeorm';
 import { adminOptions } from '#src/core/admin-panel/admin.options';
 import { VerificationModule } from '#src/core/verification-codes/verification.module';
 import { CommentsModule } from '#src/core/comments/comments.module';
+import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CommentsModule } from '#src/core/comments/comments.module';
     TokenModule,
     RolesModule,
     CommentsModule,
+    WazzupMessagingModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

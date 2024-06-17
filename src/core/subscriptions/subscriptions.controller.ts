@@ -19,7 +19,6 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
-import * as console from 'node:console';
 import { CreateSubscriptionViaClientDto } from '#src/core/subscriptions/dto/create-subscription-via-client.dto';
 import { AuthService } from '#src/core/auth/auth.service';
 import { UserService } from '#src/core/users/user.service';
@@ -110,8 +109,6 @@ export class SubscriptionsController {
         trainings: { club: true, slot: true },
       },
     });
-
-    console.log(subscriptions);
 
     return subscriptions.map(
       (subscription) => new GetSubscriptionRdo(subscription),

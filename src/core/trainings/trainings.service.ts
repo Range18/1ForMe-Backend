@@ -61,7 +61,6 @@ export class TrainingsService extends BaseEntityService<
     trainerId: number,
     clientIds: number[],
   ) {
-    createTrainingDto.tariff = Number(createTrainingDto.tariff);
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
       relations: { slots: true },
@@ -166,12 +165,14 @@ export class TrainingsService extends BaseEntityService<
     }
 
     for (const client of clients) {
-      if (client.trainers.every((trainer) => trainer.id !== trainerId)) {
+      const trainerIds = client.trainers.map((trainer) => trainer.id);
+
+      if (!trainerIds.includes(trainer.id)) {
         client.trainers.push({ id: trainerId } as UserEntity);
         await this.userService.save(client);
+
+        await this.wazzupMessagingService.createContact(trainer.id, client);
       }
-      console.log(client.trainers);
-      console.log(client.trainers.every((trainer) => trainer.id !== trainerId));
 
       const transaction = await this.transactionsService.save({
         client: { id: client.id },
