@@ -22,6 +22,8 @@ import { Cron } from '@nestjs/schedule';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 import { ClubsService } from '#src/core/clubs/clubs.service';
 import { NormalizedChatType } from '#src/core/wazzup-messaging/types/chat.type';
+import { getDateRange } from '#src/common/utilities/date-range.func';
+import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -60,7 +62,7 @@ export class TrainingsService extends BaseEntityService<
     createTrainingDto: CreateTrainingDto,
     trainerId: number,
     clientIds: number[],
-  ) {
+  ): Promise<GetCreatedTrainingsRdo> {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
       relations: { slots: true },
@@ -74,13 +76,36 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    //TODO check slots
-
     const tariff = await this.tariffsService.findOne({
       where: { id: createTrainingDto.tariff },
     });
 
     if (!tariff) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'EntityExceptions',
+        EntityExceptions.NotFound,
+      );
+    }
+
+    const slot = await this.clubSlotsRepository.findOne({
+      where: { id: createTrainingDto.slot },
+    });
+
+    if (!slot) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'ClubSlotsExceptions',
+        ClubSlotsExceptions.NotFound,
+      );
+    }
+
+    const club = await this.clubsService.findOne({
+      where: { id: createTrainingDto.club },
+      relations: { studio: true },
+    });
+
+    if (!club) {
       throw new ApiException(
         HttpStatus.NOT_FOUND,
         'EntityExceptions',
@@ -120,18 +145,6 @@ export class TrainingsService extends BaseEntityService<
 
     const trainingsIds: number[] = [];
 
-    const slot = await this.clubSlotsRepository.findOne({
-      where: { id: createTrainingDto.slot },
-    });
-
-    if (!slot) {
-      throw new ApiException(
-        HttpStatus.NOT_FOUND,
-        'ClubSlotsExceptions',
-        ClubSlotsExceptions.NotFound,
-      );
-    }
-
     const existingTraining = await this.findOne(
       {
         where: {
@@ -151,18 +164,7 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    const club = await this.clubsService.findOne({
-      where: { id: createTrainingDto.club },
-      relations: { studio: true },
-    });
-
-    if (!club) {
-      throw new ApiException(
-        HttpStatus.NOT_FOUND,
-        'EntityExceptions',
-        EntityExceptions.NotFound,
-      );
-    }
+    const existingTrainingsDates = [];
 
     for (const client of clients) {
       const trainerIds = client.trainers.map((trainer) => trainer.id);
@@ -223,21 +225,95 @@ export class TrainingsService extends BaseEntityService<
         trainer: { id: trainerId },
         club: { id: createTrainingDto.club },
         transaction: transaction,
+        isRepeated: createTrainingDto.isRepeated,
       });
 
       trainingsIds.push(training.id);
+
+      if (createTrainingDto.isRepeated) {
+        const dateRange = getDateRange(new Date(createTrainingDto.date), 90);
+
+        for (let i = 7; i < dateRange.length; i += 7) {
+          const existingTraining = await this.findOne(
+            {
+              where: {
+                slot: { id: slot.id },
+                date: dateRange[i]
+                  .toISOString()
+                  .split('T')[0] as unknown as Date,
+                club: { id: createTrainingDto.club },
+              },
+              relations: { client: true },
+            },
+            false,
+          );
+
+          if (
+            existingTraining &&
+            !clientIds.includes(existingTraining.client.id)
+          ) {
+            existingTrainingsDates.push(existingTraining.date);
+          } else {
+            const trainingTransaction = await this.transactionsService.save({
+              client: { id: client.id },
+              trainer: { id: trainerId },
+              tariff: tariff,
+              cost: tariff.clientsAmount
+                ? tariff.cost / tariff.clientsAmount
+                : tariff.cost,
+              createdDate: new Date(),
+            });
+
+            const paymentURL = await this.tinkoffPaymentsService
+              .createPayment({
+                transactionId: trainingTransaction.id,
+                amount: trainingTransaction.cost,
+                quantity: 1,
+                user: {
+                  id: client.id,
+                  phone: client.phone,
+                },
+                metadata: {
+                  name: tariff.name,
+                  description: `Заказ №${trainingTransaction.id}`,
+                },
+              })
+              .catch(async (err) => {
+                console.log(err);
+                await this.transactionsService.removeOne(trainingTransaction);
+              });
+
+            if (!paymentURL) return;
+
+            const training = await this.save({
+              slot: slot,
+              date: dateRange[i].toISOString().split('T')[0],
+              client: { id: client.id },
+              trainer: { id: trainerId },
+              club: { id: createTrainingDto.club },
+              transaction: trainingTransaction,
+              isRepeated: createTrainingDto.isRepeated,
+            });
+
+            trainingsIds.push(training.id);
+          }
+        }
+      }
     }
 
-    return await this.find({
-      where: { id: In(trainingsIds) },
-      relations: {
-        client: { avatar: true },
-        trainer: { avatar: true },
-        transaction: { tariff: { type: true } },
-        club: { city: true },
-        slot: true,
-      },
-    });
+    return new GetCreatedTrainingsRdo(
+      await this.find({
+        where: { id: In(trainingsIds) },
+        relations: {
+          client: { avatar: true },
+          trainer: { avatar: true },
+          transaction: { tariff: { type: true } },
+          club: { city: true },
+          slot: true,
+        },
+      }),
+      existingTrainingsDates,
+    );
   }
 
   async createForSubscription(
@@ -381,6 +457,7 @@ export class TrainingsService extends BaseEntityService<
         ])
         .where('training.trainer = :trainerId', { trainerId })
         .addGroupBy('DAY(training.`date`)')
+        .addGroupBy('MONTH(training.`date`)')
         .getRawMany()
     ).map(
       (entity) =>

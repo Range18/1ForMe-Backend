@@ -18,15 +18,18 @@ export class Training extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   readonly id: number;
 
-  @Column({ nullable: false, default: false })
-  isCanceled: boolean;
-
   @ManyToOne(() => ClubSlots, (slot) => slot.trainings, { nullable: false })
   @JoinColumn({ name: 'slot' })
   slot: ClubSlots;
 
   @Column({ type: 'date', nullable: false })
   date: Date;
+
+  @Column({ nullable: false, default: false })
+  isCanceled: boolean;
+
+  @Column({ nullable: false, default: false })
+  isRepeated: boolean;
 
   @ManyToOne(() => Subscription, (subs) => subs.trainings, {
     nullable: true,

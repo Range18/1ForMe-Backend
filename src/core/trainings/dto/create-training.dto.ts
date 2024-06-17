@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNumber } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateTrainingDto {
   @ApiProperty()
@@ -18,4 +18,9 @@ export class CreateTrainingDto {
   @Transform(({ ...value }) => Number(value))
   @IsNumber()
   readonly tariff: number;
+
+  @IsBoolean()
+  @Transform(({ ...value }) => String(value) == 'true')
+  @IsOptional()
+  isRepeated?: boolean;
 }

@@ -32,7 +32,7 @@ import { CreateTrainingViaClientDto } from '#src/core/trainings/dto/create-train
 import { AuthService } from '#src/core/auth/auth.service';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { Training } from '#src/core/trainings/entities/training.entity';
+import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
 import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('Trainings')
@@ -45,29 +45,27 @@ export class TrainingsController {
   ) {}
 
   @ApiBody({ type: CreateTrainingDto })
-  @ApiCreatedResponse({ type: GetTrainingRdo })
+  @ApiCreatedResponse({ type: GetCreatedTrainingsRdo })
   @AuthGuard()
   @Post()
   async create(
     @Body() createTrainingDto: CreateTrainingDto,
     @User() user: UserRequest,
-  ) {
-    const trainings = await this.trainingsService.create(
+  ): Promise<GetCreatedTrainingsRdo> {
+    return await this.trainingsService.create(
       createTrainingDto,
       user.id,
       createTrainingDto.client,
     );
-
-    return trainings.map((training) => new GetTrainingRdo(training));
   }
 
   @ApiBody({ type: CreateTrainingViaClientDto })
-  @ApiCreatedResponse({ type: GetTrainingRdo })
+  @ApiCreatedResponse({ type: GetCreatedTrainingsRdo })
   @Post('clientForm')
   async createClientForm(
     @Body() createTrainingDto: CreateTrainingViaClientDto,
-  ) {
-    let trainings: Training[];
+  ): Promise<GetCreatedTrainingsRdo> {
+    let trainings: GetCreatedTrainingsRdo;
 
     if (
       !createTrainingDto.client &&
@@ -113,7 +111,7 @@ export class TrainingsController {
       );
     }
 
-    return trainings.map((training) => new GetTrainingRdo(training));
+    return trainings;
   }
 
   @ApiOkResponse({ type: [GetTrainingRdo] })

@@ -141,7 +141,7 @@ export class UserController {
         where: { phone: updateTrainerDto.phone },
       });
 
-      if (!userWithSamePhone) {
+      if (userWithSamePhone && userEntity.id !== userWithSamePhone.id) {
         throw new ApiException(
           HttpStatus.BAD_REQUEST,
           'UserExceptions',
@@ -200,24 +200,6 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
     @User() user: UserRequest,
   ) {
-    // if (updateTrainerDto.comment) {
-    //   const comment = await this.commentsService.findOne({
-    //     where: { client: { id: id } },
-    //   });
-    //
-    //   if (!comment) {
-    //     await this.commentsService.save({
-    //       trainer: { id: user.id },
-    //       client: { id: id },
-    //       text: updateTrainerDto.comment,
-    //     });
-    //   } else {
-    //     await this.commentsService.updateOne(comment, {
-    //       text: updateTrainerDto.comment,
-    //     });
-    //   }
-    // }
-
     return new GetUserRdo(
       await this.userService.updateOne(
         {

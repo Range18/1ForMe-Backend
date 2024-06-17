@@ -35,6 +35,8 @@ export class GetTrainingRdo {
 
   subscription?: GetSubscriptionRdo;
 
+  isRepeated: boolean;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -56,6 +58,7 @@ export class GetTrainingRdo {
     this.subscription = training.subscription
       ? new GetSubscriptionRdo(training.subscription)
       : undefined;
+    this.isRepeated = training.isRepeated;
 
     const [stHours, stMinutes] = parseHoursMinutes(training.slot.beginning);
     const [endHours, endMinutes] = parseHoursMinutes(training.slot.end);

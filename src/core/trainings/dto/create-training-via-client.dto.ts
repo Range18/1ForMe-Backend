@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
+import { IsBoolean, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateTrainingViaClientDto {
   @ApiProperty()
@@ -19,4 +21,9 @@ export class CreateTrainingViaClientDto {
   readonly trainerId: number;
 
   readonly createClient?: CreateClientDto;
+
+  @IsBoolean()
+  @Transform(({ ...value }) => String(value) == 'true')
+  @IsOptional()
+  isRepeated?: boolean;
 }
