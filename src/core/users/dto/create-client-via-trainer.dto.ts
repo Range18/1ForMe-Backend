@@ -25,5 +25,7 @@ export class CreateClientViaTrainerDto
 
   chatType?: number;
 
+  chatId?: string;
+
   userNameInMessenger?: string;
 }

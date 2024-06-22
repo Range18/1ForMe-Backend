@@ -31,6 +31,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const type = exception instanceof ApiException ? exception.type : undefined;
 
     if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
+      console.log(host.getArgs(), host.getType());
       console.log(exception);
     }
 
@@ -39,7 +40,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       type: type,
       message: message,
       output:
-        statusCode === HttpStatus.INTERNAL_SERVER_ERROR ? exception : undefined,
+        statusCode === HttpStatus.INTERNAL_SERVER_ERROR
+          ? exception
+          : exception instanceof HttpException
+          ? exception.cause
+          : undefined,
     } as ExceptionResponse);
   }
 }

@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  OnApplicationBootstrap,
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -13,10 +14,15 @@ import {
 } from '#src/core/wazzup-messaging/types/chat.type';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { WazzupContactRdo } from '#src/core/wazzup-messaging/rdo/wazzup-contact.rdo';
+import { backendServer } from '#src/common/configs/config';
 import console from 'node:console';
+import { WazzupMessageDto } from '#src/core/wazzup-messaging/dto/wazzup-message.dto';
+import { UserService } from '#src/core/users/user.service';
 
 @Injectable()
-export class WazzupMessagingService implements OnModuleInit {
+export class WazzupMessagingService
+  implements OnModuleInit, OnApplicationBootstrap
+{
   private readonly httpClient = axios.create({
     ...axios.defaults,
     baseURL: 'https://api.wazzup24.com/v3',
@@ -25,6 +31,12 @@ export class WazzupMessagingService implements OnModuleInit {
     },
   });
   private readonly messengersChannels: Record<string, string> = {};
+
+  constructor(private readonly userService: UserService) {}
+
+  onApplicationBootstrap(): void {
+    this.connectWebHooks();
+  }
 
   async onModuleInit(): Promise<void> {
     await this.fetchChannelsAndCacheIt();
@@ -77,7 +89,6 @@ export class WazzupMessagingService implements OnModuleInit {
         'channels',
       )
       .catch((error: AxiosError) => {
-        console.log('77 строка wazzup что-то творит');
         throw new HttpException(error, HttpStatus.BAD_REQUEST);
       });
 
@@ -89,6 +100,22 @@ export class WazzupMessagingService implements OnModuleInit {
 
       this.messengersChannels[channel.transport] = channel.channelId;
     });
+  }
+
+  private async connectWebHooks(): Promise<void> {
+    await this.httpClient
+      .patch('webhooks', {
+        webhooksUri: `${backendServer.urlValue}/api/wazzup-messaging/webhooks`,
+        subscriptions: {
+          messagesAndStatuses: true,
+          contactsAndDealsCreation: true,
+          channelsUpdates: false,
+          templateStatus: false,
+        },
+      })
+      .catch((error: AxiosError) => {
+        console.log(error.response.data);
+      });
   }
 
   async createUser(user: UserEntity): Promise<void> {
@@ -106,8 +133,8 @@ export class WazzupMessagingService implements OnModuleInit {
   }
 
   async createContact(
-    responsibleUserId: number,
     userEntity: UserEntity,
+    options?: { responsibleUserId?: number; chatId?: string },
   ): Promise<void> {
     const chatType = userEntity.chatType.name.toLowerCase();
 
@@ -115,7 +142,9 @@ export class WazzupMessagingService implements OnModuleInit {
       .post('/contacts', [
         {
           id: userEntity.id.toString(),
-          responsibleUserId: responsibleUserId.toString(),
+          responsibleUserId: options?.responsibleUserId
+            ? options.responsibleUserId.toString()
+            : '0',
           name:
             userEntity.surname.length !== 0
               ? `${userEntity.name} ${userEntity.surname}`
@@ -123,8 +152,12 @@ export class WazzupMessagingService implements OnModuleInit {
           contactData: [
             {
               chatType: chatType,
-              chatId: userEntity.phone,
-              username: userEntity.userNameInMessenger,
+              chatId:
+                chatType == 'whatsapp' ? userEntity.phone : options?.chatId,
+              username:
+                chatType === 'telegram'
+                  ? userEntity.userNameInMessenger
+                  : undefined,
               phone: chatType === 'telegram' ? userEntity.phone : undefined,
             },
           ],
@@ -136,10 +169,37 @@ export class WazzupMessagingService implements OnModuleInit {
   }
 
   async getContact(id: number | string): Promise<WazzupContactRdo> {
-    const response = await this.httpClient.get<WazzupContactRdo>(
-      `/contacts/${id}`,
-    );
+    const response = await this.httpClient
+      .get<WazzupContactRdo>(`/contacts/${id}`)
+      .catch((error: AxiosError) => {
+        console.log(error.response?.data);
+        return error;
+      });
 
-    return response.data;
+    return response instanceof AxiosError ? null : response.data;
+  }
+
+  async changeChatIdOrCreateContact(messages: WazzupMessageDto[]) {
+    const userPhone =
+      messages[0].chatType === 'telegram'
+        ? messages[0].contact.phone
+        : messages[0].chatId;
+
+    const user = await this.userService.findOne({
+      where: { phone: userPhone },
+      relations: { chatType: true },
+    });
+
+    if (!user) {
+      return;
+    }
+
+    await this.createContact(user, { chatId: messages[0].chatId });
+
+    await this.userService.updateOne(user, {
+      userNameInMessenger:
+        messages[0].contact.username ?? user.userNameInMessenger,
+      chatId: user.chatId ?? messages[0].chatId,
+    });
   }
 }

@@ -70,7 +70,9 @@ export class AuthService {
       chatType: { id: createUserDto['chatType'] },
     });
 
-    await this.wazzupMessagingService.createContact(trainer.id, userEntity);
+    await this.wazzupMessagingService.createContact(userEntity, {
+      responsibleUserId: trainer.id,
+    });
 
     // await this.verificationService.createAndSend(1234, userEntity);
 
@@ -185,6 +187,7 @@ export class AuthService {
   async signUpByTrainer(
     createClientDto: CreateClientViaTrainerDto,
     trainerId: number,
+    chatId?: string,
   ) {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
@@ -225,11 +228,11 @@ export class AuthService {
     });
 
     await this.wazzupMessagingService.createContact(
-      trainer.id,
       await this.userService.findOne({
         where: { id: client.id },
         relations: { chatType: true },
       }),
+      { responsibleUserId: trainer.id, chatId: chatId },
     );
 
     if (createClientDto.comment) {

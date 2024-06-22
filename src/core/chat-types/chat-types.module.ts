@@ -8,5 +8,6 @@ import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
   imports: [TypeOrmModule.forFeature([ChatTypes])],
   controllers: [ChatTypesController],
   providers: [ChatTypesService],
+  exports: [ChatTypesService],
 })
 export class ChatTypesModule {}

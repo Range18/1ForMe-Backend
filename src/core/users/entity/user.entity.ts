@@ -106,6 +106,10 @@ export class UserEntity extends BaseEntity {
   })
   subsAsClient?: Subscription[];
 
+  //Only for clients from wazzup
+  @Column({ nullable: true })
+  chatId?: string;
+
   //Only for trainers
   @Column({ nullable: true })
   whatsApp?: string;

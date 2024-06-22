@@ -173,7 +173,9 @@ export class TrainingsService extends BaseEntityService<
         client.trainers.push({ id: trainerId } as UserEntity);
         await this.userService.save(client);
 
-        await this.wazzupMessagingService.createContact(trainer.id, client);
+        await this.wazzupMessagingService.createContact(client, {
+          responsibleUserId: trainer.id,
+        });
       }
 
       const transaction = await this.transactionsService.save({

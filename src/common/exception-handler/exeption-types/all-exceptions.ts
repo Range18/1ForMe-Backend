@@ -4,6 +4,7 @@ export namespace AllExceptions {
     WrongPassword = 'Wrong password',
     ExpiredToken = 'Access token expired',
     InvalidAccessToken = 'Invalid access token',
+    InvalidCrmToken = 'Invalid CRM token',
     WrongVerificationCode = 'Wrong verification code',
   }
 
