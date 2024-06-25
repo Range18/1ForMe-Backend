@@ -35,7 +35,7 @@ export class WazzupMessagingService
   constructor(private readonly userService: UserService) {}
 
   onApplicationBootstrap(): void {
-    this.connectWebHooks();
+    // this.connectWebHooks();
   }
 
   async onModuleInit(): Promise<void> {
@@ -138,6 +138,8 @@ export class WazzupMessagingService
   ): Promise<void> {
     const chatType = userEntity.chatType.name.toLowerCase();
 
+    console.log('CREATE CONTACT', userEntity);
+
     await this.httpClient
       .post('/contacts', [
         {
@@ -185,10 +187,12 @@ export class WazzupMessagingService
         ? messages[0].contact.phone
         : messages[0].chatId;
 
-    const user = await this.userService.findOne({
-      where: { phone: userPhone },
-      relations: { chatType: true },
-    });
+    const user = userPhone
+      ? await this.userService.findOne({
+          where: { phone: userPhone },
+          relations: { chatType: true },
+        })
+      : null;
 
     if (!user) {
       return;
