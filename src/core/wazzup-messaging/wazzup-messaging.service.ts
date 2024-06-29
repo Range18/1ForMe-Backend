@@ -138,8 +138,6 @@ export class WazzupMessagingService
   ): Promise<void> {
     const chatType = userEntity.chatType.name.toLowerCase();
 
-    console.log('CREATE CONTACT', userEntity);
-
     await this.httpClient
       .post('/contacts', [
         {
@@ -198,12 +196,15 @@ export class WazzupMessagingService
       return;
     }
 
-    await this.createContact(user, { chatId: messages[0].chatId });
+    const contact = await this.getContact(user.id);
 
-    await this.userService.updateOne(user, {
-      userNameInMessenger:
-        messages[0].contact.username ?? user.userNameInMessenger,
-      chatId: user.chatId ?? messages[0].chatId,
-    });
+    if (!contact) {
+      await this.createContact(user, { chatId: messages[0].chatId });
+      await this.userService.updateOne(user, {
+        userNameInMessenger:
+          messages[0].contact.username ?? user.userNameInMessenger,
+        chatId: user.chatId ?? messages[0].chatId,
+      });
+    }
   }
 }
