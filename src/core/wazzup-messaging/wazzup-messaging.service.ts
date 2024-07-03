@@ -35,7 +35,7 @@ export class WazzupMessagingService
   constructor(private readonly userService: UserService) {}
 
   onApplicationBootstrap(): void {
-    // this.connectWebHooks();
+    this.connectWebHooks();
   }
 
   async onModuleInit(): Promise<void> {

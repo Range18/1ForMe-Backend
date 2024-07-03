@@ -1,7 +1,18 @@
-import { Controller, forwardRef, Inject } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  forwardRef,
+  HttpCode,
+  Inject,
+  Post,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from '#src/core/auth/auth.service';
 import { ChatTypesService } from '#src/core/chat-types/chat-types.service';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
+import { WazzupWebhooksDto } from '#src/core/wazzup-messaging/dto/wazzup-webhooks.dto';
+import { type Response } from 'express';
+import console from 'node:console';
 
 @Controller('api/wazzup-messaging')
 export class WazzupMessagingController {
@@ -12,7 +23,19 @@ export class WazzupMessagingController {
     private readonly wazzupMessagingService: WazzupMessagingService,
   ) {}
 
-  // // @IsFromWazzupGuard()
+  @HttpCode(200)
+  @Post('/webhooks')
+  async getWebhooks(
+    @Res({ passthrough: true }) res: Response,
+    @Body() body: WazzupWebhooksDto,
+  ) {
+    console.log(body);
+
+    if (body.messages) {
+      console.log('contact: ', body.messages[0].contact);
+    }
+  }
+
   // @Post('/webhooks')
   // async getWebhooks(
   //   @Res({ passthrough: true }) res: Response,
