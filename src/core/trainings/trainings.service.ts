@@ -151,6 +151,7 @@ export class TrainingsService extends BaseEntityService<
           slot: { id: slot.id },
           date: createTrainingDto.date,
           club: { id: createTrainingDto.club },
+          isCanceled: false,
         },
       },
       false,
@@ -172,11 +173,11 @@ export class TrainingsService extends BaseEntityService<
       if (!trainerIds.includes(trainer.id)) {
         client.trainers.push({ id: trainerId } as UserEntity);
         await this.userService.save(client);
-
-        await this.wazzupMessagingService.createContact(client, {
-          responsibleUserId: trainer.id,
-        });
       }
+
+      await this.wazzupMessagingService.createContact(client, {
+        responsibleUserId: trainer.id,
+      });
 
       const transaction = await this.transactionsService.save({
         client: { id: client.id },
@@ -244,6 +245,7 @@ export class TrainingsService extends BaseEntityService<
                   .toISOString()
                   .split('T')[0] as unknown as Date,
                 club: { id: createTrainingDto.club },
+                isCanceled: false,
               },
               relations: { client: true },
             },

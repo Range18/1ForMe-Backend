@@ -47,7 +47,7 @@ export class StudioSlotsService extends BaseEntityService<
 
   async getSlotsForClub(clubId: number, date: Date): Promise<GetClubSlotRdo[]> {
     const trainings = await this.trainingsService.find({
-      where: { date: date, club: { id: clubId } },
+      where: { date: date, club: { id: clubId }, isCanceled: false },
       relations: { slot: true, club: true },
     });
 
