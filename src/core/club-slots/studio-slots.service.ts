@@ -219,7 +219,10 @@ export class StudioSlotsService extends BaseEntityService<
         const trainerSlots = await this.trainerSlotsService.find({
           where: {
             date: date.toISOString().split('T')[0] as unknown as Date,
-            trainer: { id: In(trainers.map((trainer) => trainer.id)) },
+            trainer: {
+              id: In(trainers.map((trainer) => trainer.id)),
+              isTrainerActive: true,
+            },
           },
           relations: {
             trainer: true,
@@ -236,7 +239,20 @@ export class StudioSlotsService extends BaseEntityService<
               trainerSlot.beginning.id <= slot.id &&
               slot.id <= trainerSlot.end.id
             ) {
-              availableTrainers.push(trainerSlot.trainer);
+              const training = await this.trainingService.findOne(
+                {
+                  where: {
+                    date: date.toISOString().split('T')[0] as unknown as Date,
+                    isCanceled: false,
+                    slot: { id: slot.id },
+                    trainer: { id: trainerSlot.trainer.id },
+                  },
+                },
+                false,
+              );
+              if (!training) {
+                availableTrainers.push(trainerSlot.trainer);
+              }
             }
           }
           if (availableTrainers.length > 0) {

@@ -66,6 +66,7 @@ export class WazzupMessagingService
         phone: userPhone,
       })
       .catch((err: AxiosError) => {
+        console.log(err?.response?.data);
         throw new ServiceUnavailableException(err?.response?.data);
       });
   }
@@ -79,6 +80,7 @@ export class WazzupMessagingService
         chatId: userPhone,
       })
       .catch(async (err: AxiosError) => {
+        console.log(err?.response?.data);
         throw new ServiceUnavailableException(err?.response?.data);
       });
   }
@@ -133,9 +135,14 @@ export class WazzupMessagingService
   }
 
   async createContact(
-    userEntity: UserEntity,
+    userId: number,
     options?: { responsibleUserId?: number; chatId?: string },
   ): Promise<void> {
+    const userEntity = await this.userService.findOne({
+      where: { id: userId },
+      relations: { chatType: true, trainers: true },
+    });
+
     const chatType = userEntity.chatType.name.toLowerCase();
 
     await this.httpClient
@@ -153,7 +160,7 @@ export class WazzupMessagingService
             {
               chatType: chatType,
               chatId:
-                chatType == 'whatsapp' ? userEntity.phone : options?.chatId,
+                chatType === 'whatsapp' ? userEntity.phone : options?.chatId,
               username:
                 chatType === 'telegram'
                   ? userEntity.userNameInMessenger
@@ -199,7 +206,7 @@ export class WazzupMessagingService
     const contact = await this.getContact(user.id);
 
     if (!contact) {
-      await this.createContact(user, { chatId: messages[0].chatId });
+      await this.createContact(user.id, { chatId: messages[0].chatId });
       await this.userService.updateOne(user, {
         userNameInMessenger:
           messages[0].contact.username ?? user.userNameInMessenger,

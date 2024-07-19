@@ -70,7 +70,7 @@ export class AuthService {
       chatType: { id: createUserDto['chatType'] },
     });
 
-    await this.wazzupMessagingService.createContact(userEntity, {
+    await this.wazzupMessagingService.createContact(userEntity.id, {
       responsibleUserId: trainer.id,
     });
 
@@ -227,13 +227,10 @@ export class AuthService {
       chatType: { id: createClientDto.chatType },
     });
 
-    await this.wazzupMessagingService.createContact(
-      await this.userService.findOne({
-        where: { id: client.id },
-        relations: { chatType: true },
-      }),
-      { responsibleUserId: trainer.id, chatId: chatId },
-    );
+    await this.wazzupMessagingService.createContact(client.id, {
+      responsibleUserId: trainer.id,
+      chatId: chatId,
+    });
 
     if (createClientDto.comment) {
       await this.commentsService.save({

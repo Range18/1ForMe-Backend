@@ -165,16 +165,16 @@ export class UserController {
       for (const studio of updateTrainerDto.studios) {
         studios.push({ id: studio } as Studio);
       }
+      userEntity.studios = studios;
     }
-    userEntity.studios = studios;
 
     const sports = [];
     if (updateTrainerDto.sports) {
       for (const sport of updateTrainerDto.sports) {
         sports.push({ id: sport } as Sport);
       }
+      userEntity.sports = sports;
     }
-    userEntity.sports = sports;
 
     await this.userService.updateOne(userEntity, {
       ...updateTrainerDto,

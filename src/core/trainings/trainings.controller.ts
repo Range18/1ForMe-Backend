@@ -98,7 +98,9 @@ export class TrainingsController {
           createTrainingDto.createClient,
         );
 
-        client = await this.userService.findOne({ where: { phone } });
+        client = await this.userService.findOne({
+          where: { phone },
+        });
       }
 
       const clients = createTrainingDto.client ? createTrainingDto.client : [];
