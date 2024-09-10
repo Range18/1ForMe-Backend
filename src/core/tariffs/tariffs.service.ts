@@ -9,6 +9,7 @@ import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 import { UserService } from '#src/core/users/user.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
+import TrainerExceptions = AllExceptions.TrainerExceptions;
 
 @Injectable()
 export class TariffsService extends BaseEntityService<
@@ -33,7 +34,7 @@ export class TariffsService extends BaseEntityService<
   async getAllForTrainer(trainerId: number, isForSubscription?: boolean) {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
-      relations: { studios: true },
+      relations: { studios: true, category: true },
     });
 
     if (!trainer) {
@@ -44,11 +45,20 @@ export class TariffsService extends BaseEntityService<
       );
     }
 
+    if (!trainer.category) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainerExceptions',
+        TrainerExceptions.WithoutCategory,
+      );
+    }
+
     const studiosIds = trainer.studios.map((studio) => studio.id);
 
     const tariffs = await this.find({
       where: {
         studio: { id: In(studiosIds) },
+        category: { id: trainer.category.id },
         isForSubscription: isForSubscription ? isForSubscription : undefined,
       },
       relations: {

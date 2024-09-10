@@ -1,51 +1,51 @@
 export namespace AllExceptions {
   export enum AuthExceptions {
-    AccountIsNotVerified = 'Account is not verified. Please verify your email.',
-    WrongPassword = 'Wrong password',
-    ExpiredToken = 'Access token expired',
-    InvalidAccessToken = 'Invalid access token',
-    InvalidCrmToken = 'Invalid CRM token',
+    WrongPassword = 'Неверный пароль',
+    ExpiredToken = 'Срок действия токена истёк',
+    InvalidAccessToken = 'Невалидный токен доступа',
+    InvalidCrmToken = 'Невалидный CRM токен',
     WrongVerificationCode = 'Wrong verification code',
   }
 
   export enum FileExceptions {
-    FileNotFound = 'File is not found',
-    ErrorWhileDeleting = 'File does not exists or is broken',
+    FileNotFound = 'Файл не найден',
+    ErrorWhileDeleting = 'Файла нет или он сломан',
   }
 
   export enum SessionExceptions {
-    SessionNotFound = 'Session is not found',
-    SessionExpired = 'Session expired',
+    SessionNotFound = 'Сессия не найдена',
+    SessionExpired = 'Сессия истекла',
   }
 
   export enum UserExceptions {
-    UserNotFound = 'User is not found',
+    UserNotFound = 'Пользователь не найден',
     UserAlreadyExists = 'Пользователь с таким номером телефона уже существет',
-    NoClientData = 'No client data',
+    NoClientData = 'Недостаточно данных о клиенте',
   }
 
   export enum TrainerExceptions {
-    NotWorking = 'Trainer is not working',
+    NotWorking = 'Тренер не работает',
+    WithoutCategory = 'Невозможно найти тариф по роли квалификации тренера',
   }
 
   export enum RolesExceptions {
-    NotFound = 'Role is not found',
+    NotFound = 'Роль не найдена',
   }
 
   export enum StudioExceptions {
-    NotFound = 'Studio is not found',
+    NotFound = 'Студия не найдена',
   }
 
   export enum ClubSlotsExceptions {
-    NotFound = 'Club slot is not found',
+    NotFound = 'Клуб не найден',
   }
 
   export enum EntityExceptions {
-    NotFound = 'Entity is not found',
+    NotFound = 'Сущность не найдена',
   }
 
   export enum TrainingExceptions {
-    NotFound = 'Training is not found',
+    NotFound = 'Тренировка не найдена',
     TrainingAlreadyExists = 'На это время и в этот зал уже есть запись',
   }
 
@@ -56,7 +56,7 @@ export namespace AllExceptions {
   }
 
   export enum StorageExceptions {
-    NotFound = 'File is not found',
+    NotFound = 'Файл не найден',
   }
 
   export enum PermissionExceptions {

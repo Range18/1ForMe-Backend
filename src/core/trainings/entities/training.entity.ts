@@ -61,6 +61,7 @@ export class Training extends BaseEntity {
 
   @OneToOne(() => Transaction, (transaction) => transaction.training, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'transaction' })
   transaction?: Transaction;

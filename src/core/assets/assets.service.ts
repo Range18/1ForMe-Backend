@@ -50,13 +50,15 @@ export class AssetsService extends BaseEntityService<
     }
 
     if (entity.avatar) {
-      await unlink(entity.avatar.path).catch((err) => {
-        throw new ApiException(
-          HttpStatus.BAD_REQUEST,
-          'FileExceptions',
-          FileExceptions.FileNotFound,
-        );
-      });
+      await unlink(join(storageConfig.path, entity.avatar.path)).catch(
+        (err) => {
+          throw new ApiException(
+            HttpStatus.BAD_REQUEST,
+            'FileExceptions',
+            FileExceptions.FileNotFound,
+          );
+        },
+      );
 
       await this.removeOne(entity.avatar, true);
     }
@@ -64,7 +66,7 @@ export class AssetsService extends BaseEntityService<
     return await this.save({
       name: file.filename,
       user: { id: id },
-      path: `/avatars/${file.filename}`,
+      path: `/${storageConfig.innerAvatars}/${file.filename}`,
       mimetype: file.mimetype,
     });
   }

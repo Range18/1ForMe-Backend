@@ -36,12 +36,14 @@ export class Transaction extends BaseEntity {
 
   @ManyToOne(() => UserEntity, (trainer) => trainer.transactionsFromClients, {
     nullable: false,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'trainer' })
   trainer: UserEntity;
 
   @ManyToOne(() => UserEntity, (client) => client.transactions, {
     nullable: false,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'client' })
   client: UserEntity;
