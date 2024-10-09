@@ -48,41 +48,41 @@ export class WazzupMessagingService
     userPhone: string,
     message: string,
   ): Promise<void> {
-    chatType = String(chatType).toLowerCase() as NormalizedChatType;
-
-    if (chatType === 'telegram') {
-      await this.sendTelegramMessage(userPhone, message);
-    } else {
-      await this.sendWhatsAppMessage(userPhone, message);
-    }
+    // chatType = String(chatType).toLowerCase() as NormalizedChatType;
+    //
+    // if (chatType === 'telegram') {
+    //   await this.sendTelegramMessage(userPhone, message);
+    // } else {
+    //   await this.sendWhatsAppMessage(userPhone, message);
+    // }
   }
 
   async sendTelegramMessage(userPhone: string, message: string): Promise<void> {
-    await this.httpClient
-      .post('message', {
-        channelId: this.messengersChannels['telegram'],
-        chatType: 'telegram',
-        text: message,
-        phone: userPhone,
-      })
-      .catch((err: AxiosError) => {
-        console.log(err?.response?.data);
-        throw new ServiceUnavailableException(err?.response?.data);
-      });
+    // await this.httpClient
+    //   .post('message', {
+    //     channelId: this.messengersChannels['telegram'],
+    //     chatType: 'telegram',
+    //     text: message,
+    //     phone: userPhone,
+    //   })
+    //   .catch((err: AxiosError) => {
+    //     console.log(err?.response?.data);
+    //     throw new ServiceUnavailableException(err?.response?.data);
+    //   });
   }
 
   async sendWhatsAppMessage(userPhone: string, message: string): Promise<void> {
-    await this.httpClient
-      .post('message', {
-        channelId: this.messengersChannels['whatsapp'],
-        chatType: 'whatsapp',
-        text: message,
-        chatId: userPhone,
-      })
-      .catch(async (err: AxiosError) => {
-        console.log(err?.response?.data);
-        throw new ServiceUnavailableException(err?.response?.data);
-      });
+    // await this.httpClient
+    //   .post('message', {
+    //     channelId: this.messengersChannels['whatsapp'],
+    //     chatType: 'whatsapp',
+    //     text: message,
+    //     chatId: userPhone,
+    //   })
+    //   .catch(async (err: AxiosError) => {
+    //     console.log(err?.response?.data);
+    //     throw new ServiceUnavailableException(err?.response?.data);
+    //   });
   }
 
   private async fetchChannelsAndCacheIt(): Promise<void> {
