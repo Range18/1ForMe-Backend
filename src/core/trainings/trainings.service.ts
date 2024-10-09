@@ -366,7 +366,7 @@ export class TrainingsService extends BaseEntityService<
     );
   }
 
-  async cancelTraining(id: number, userId: number): Promise<void> {
+  async cancelTraining(id: number, userId: number, allRepeated: boolean) {
     const user = await this.userService.findOne({
       where: { id: userId },
       relations: { role: true },
@@ -447,7 +447,17 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    await this.updateOne(training, { isCanceled: true });
+    return allRepeated
+      ? await this.trainingRepository.update(
+          {
+            trainer: training.trainer,
+            client: training.client,
+            club: training.club,
+            isRepeated: training.isRepeated,
+          },
+          { isCanceled: true },
+        )
+      : await this.updateOne(training, { isCanceled: true });
   }
 
   async getTrainingsPerDay(trainerId: number, from?: string, to?: string) {

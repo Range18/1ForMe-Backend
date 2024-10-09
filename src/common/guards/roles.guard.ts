@@ -1,9 +1,16 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { UserRequest } from '#src/common/types/user-request.type';
 import { Reflector } from '@nestjs/core';
 import { ROLES_METADATA_KEY } from '#src/common/decorators/guards/roles-guard.decorator';
+import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import PermissionExceptions = AllExceptions.PermissionExceptions;
 
 @Injectable()
 export class RolesGuardClass implements CanActivate {
@@ -13,6 +20,7 @@ export class RolesGuardClass implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<Request & { user: UserRequest; session: object }>();
+
     const allowedRoles = this.reflector.getAllAndOverride<string[]>(
       ROLES_METADATA_KEY,
       [context.getHandler(), context.getClass()],
@@ -22,7 +30,13 @@ export class RolesGuardClass implements CanActivate {
 
     const user = request['user'];
 
-    //TODO
+    if (!allowedRoles.includes(user.role.name)) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        'PermissionExceptions',
+        PermissionExceptions.NoRequiredRole,
+      );
+    }
 
     return true;
   }
