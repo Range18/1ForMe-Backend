@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpStatus,
   Param,
@@ -342,10 +341,5 @@ export class TrainingsController {
     @Query() query: CancelTrainingQuery,
   ) {
     return this.trainingsService.cancelTraining(id, user.id, query.allRepeated);
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: number) {
-    return await this.trainingsService.remove({ where: { id } });
   }
 }
