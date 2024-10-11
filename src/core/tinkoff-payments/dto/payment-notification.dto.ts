@@ -3,12 +3,10 @@ import {
   IsBoolean,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
 
 export class PaymentNotificationDto {
   @IsNotEmpty()
@@ -16,7 +14,6 @@ export class PaymentNotificationDto {
   TerminalKey: string;
 
   @IsNotEmpty()
-  @IsNumber()
   Amount: number;
 
   @IsNotEmpty()
@@ -32,7 +29,6 @@ export class PaymentNotificationDto {
   Status: PaymentStatus;
 
   @IsNotEmpty()
-  @IsNumber()
   PaymentId: number;
 
   @IsNotEmpty()
@@ -52,7 +48,6 @@ export class PaymentNotificationDto {
   RebillId: string;
 
   @IsNotEmpty()
-  @IsNumber()
   CardId: number;
 
   @IsNotEmpty()

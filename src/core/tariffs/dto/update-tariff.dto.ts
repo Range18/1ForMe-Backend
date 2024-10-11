@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateTariffDto {
   @ApiProperty()
@@ -8,7 +8,6 @@ export class UpdateTariffDto {
   readonly name?: string;
 
   @ApiProperty()
-  @IsNumber()
   @IsOptional()
   readonly cost?: number;
 
