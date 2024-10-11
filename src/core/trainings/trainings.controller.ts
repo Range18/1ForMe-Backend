@@ -34,6 +34,7 @@ import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-
 import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
 import { CancelTrainingQuery } from '#src/core/trainings/dto/cancel-training.query';
 import { RolesGuard } from '#src/common/decorators/guards/roles-guard.decorator';
+import { TrainingQuery } from '#src/core/trainings/dto/training.query';
 import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('Trainings')
@@ -120,16 +121,13 @@ export class TrainingsController {
   @ApiOkResponse({ type: [GetTrainingRdo] })
   @AuthGuard()
   @Get()
-  async findAll(
-    @Query('clientId') clientId?: number,
-    @Query('trainerId') trainerId?: number,
-    @Query('date') date?: Date,
-  ) {
+  async findAll(@Query() query: TrainingQuery) {
     const trainings = await this.trainingsService.find({
       where: {
-        date: date,
-        client: { id: clientId },
-        trainer: { id: trainerId },
+        date: query.date,
+        client: query.clientId ? { id: query.clientId } : undefined,
+        trainer: query.trainerId ? { id: query.trainerId } : undefined,
+        club: query.clubId ? { id: query.clubId } : undefined,
       },
       relations: {
         client: true,
