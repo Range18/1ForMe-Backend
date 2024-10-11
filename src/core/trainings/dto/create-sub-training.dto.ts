@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateSubTrainingDto {
+  @IsDateString()
   @IsNotEmpty()
   readonly date: Date;
 
