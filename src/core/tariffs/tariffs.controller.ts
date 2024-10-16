@@ -23,6 +23,7 @@ import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 import { UserService } from '#src/core/users/user.service';
+import { TariffQueryDto } from '#src/core/tariffs/dto/tariff-query.dto';
 
 @ApiTags('Tariffs')
 @Controller('api')
@@ -117,12 +118,11 @@ export class TariffsController {
   @Get('users/trainers/my/tariffs')
   async getAllForTrainer(
     @User() user: UserRequest,
-    @Query('isForSubscription')
-    isForSubscription?: boolean,
+    @Query() query: TariffQueryDto,
   ) {
     return await this.tariffsService.getAllForTrainer(
       user.id,
-      isForSubscription,
+      query.isForSubscription,
     );
   }
 

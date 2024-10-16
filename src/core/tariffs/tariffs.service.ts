@@ -59,7 +59,7 @@ export class TariffsService extends BaseEntityService<
       where: {
         studio: { id: In(studiosIds) },
         category: { id: trainer.category.id },
-        isForSubscription: isForSubscription ? isForSubscription : undefined,
+        isForSubscription: isForSubscription,
       },
       relations: {
         studio: true,
