@@ -15,6 +15,7 @@ async function bootstrap() {
       'http://localhost:3000',
       'https://1-for-me-frontend.vercel.app',
       'https://1-for-me-client-frontend.vercel.app',
+      'https://1forme-admin.vercel.app',
       'https://1forme.ru',
       'https://trainer.1forme.ru',
     ],
