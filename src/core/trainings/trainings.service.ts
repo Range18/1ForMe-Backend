@@ -366,7 +366,7 @@ export class TrainingsService extends BaseEntityService<
     );
   }
 
-  async cancelTraining(id: number, userId: number, allRepeated: boolean) {
+  async cancelTraining(id: number, userId: number) {
     const user = await this.userService.findOne({
       where: { id: userId },
       relations: { role: true },
@@ -387,6 +387,7 @@ export class TrainingsService extends BaseEntityService<
         client: { chatType: true },
         trainer: true,
         slot: true,
+        club: true,
       },
     });
 
@@ -418,7 +419,6 @@ export class TrainingsService extends BaseEntityService<
     const chatType = training.client.chatType
       ? training.client.chatType.name.toLowerCase()
       : 'whatsapp';
-    const transactionStatus = training.transaction.status;
 
     if (training.transaction.status === TransactionStatus.Paid) {
       await this.tinkoffPaymentsService.cancelOrRefundPayment(
@@ -447,20 +447,56 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    return allRepeated
-      ? await this.trainingRepository.update(
-          {
-            trainer: training.trainer,
-            client: training.client,
-            club: training.club,
-            isRepeated: training.isRepeated,
-          },
-          { isCanceled: true },
-        )
-      : await this.updateOne(training, { isCanceled: true });
+    return await this.updateOne(training, { isCanceled: true });
   }
 
-  async getTrainingsPerDay(trainerId: number, from?: string, to?: string) {
+  async cancelRepeatedTraining(id: number, userId: number) {
+    const training = await this.findOne({
+      where: { id: id, isCanceled: false },
+      relations: {
+        transaction: true,
+        client: { chatType: true },
+        trainer: true,
+        slot: true,
+        club: true,
+      },
+    });
+
+    if (!training) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'TrainingExceptions',
+        TrainingExceptions.NotFound,
+      );
+    }
+
+    const trainings = await this.find({
+      where: {
+        trainer: { id: training.trainer.id },
+        client: { id: training.client.id },
+        club: { id: training.club.id },
+        slot: { id: training.slot.id },
+        isRepeated: training.isRepeated,
+        isCanceled: false,
+        date: In(getDateRange(new Date(training.date), 92, 7)),
+      },
+      relations: {
+        transaction: true,
+        client: { chatType: true },
+        trainer: true,
+        slot: true,
+        club: true,
+      },
+    });
+
+    return await Promise.all(
+      trainings.map(
+        async (current) => await this.cancelTraining(current.id, userId),
+      ),
+    );
+  }
+
+  async getTrainingsPerDay(trainerId: number) {
     return (
       await this.trainingRepository
         .createQueryBuilder('training')
