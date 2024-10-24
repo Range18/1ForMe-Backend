@@ -32,7 +32,6 @@ import { AuthService } from '#src/core/auth/auth.service';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
-import { CancelTrainingQuery } from '#src/core/trainings/dto/cancel-training.query';
 import { RolesGuard } from '#src/common/decorators/guards/roles-guard.decorator';
 import { TrainingQuery } from '#src/core/trainings/dto/training.query';
 import UserExceptions = AllExceptions.UserExceptions;
@@ -333,11 +332,17 @@ export class TrainingsController {
   @RolesGuard('trainer', 'client', 'admin')
   @AuthGuard()
   @Post('cancel/:id')
-  async cancelTraining(
+  async cancelTraining(@Param('id') id: number, @User() user: UserRequest) {
+    return this.trainingsService.cancelTraining(id, user.id);
+  }
+
+  @RolesGuard('trainer', 'client', 'admin')
+  @AuthGuard()
+  @Post('cancel/:id/repeated')
+  async cancelRepeatedTraining(
     @Param('id') id: number,
     @User() user: UserRequest,
-    @Query() query: CancelTrainingQuery,
   ) {
-    return this.trainingsService.cancelTraining(id, user.id, query.allRepeated);
+    return this.trainingsService.cancelRepeatedTraining(id, user.id);
   }
 }
