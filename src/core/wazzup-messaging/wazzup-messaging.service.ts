@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   OnApplicationBootstrap,
   OnModuleInit,
   ServiceUnavailableException,
@@ -39,8 +40,12 @@ export class WazzupMessagingService
   }
 
   async onModuleInit(): Promise<void> {
-    await this.fetchChannelsAndCacheIt();
-    setInterval(async () => await this.fetchChannelsAndCacheIt(), 1800000);
+    try {
+      await this.fetchChannelsAndCacheIt();
+      setInterval(async () => await this.fetchChannelsAndCacheIt(), 1800000);
+    } catch (err) {
+      Logger.error(err);
+    }
   }
 
   async sendMessage(
