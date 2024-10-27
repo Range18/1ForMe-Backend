@@ -8,7 +8,6 @@ class GetUserForSlots extends PickType(GetUserRdo, [
   'id',
   'surname',
   'name',
-  'phone',
   'createdAt',
   'updatedAt',
   'birthday',

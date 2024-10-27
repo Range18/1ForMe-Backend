@@ -26,6 +26,7 @@ import { Studio } from '#src/core/studios/entities/studio.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { GetMeRdo } from '#src/core/users/rdo/get-me.rdo';
 import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('users')
@@ -97,11 +98,11 @@ export class UserController {
     );
   }
 
-  @ApiOkResponse({ type: GetUserRdo })
+  @ApiOkResponse({ type: GetMeRdo })
   @AuthGuard()
   @Get('me')
   async getUserMe(@User() user: UserRequest) {
-    return new GetUserRdo(
+    return new GetMeRdo(
       await this.userService.findOne({
         where: { id: user.id },
         relations: {
@@ -116,7 +117,7 @@ export class UserController {
     );
   }
 
-  @ApiOkResponse({ type: GetUserRdo })
+  @ApiOkResponse({ type: GetMeRdo })
   @ApiBody({ type: UpdateTrainerDto })
   @AuthGuard()
   @Patch('/me')
@@ -186,7 +187,7 @@ export class UserController {
       chatType: { id: updateTrainerDto.chatType },
     });
 
-    return new GetUserRdo(
+    return new GetMeRdo(
       await this.userService.findOne({ where: { id: user.id } }),
     );
   }

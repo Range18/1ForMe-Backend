@@ -17,9 +17,6 @@ export class GetUserRdo {
   @ApiProperty()
   readonly surname: string;
 
-  @ApiProperty()
-  readonly phone: string;
-
   @ApiProperty({ type: () => RolesEntity })
   readonly role: RolesEntity;
 
@@ -53,7 +50,6 @@ export class GetUserRdo {
     this.id = user.id;
     this.name = user.name;
     this.surname = user.surname;
-    this.phone = user.phone;
     this.role = user.role ?? undefined;
     this.avatar = user.avatar
       ? `${backendServer.urlValue}/api/assets/${user.avatar.id}/file`
