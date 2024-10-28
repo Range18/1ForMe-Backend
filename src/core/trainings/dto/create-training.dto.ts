@@ -1,10 +1,11 @@
-import { IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateTrainingDto {
   readonly slot: number;
 
   readonly date: Date;
 
+  @IsNotEmpty()
   readonly client: number[];
 
   readonly club: number;

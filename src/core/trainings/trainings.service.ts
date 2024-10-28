@@ -30,6 +30,7 @@ import TrainerExceptions = AllExceptions.TrainerExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 import TrainingExceptions = AllExceptions.TrainingExceptions;
 import PermissionExceptions = AllExceptions.PermissionExceptions;
+import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -56,6 +57,16 @@ export class TrainingsService extends BaseEntityService<
         EntityExceptions.NotFound,
       ),
     );
+  }
+
+  private async getClients(clientIds: number[]) {
+    return await this.userService.find({
+      where: { id: In(clientIds) },
+      relations: {
+        trainers: true,
+        chatType: true,
+      },
+    });
   }
 
   async create(
@@ -113,27 +124,7 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    let clients: UserEntity[];
-
-    if (tariff.clientsAmount) {
-      clients = await this.userService.find({
-        where: { id: In(clientIds) },
-        relations: {
-          trainers: true,
-          chatType: true,
-        },
-      });
-    } else {
-      clients = [
-        await this.userService.findOne({
-          where: { id: clientIds[0] },
-          relations: {
-            trainers: true,
-            chatType: true,
-          },
-        }),
-      ];
-    }
+    const clients = await this.getClients(clientIds);
 
     if (!clients && clients.length == 0) {
       throw new ApiException(
@@ -207,7 +198,13 @@ export class TrainingsService extends BaseEntityService<
           await this.transactionsService.removeOne(transaction);
         });
 
-      if (!paymentURL) return;
+      if (!paymentURL) {
+        throw new ApiException(
+          HttpStatus.BAD_REQUEST,
+          'PaymentExceptions',
+          PaymentExceptions.FailedToCreatePayment,
+        );
+      }
 
       await this.wazzupMessagingService.sendMessage(
         client.chatType.name,
@@ -287,7 +284,13 @@ export class TrainingsService extends BaseEntityService<
                 await this.transactionsService.removeOne(trainingTransaction);
               });
 
-            if (!paymentURL) return;
+            if (!paymentURL) {
+              throw new ApiException(
+                HttpStatus.BAD_REQUEST,
+                'PaymentExceptions',
+                PaymentExceptions.FailedToCreatePayment,
+              );
+            }
 
             const training = await this.save({
               slot: slot,
