@@ -26,7 +26,7 @@ import { Studio } from '#src/core/studios/entities/studio.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { GetMeRdo } from '#src/core/users/rdo/get-me.rdo';
+import { GetUserWithPhoneRdo } from '#src/core/users/rdo/get-user-with-phone.rdo';
 import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('users')
@@ -55,6 +55,23 @@ export class UserController {
     return users.map((user) => new GetUserRdo(user));
   }
 
+  @Get('/trainers')
+  async getAllTrainers() {
+    const users = await this.userService.find({
+      where: { role: { name: 'trainer' } },
+      relations: {
+        role: true,
+        avatar: true,
+        studios: true,
+        category: true,
+        sports: true,
+        chatType: true,
+      },
+    });
+
+    return users.map((user) => new GetUserWithPhoneRdo(user));
+  }
+
   @AuthGuard()
   @ApiOkResponse({ type: [GetUserRdo] })
   @Get('trainers/clients')
@@ -73,7 +90,7 @@ export class UserController {
     });
 
     return userEntity?.clients.map((user) => {
-      return new GetUserRdo(user);
+      return new GetUserWithPhoneRdo(user);
     });
   }
 
@@ -98,11 +115,11 @@ export class UserController {
     );
   }
 
-  @ApiOkResponse({ type: GetMeRdo })
+  @ApiOkResponse({ type: GetUserWithPhoneRdo })
   @AuthGuard()
   @Get('me')
   async getUserMe(@User() user: UserRequest) {
-    return new GetMeRdo(
+    return new GetUserWithPhoneRdo(
       await this.userService.findOne({
         where: { id: user.id },
         relations: {
@@ -117,7 +134,7 @@ export class UserController {
     );
   }
 
-  @ApiOkResponse({ type: GetMeRdo })
+  @ApiOkResponse({ type: GetUserWithPhoneRdo })
   @ApiBody({ type: UpdateTrainerDto })
   @AuthGuard()
   @Patch('/me')
@@ -187,7 +204,7 @@ export class UserController {
       chatType: { id: updateTrainerDto.chatType },
     });
 
-    return new GetMeRdo(
+    return new GetUserWithPhoneRdo(
       await this.userService.findOne({ where: { id: user.id } }),
     );
   }
@@ -201,7 +218,7 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
     @User() user: UserRequest,
   ) {
-    return new GetUserRdo(
+    return new GetUserWithPhoneRdo(
       await this.userService.updateOne(
         {
           where: { id: id },
@@ -222,11 +239,11 @@ export class UserController {
   }
 
   @ApiQuery({ name: 'link' })
-  @Post('/trainers')
+  @Post('/sign-up-to-trainer')
   async signUpToCoachSelf(
     @Query('link') link: string,
     @User('id') userId: number,
   ) {
-    return new GetUserRdo(await this.userService.signUp(link, userId));
+    return new GetUserWithPhoneRdo(await this.userService.signUp(link, userId));
   }
 }
