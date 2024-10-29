@@ -94,10 +94,10 @@ export class UserController {
     });
   }
 
-  @ApiOkResponse({ type: GetUserRdo })
+  @ApiOkResponse({ type: GetUserWithPhoneRdo })
   @Get('/byId/:id')
   async getUser(@Param('id') id: number) {
-    return new GetUserRdo(
+    return new GetUserWithPhoneRdo(
       await this.userService.findOne(
         {
           where: { id },
