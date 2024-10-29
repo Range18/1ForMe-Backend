@@ -38,7 +38,6 @@ export class UserController {
 
   @ApiOkResponse({ type: [GetUserRdo] })
   @ApiQuery({ name: 'role' })
-  @AuthGuard()
   @Get()
   async getAllUsers(@Query('role') role?: string) {
     const users = await this.userService.find({
