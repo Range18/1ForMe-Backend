@@ -340,6 +340,7 @@ export class TrainingsService extends BaseEntityService<
               slot: { id: training.slot },
               date: training.date,
               club: { id: training.club },
+              isCanceled: false,
             },
           },
           false,
