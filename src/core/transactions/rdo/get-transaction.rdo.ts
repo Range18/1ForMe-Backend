@@ -19,6 +19,8 @@ export class GetTransactionRdo {
   @ApiProperty()
   status: TransactionStatus;
 
+  paidVia?: string;
+
   @ApiProperty()
   cost: number;
 
@@ -38,7 +40,6 @@ export class GetTransactionRdo {
 
   constructor(transaction: Transaction) {
     this.id = transaction.id;
-
     this.client = transaction.client
       ? new GetUserRdo(transaction.client)
       : undefined;
@@ -59,6 +60,7 @@ export class GetTransactionRdo {
 
     this.cost = transaction.cost;
     this.status = transaction.status;
+    this.paidVia = transaction.paidVia;
 
     this.createdAt = transaction.createdAt;
     this.updatedAt = transaction.updatedAt;

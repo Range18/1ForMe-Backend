@@ -17,6 +17,7 @@ import { Between } from 'typeorm';
 import { UpdateTransactionDto } from '#src/core/transactions/dto/update-transaction.dto';
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactions-sums.rdo';
+import { RolesGuard } from '#src/common/decorators/guards/roles-guard.decorator';
 
 @ApiTags('Transactions')
 @Controller('api/transactions')
@@ -110,6 +111,8 @@ export class TransactionsController {
     );
   }
 
+  @RolesGuard('trainer', 'admin')
+  @AuthGuard()
   @Patch(':id')
   async update(
     @Param('id') id: number,
@@ -117,7 +120,10 @@ export class TransactionsController {
   ) {
     return await this.transactionsService.updateOne(
       { where: { id: id } },
-      { status: updateTransactionDto.status },
+      {
+        status: updateTransactionDto.status,
+        paidVia: updateTransactionDto.paidVia,
+      },
     );
   }
 

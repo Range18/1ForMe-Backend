@@ -12,6 +12,7 @@ import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 
 @Entity('transactions')
 export class Transaction extends BaseEntity {
@@ -27,6 +28,12 @@ export class Transaction extends BaseEntity {
     type: 'varchar',
   })
   status: TransactionStatus;
+
+  @Column({
+    nullable: true,
+    type: 'varchar',
+  })
+  paidVia?: TransactionPaidVia;
 
   @OneToOne(() => Subscription, (subs) => subs.transaction, {
     nullable: true,
