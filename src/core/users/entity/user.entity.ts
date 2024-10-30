@@ -48,6 +48,9 @@ export class UserEntity extends BaseEntity {
   birthday?: Date;
 
   @Column({ nullable: true })
+  telegramUsername?: string;
+
+  @Column({ nullable: true })
   userNameInMessenger?: string;
 
   @ManyToOne(() => ChatTypes, (chatType) => chatType.users, {

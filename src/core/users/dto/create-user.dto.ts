@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Optional } from '@nestjs/common';
+import { IsString } from 'class-validator';
 
 export class CreateUserDto {
   readonly name?: string;
@@ -14,6 +16,10 @@ export class CreateUserDto {
   readonly birthday?: Date;
 
   userNameInMessenger?: string;
+
+  @IsString()
+  @Optional()
+  telegramUsername?: string;
 
   //If registered by trainer
   @ApiProperty({ nullable: true, required: false })

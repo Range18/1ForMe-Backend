@@ -38,6 +38,8 @@ export class GetUserRdo {
 
   userNameInMessenger?: string;
 
+  telegramUsername?: string;
+
   chatType: ChatTypes;
 
   @ApiProperty()
