@@ -22,6 +22,7 @@ import { PaymentStateDto } from '#src/core/tinkoff-payments/sdk/dto/payment-stat
 import { PaymentStatus } from '#src/core/tinkoff-payments/enums/payment-status.enum';
 import { TinkoffPaymentEntity } from '#src/core/tinkoff-payments/entities/tinkoff-payment.entity';
 import { CreatePaymentOptions } from '#src/core/tinkoff-payments/types/create-payment-options.interface';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -219,7 +220,10 @@ export class TinkoffPaymentsService extends BaseEntityService<
 
     await this.transactionsService.updateOne(
       { where: { id: tinkoffPayment.transactionId } },
-      { status: TransactionStatus.Paid },
+      {
+        status: TransactionStatus.Paid,
+        paidVia: TransactionPaidVia.OnlineService,
+      },
     );
 
     return 'OK';
