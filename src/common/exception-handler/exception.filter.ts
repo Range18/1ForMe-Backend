@@ -35,6 +35,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       console.log(exception);
     }
 
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      console.log(host.getArgs(), host.getType());
+      console.log(exception);
+    }
+
     response.status(statusCode).json({
       statusCode: statusCode,
       type: type,

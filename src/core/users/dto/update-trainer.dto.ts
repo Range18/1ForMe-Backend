@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
-import { IsString } from 'class-validator';
-import { Optional } from '@nestjs/common';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateTrainerDto extends UpdateUserDto {
   @ApiProperty({ nullable: true, required: false })
@@ -23,7 +22,7 @@ export class UpdateTrainerDto extends UpdateUserDto {
   readonly whatsApp?: string;
 
   @IsString()
-  @Optional()
+  @IsOptional()
   telegramUsername?: string;
 
   @ApiProperty({ nullable: true, required: false })
