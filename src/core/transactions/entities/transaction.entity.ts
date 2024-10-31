@@ -31,6 +31,7 @@ export class Transaction extends BaseEntity {
 
   @Column({
     nullable: true,
+    default: TransactionPaidVia.OnlineService,
     type: 'varchar',
   })
   paidVia?: TransactionPaidVia;

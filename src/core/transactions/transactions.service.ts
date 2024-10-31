@@ -63,11 +63,11 @@ export class TransactionsService extends BaseEntityService<
         .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
         .andWhere(
           'transaction.createdAt >= COALESCE(CAST(:from AS DATE), transaction.createdAt)',
-          { from: from },
+          { from: from ?? undefined },
         )
         .andWhere(
           'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
-          { to: to },
+          { to: to ?? undefined },
         )
         .andWhere('transaction.status = :status', { status: 'Paid' })
         .addGroupBy('YEAR(createdAt)')
@@ -179,11 +179,11 @@ export class TransactionsService extends BaseEntityService<
         .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
         .andWhere(
           'transaction.createdAt >= COALESCE(CAST(:from AS DATE), transaction.createdAt)',
-          { from: from },
+          { from: from ?? undefined },
         )
         .andWhere(
           'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
-          { to: to },
+          { to: to ?? undefined },
         )
         .andWhere(
           'transaction.client = COALESCE(:clientId, transaction.client)',
