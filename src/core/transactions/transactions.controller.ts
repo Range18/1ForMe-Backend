@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -125,11 +117,6 @@ export class TransactionsController {
         paidVia: updateTransactionDto.paidVia,
       },
     );
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: number) {
-    return await this.transactionsService.remove({ where: { id: id } });
   }
 
   @AuthGuard()
