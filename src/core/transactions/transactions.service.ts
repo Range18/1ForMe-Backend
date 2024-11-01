@@ -187,7 +187,7 @@ export class TransactionsService extends BaseEntityService<
         )
         .andWhere(
           'transaction.client = COALESCE(:clientId, transaction.client)',
-          { clientId: clientId },
+          { clientId: clientId ?? undefined },
         )
         .andWhere('transaction.status = :status', { status: 'Paid' })
         .addGroupBy('createdDate')

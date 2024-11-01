@@ -10,6 +10,7 @@ import { UpdateTransactionDto } from '#src/core/transactions/dto/update-transact
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactions-sums.rdo';
 import { RolesGuard } from '#src/common/decorators/guards/roles-guard.decorator';
+import { AnalyticsQuery } from '#src/core/transactions/dto/analytics.query';
 
 @ApiTags('Transactions')
 @Controller('api/transactions')
@@ -69,15 +70,13 @@ export class TransactionsController {
   @Get('/analytics/entities')
   async findAllAnalytics(
     @User() user: UserRequest,
-    @Query('clientId') clientId?: number,
-    @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query() query: AnalyticsQuery,
   ): Promise<GetAnalyticsRdo[]> {
     return await this.transactionsService.getTransactionsPerDay(
       user.id,
-      clientId,
-      from,
-      to,
+      query.clientId,
+      query.from,
+      query.to,
     );
   }
 

@@ -30,11 +30,11 @@ export class Transaction extends BaseEntity {
   status: TransactionStatus;
 
   @Column({
-    nullable: true,
+    nullable: false,
     default: TransactionPaidVia.OnlineService,
     type: 'varchar',
   })
-  paidVia?: TransactionPaidVia;
+  paidVia: TransactionPaidVia;
 
   @OneToOne(() => Subscription, (subs) => subs.transaction, {
     nullable: true,

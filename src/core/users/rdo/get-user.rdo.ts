@@ -56,6 +56,7 @@ export class GetUserRdo {
     this.avatar = user.avatar
       ? `${backendServer.urlValue}/api/assets/${user.avatar.id}/file`
       : undefined;
+    this.telegramUsername = user.telegramUsername;
     this.closestTraining = training ? new GetTrainingRdo(training) : undefined;
     this.trainerProfile =
       user?.role?.name == 'trainer' ? new GetTrainerRdo(user) : undefined;
