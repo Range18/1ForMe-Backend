@@ -11,6 +11,8 @@ import { TransactionsByPeriodType } from '#src/core/transactions/types/transacti
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { UserService } from '#src/core/users/user.service';
+import { getDateRange } from '#src/common/utilities/date-range.func';
+import { getWeek } from '#src/common/utilities/get-week.func';
 import EntityExceptions = AllExceptions.EntityExceptions;
 
 @Injectable()
@@ -56,6 +58,7 @@ export class TransactionsService extends BaseEntityService<
         selectQuery.push('DATE(createdAt) as date');
       }
     }
+
     const totalByPeriodRaw = (
       await this.transactionRepository
         .createQueryBuilder('transaction')
@@ -94,60 +97,40 @@ export class TransactionsService extends BaseEntityService<
     }
 
     let totalByPeriod: GetTransactionSumsRdo[] = [];
-
     if (totalByPeriodRaw.length > 1) {
       for (let i = 0; i < totalByPeriodRaw.length - 1; ++i) {
         totalByPeriod.push(totalByPeriodRaw[i]);
-        let delta = 0;
+        const daysRangeAmount = this.getDaysRange(
+          totalByPeriodRaw[i],
+          totalByPeriodRaw[i + 1],
+          period,
+        );
+        console.log(daysRangeAmount);
 
-        if (
-          period == 'day' &&
-          totalByPeriodRaw[i].month !== totalByPeriodRaw[i + 1].month
-        ) {
-          delta = Math.abs(
-            totalByPeriodRaw[i][period] -
-              (totalByPeriodRaw[i][period] - totalByPeriodRaw[i + 1][period]),
+        if (daysRangeAmount > 1) {
+          const startDate = new Date(
+            totalByPeriodRaw[0].date.split('.').reverse().join('-'),
           );
-        } else if (
-          period == 'month' &&
-          totalByPeriodRaw[i].year !== totalByPeriodRaw[i + 1].year
-        ) {
-          delta = Math.abs(
-            totalByPeriodRaw[i][period] -
-              (totalByPeriodRaw[i][period] - totalByPeriodRaw[i + 1][period]),
-          );
-        } else {
-          delta = Math.abs(
-            totalByPeriodRaw[i][period] - totalByPeriodRaw[i + 1][period],
-          );
-        }
+          startDate.setDate(startDate.getDate() + 1);
+          const datesRange = getDateRange(startDate, daysRangeAmount, 1);
 
-        if (delta > 1) {
-          for (let j = 0; j < delta - 1; ++j) {
+          console.log(datesRange);
+
+          for (const date of datesRange) {
+            const [year, month, week, day] = [
+              date.getFullYear(),
+              date.getMonth() + 1,
+              getWeek(date, 1),
+              date.getDate(),
+            ];
             totalByPeriod.push(
               new GetTransactionSumsRdo({
                 costSum: 0,
-                year:
-                  totalByPeriodRaw[i].month == 12
-                    ? totalByPeriodRaw[i].year + 1
-                    : totalByPeriodRaw[i].year,
-                month:
-                  period == 'month'
-                    ? totalByPeriodRaw[i].month + j + 1
-                    : totalByPeriodRaw[i].month,
-                week:
-                  period == 'week'
-                    ? totalByPeriodRaw[i].week + j + 1
-                    : undefined,
-                day:
-                  period == 'day' ? totalByPeriodRaw[i].day + j + 1 : undefined,
-                date: undefined,
-                // period == 'day'
-                //   ? addTimeToStr(
-                //       new Date(totalByPeriodRaw[i].date),
-                //       24 * 60 * 60 * 1000 * (j + 1),
-                //     )
-                //   : undefined,
+                day,
+                week,
+                month,
+                year,
+                date: date.toISOString(),
               }),
             );
           }
@@ -157,8 +140,20 @@ export class TransactionsService extends BaseEntityService<
     } else {
       totalByPeriod = totalByPeriodRaw;
     }
-
     return totalByPeriod;
+  }
+
+  private getDaysRange(
+    timeUnit: GetTransactionSumsRdo,
+    nextTimeUnit: GetTransactionSumsRdo,
+    period?: string,
+  ) {
+    if (period == 'day' && timeUnit.month !== nextTimeUnit.month) {
+      return Math.abs(timeUnit.day - (timeUnit.day - nextTimeUnit.day));
+    } else if (period == 'month' && timeUnit.year !== nextTimeUnit.year) {
+      return Math.abs(timeUnit.month - (timeUnit.month - nextTimeUnit.month));
+    }
+    return Math.abs(timeUnit[period] - nextTimeUnit[period]);
   }
 
   async getTransactionsPerDay(
