@@ -26,6 +26,7 @@ export namespace AllExceptions {
   export enum TrainerExceptions {
     NotWorking = 'Тренер не работает',
     WithoutCategory = 'Невозможно найти тариф по роли квалификации тренера',
+    NotFound = 'Тренер не найден',
   }
 
   export enum RolesExceptions {
@@ -38,6 +39,10 @@ export namespace AllExceptions {
 
   export enum ClubSlotsExceptions {
     NotFound = 'Клуб не найден',
+  }
+
+  export enum TransactionExceptions {
+    NotFound = 'Транзакция не найдена',
   }
 
   export enum EntityExceptions {

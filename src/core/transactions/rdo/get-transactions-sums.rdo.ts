@@ -15,7 +15,7 @@ export class GetTransactionSumsRdo {
 
   date?: string;
 
-  private getDateAndMonth(weekNumber: number, year: number) {
+  private getWeekDates(weekNumber: number, year: number) {
     // Определяем дату начала года
     const startDate = new Date(year, 0, 1);
 
@@ -44,13 +44,12 @@ export class GetTransactionSumsRdo {
     tax?: number,
   ) {
     const date = entity.date ? new Date(entity.date) : undefined;
-
     this.costSum = tax ? entity.costSum * (1 - tax / 100) : entity.costSum;
     this.day = entity.day;
     this.month = entity.month;
     this.date = date ? ISODateToString(date) : undefined;
     this.weekDates = entity.week
-      ? this.getDateAndMonth(entity.week, entity.year)
+      ? this.getWeekDates(entity.week, entity.year)
       : undefined;
     this.week = entity.week;
     this.year = entity.year;

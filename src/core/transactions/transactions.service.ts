@@ -13,12 +13,14 @@ import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rd
 import { UserService } from '#src/core/users/user.service';
 import { getDateRange } from '#src/common/utilities/date-range.func';
 import { getWeek } from '#src/common/utilities/get-week.func';
-import EntityExceptions = AllExceptions.EntityExceptions;
+import { DaysEnum } from '#src/core/transactions/types/days.enum';
+import TrainerExceptions = AllExceptions.TrainerExceptions;
+import TransactionExceptions = AllExceptions.TransactionExceptions;
 
 @Injectable()
 export class TransactionsService extends BaseEntityService<
   Transaction,
-  'EntityExceptions'
+  'TransactionExceptions'
 > {
   constructor(
     @InjectRepository(Transaction)
@@ -27,15 +29,15 @@ export class TransactionsService extends BaseEntityService<
   ) {
     super(
       transactionRepository,
-      new ApiException<'EntityExceptions'>(
+      new ApiException<'TransactionExceptions'>(
         HttpStatus.NOT_FOUND,
-        'EntityExceptions',
-        EntityExceptions.NotFound,
+        'TransactionExceptions',
+        TransactionExceptions.NotFound,
       ),
     );
   }
 
-  async getAnalytics(
+  async getTrainerTransactionSumsByTimeUnit(
     trainerId: number,
     from?: string,
     period?: string,
@@ -44,6 +46,14 @@ export class TransactionsService extends BaseEntityService<
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
     });
+
+    if (!trainer) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'TrainerExceptions',
+        TrainerExceptions.NotFound,
+      );
+    }
 
     const selectQuery = [
       'MONTH(createdAt) as month',
@@ -59,7 +69,7 @@ export class TransactionsService extends BaseEntityService<
       }
     }
 
-    const totalByPeriodRaw = (
+    return (
       await this.transactionRepository
         .createQueryBuilder('transaction')
         .select(selectQuery)
@@ -78,69 +88,6 @@ export class TransactionsService extends BaseEntityService<
         .addOrderBy('createdAt', 'ASC')
         .getRawMany()
     ).map((entity) => new GetTransactionSumsRdo(entity, trainer.tax));
-
-    if (
-      from &&
-      totalByPeriodRaw[0]?.date &&
-      new Date(from) < new Date(totalByPeriodRaw[0]?.date)
-    ) {
-      const [year, month, date] = from.split('-');
-      totalByPeriodRaw.unshift(
-        new GetTransactionSumsRdo({
-          costSum: 0,
-          year: Number(year),
-          month: Number(month),
-          day: Number(date),
-          date: date,
-        }),
-      );
-    }
-
-    let totalByPeriod: GetTransactionSumsRdo[] = [];
-    if (totalByPeriodRaw.length > 1) {
-      for (let i = 0; i < totalByPeriodRaw.length - 1; ++i) {
-        totalByPeriod.push(totalByPeriodRaw[i]);
-        const daysRangeAmount = this.getDaysRange(
-          totalByPeriodRaw[i],
-          totalByPeriodRaw[i + 1],
-          period,
-        );
-        console.log(daysRangeAmount);
-
-        if (daysRangeAmount > 1) {
-          const startDate = new Date(
-            totalByPeriodRaw[0].date.split('.').reverse().join('-'),
-          );
-          startDate.setDate(startDate.getDate() + 1);
-          const datesRange = getDateRange(startDate, daysRangeAmount, 1);
-
-          console.log(datesRange);
-
-          for (const date of datesRange) {
-            const [year, month, week, day] = [
-              date.getFullYear(),
-              date.getMonth() + 1,
-              getWeek(date, 1),
-              date.getDate(),
-            ];
-            totalByPeriod.push(
-              new GetTransactionSumsRdo({
-                costSum: 0,
-                day,
-                week,
-                month,
-                year,
-                date: date.toISOString(),
-              }),
-            );
-          }
-        }
-      }
-      totalByPeriod.push(totalByPeriodRaw.at(-1));
-    } else {
-      totalByPeriod = totalByPeriodRaw;
-    }
-    return totalByPeriod;
   }
 
   private getDaysRange(
@@ -154,6 +101,83 @@ export class TransactionsService extends BaseEntityService<
       return Math.abs(timeUnit.month - (timeUnit.month - nextTimeUnit.month));
     }
     return Math.abs(timeUnit[period] - nextTimeUnit[period]);
+  }
+
+  async getAnalytics(
+    trainerId: number,
+    from?: string,
+    period?: string,
+    to?: string,
+  ) {
+    const transactionSumsPerTimeUnit =
+      await this.getTrainerTransactionSumsByTimeUnit(
+        trainerId,
+        from,
+        period,
+        to,
+      );
+
+    if (
+      from &&
+      transactionSumsPerTimeUnit[0]?.date &&
+      new Date(from) < new Date(transactionSumsPerTimeUnit[0]?.date)
+    ) {
+      const [year, month, date] = from.split('-');
+      transactionSumsPerTimeUnit.unshift(
+        new GetTransactionSumsRdo({
+          costSum: 0,
+          year: Number(year),
+          month: Number(month),
+          day: Number(date),
+          date: new Date(from).toISOString(),
+        }),
+      );
+    }
+
+    if (transactionSumsPerTimeUnit.length <= 1)
+      return transactionSumsPerTimeUnit;
+
+    const transactionSumsWithTabs: GetTransactionSumsRdo[] = [];
+    for (let i = 0; i < transactionSumsPerTimeUnit.length - 1; ++i) {
+      const transactionSum = transactionSumsPerTimeUnit[i];
+      const nextTransactionSum = transactionSumsPerTimeUnit[i + 1];
+
+      transactionSumsWithTabs.push(transactionSum);
+      const daysRangeAmount = this.getDaysRange(
+        transactionSum,
+        nextTransactionSum,
+        period,
+      );
+
+      if (daysRangeAmount <= 1) continue;
+
+      const startDate = new Date(
+        transactionSum.date.split('.').reverse().join('-'),
+      );
+      startDate.setDate(startDate.getDate() + 1);
+      const datesRange = getDateRange(startDate, daysRangeAmount, 1);
+
+      for (const date of datesRange) {
+        const [year, month, week, day] = [
+          date.getFullYear(),
+          date.getMonth() + 1,
+          getWeek(date, DaysEnum.Monday),
+          date.getDate(),
+        ];
+        transactionSumsWithTabs.push(
+          new GetTransactionSumsRdo({
+            costSum: 0,
+            day,
+            week,
+            month,
+            year,
+            date: date.toISOString(),
+          }),
+        );
+      }
+    }
+    transactionSumsWithTabs.push(transactionSumsPerTimeUnit.at(-1));
+    return transactionSumsWithTabs;
   }
 
   async getTransactionsPerDay(
