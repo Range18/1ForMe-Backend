@@ -19,11 +19,12 @@ import { GetSlotForTimeTableRdo } from '#src/core/club-slots/rdo/get-slot-for-ti
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { GetClubScheduleRdo } from '#src/core/club-slots/rdo/get-club-schedule.rdo';
 import EntityExceptions = AllExceptions.EntityExceptions;
+import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 
 @Injectable()
 export class StudioSlotsService extends BaseEntityService<
   ClubSlots,
-  'EntityExceptions'
+  'ClubSlotsExceptions'
 > {
   constructor(
     @InjectRepository(ClubSlots)
@@ -37,10 +38,10 @@ export class StudioSlotsService extends BaseEntityService<
   ) {
     super(
       clubsSlotsRepository,
-      new ApiException<'EntityExceptions'>(
+      new ApiException<'ClubSlotsExceptions'>(
         HttpStatus.NOT_FOUND,
-        'EntityExceptions',
-        EntityExceptions.NotFound,
+        'ClubSlotsExceptions',
+        ClubSlotsExceptions.NotFound,
       ),
     );
   }

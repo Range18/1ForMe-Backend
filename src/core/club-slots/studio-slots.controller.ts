@@ -10,20 +10,6 @@ import { GetTimeTableRdo } from '#src/core/club-slots/rdo/get-time-table.rdo';
 @Controller('api')
 export class StudioSlotsController {
   constructor(private readonly studioSlotsService: StudioSlotsService) {}
-  //
-  // @ApiCreatedResponse({ type: GetClubSlotRdo })
-  // @ApiBody({ type: CreateStudioSlotDto })
-  // @AuthGuard()
-  // @Post('studio/:studioId/slots')
-  // async create(
-  //   @Param('studioId') studioId: number,
-  //   @Body() createClubSlotDto: CreateStudioSlotDto,
-  // ) {
-  //   return await this.studioSlotsService.save({
-  //     ...createClubSlotDto,
-  //     studio: { id: studioId },
-  //   });
-  // }
 
   @ApiOkResponse({ type: [GetClubSlotRdo] })
   @ApiQuery({ name: 'date' })
