@@ -7,7 +7,6 @@ import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactions-sums.rdo';
 import { SqlPeriodsEnum } from '#src/core/transactions/types/sql-periods.enum';
-import { TransactionsByPeriodType } from '#src/core/transactions/types/transactions-by-period.type';
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { UserService } from '#src/core/users/user.service';
@@ -180,45 +179,58 @@ export class TransactionsService extends BaseEntityService<
     return transactionSumsWithTabs;
   }
 
+  async getTransactionsPerDayRaw(
+    trainerId: number,
+    clientId?: number,
+    from?: string,
+    to?: string,
+  ) {
+    return await this.transactionRepository
+      .createQueryBuilder('transaction')
+      .select([
+        'MONTH(createdDate) as month',
+        'DAY(createdDate) as day',
+        'SUM(cost) as costSum',
+        'GROUP_CONCAT(id) as transactionsArray',
+      ])
+      .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
+      .andWhere(
+        'transaction.createdAt >= COALESCE(CAST(:from AS DATE), transaction.createdAt)',
+        { from: from ?? undefined },
+      )
+      .andWhere(
+        'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
+        { to: to ?? undefined },
+      )
+      .andWhere(
+        'transaction.client = COALESCE(:clientId, transaction.client)',
+        { clientId: clientId ?? undefined },
+      )
+      .andWhere('transaction.status = :status', { status: 'Paid' })
+      .addGroupBy('createdDate')
+      .addOrderBy('createdDate', 'ASC')
+      .getRawMany();
+  }
+
   async getTransactionsPerDay(
     trainerId: number,
     clientId?: number,
     from?: string,
     to?: string,
   ) {
-    const transactionsByPeriodRaw: TransactionsByPeriodType[] =
-      await this.transactionRepository
-        .createQueryBuilder('transaction')
-        .select([
-          'MONTH(createdDate) as month',
-          'DAY(createdDate) as day',
-          'SUM(cost) as costSum',
-          'GROUP_CONCAT(id) as transactionsArray',
-        ])
-        .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
-        .andWhere(
-          'transaction.createdAt >= COALESCE(CAST(:from AS DATE), transaction.createdAt)',
-          { from: from ?? undefined },
-        )
-        .andWhere(
-          'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
-          { to: to ?? undefined },
-        )
-        .andWhere(
-          'transaction.client = COALESCE(:clientId, transaction.client)',
-          { clientId: clientId ?? undefined },
-        )
-        .andWhere('transaction.status = :status', { status: 'Paid' })
-        .addGroupBy('createdDate')
-        .addOrderBy('createdDate', 'ASC')
-        .getRawMany();
+    const transactionsPerDayRaw = await this.getTransactionsPerDayRaw(
+      trainerId,
+      clientId,
+      from,
+      to,
+    );
 
-    const transactionsByPeriod: GetAnalyticsRdo[] = [];
+    const transactionsPerDay: GetAnalyticsRdo[] = [];
 
-    for (const entity of transactionsByPeriodRaw) {
+    for (const entry of transactionsPerDayRaw) {
       const transactions = await this.transactionRepository.find({
         where: {
-          id: In(entity.transactionsArray.split(',')),
+          id: In(entry.transactionsArray.split(',')),
         },
         relations: {
           client: true,
@@ -228,16 +240,16 @@ export class TransactionsService extends BaseEntityService<
         },
       });
 
-      transactionsByPeriod.push({
+      transactionsPerDay.push({
         transactions: transactions.map(
           (transaction) => new GetTransactionRdo(transaction),
         ),
-        day: entity.day,
-        month: entity.month,
-        totalCost: entity.costSum,
+        day: entry.day,
+        month: entry.month,
+        totalCost: entry.costSum,
       });
     }
 
-    return transactionsByPeriod;
+    return transactionsPerDay;
   }
 }

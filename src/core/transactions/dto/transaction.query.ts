@@ -1,22 +1,22 @@
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsEnum, IsNumber, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Period } from '#src/core/transactions/types/period.enum';
 
-export class AnalyticsQuery {
+export class TransactionQuery {
   @IsNumber()
   @Type(() => Number)
   @IsOptional()
   clientId?: number;
 
+  @IsDate()
+  @IsOptional()
+  from?: Date;
+
   @IsEnum(Period)
   @IsOptional()
   period?: Period;
 
-  @IsString()
+  @IsDate()
   @IsOptional()
-  from?: string;
-
-  @IsString()
-  @IsOptional()
-  to?: string;
+  to: Date = new Date();
 }

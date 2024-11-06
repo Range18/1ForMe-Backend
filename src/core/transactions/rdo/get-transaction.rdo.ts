@@ -7,7 +7,6 @@ import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 
 export class GetTransactionRdo {
-  @ApiProperty()
   id: number;
 
   @ApiProperty({ type: () => GetUserRdo })
@@ -16,12 +15,10 @@ export class GetTransactionRdo {
   @ApiProperty({ type: () => GetUserRdo })
   trainer: GetUserRdo;
 
-  @ApiProperty()
   status: TransactionStatus;
 
   paidVia?: string;
 
-  @ApiProperty()
   cost: number;
 
   @ApiProperty({ nullable: true, type: () => GetTariffRdo })
@@ -32,10 +29,8 @@ export class GetTransactionRdo {
 
   subscription?: GetSubscriptionRdo;
 
-  @ApiProperty()
   createdAt: Date;
 
-  @ApiProperty()
   updatedAt: Date;
 
   constructor(transaction: Transaction) {
