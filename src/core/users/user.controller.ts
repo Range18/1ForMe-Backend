@@ -4,18 +4,13 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { UserService } from '#src/core/users/user.service';
-import {
-  ApiBody,
-  ApiOkResponse,
-  ApiQuery,
-  ApiTags,
-  OmitType,
-} from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiTags, OmitType } from '@nestjs/swagger';
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
@@ -27,21 +22,19 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { GetUserWithPhoneRdo } from '#src/core/users/rdo/get-user-with-phone.rdo';
+import { UsersQuery } from '#src/core/users/dto/users.query';
+import { SignUpToTrainer } from '#src/core/users/dto/sign-up-to-trainer.query';
 import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('users')
 @Controller('api/users')
 export class UserController {
-  constructor(
-    private readonly userService: UserService, // private readonly commentsService: CommentsService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
-  @ApiOkResponse({ type: [GetUserRdo] })
-  @ApiQuery({ name: 'role' })
   @Get()
-  async getAllUsers(@Query('role') role?: string) {
+  async getAllUsers(@Query() query: UsersQuery) {
     const users = await this.userService.find({
-      where: { role: role ? { name: role } : undefined },
+      where: { role: query.role ? { name: query.role } : undefined },
       relations: {
         role: true,
         avatar: true,
@@ -74,6 +67,8 @@ export class UserController {
 
   @AuthGuard()
   @ApiOkResponse({ type: [GetUserRdo] })
+  //TODO
+  // @Get('trainers/me/clients')
   @Get('trainers/clients')
   async getAllTrainerClients(@User() user: UserRequest) {
     const userEntity = await this.userService.findOne({
@@ -96,7 +91,7 @@ export class UserController {
 
   @ApiOkResponse({ type: GetUserWithPhoneRdo })
   @Get('/byId/:id')
-  async getUser(@Param('id') id: number) {
+  async getUser(@Param('id', new ParseIntPipe()) id: number) {
     return new GetUserWithPhoneRdo(
       await this.userService.findOne(
         {
@@ -134,6 +129,7 @@ export class UserController {
     );
   }
 
+  //TODO
   @ApiOkResponse({ type: GetUserWithPhoneRdo })
   @ApiBody({ type: UpdateTrainerDto })
   @AuthGuard()
@@ -197,7 +193,6 @@ export class UserController {
     await this.userService.updateOne(userEntity, {
       ...updateTrainerDto,
       isTrainerActive: updateTrainerDto.isActive,
-      role: { id: updateTrainerDto.role },
       studios: [],
       category: { id: updateTrainerDto.category },
       sports: [],
@@ -231,19 +226,19 @@ export class UserController {
         },
         {
           ...updateUserDto,
-          role: { id: updateUserDto.role },
           chatType: { id: updateUserDto.chatType },
         },
       ),
     );
   }
 
-  @ApiQuery({ name: 'link' })
   @Post('/sign-up-to-trainer')
   async signUpToCoachSelf(
-    @Query('link') link: string,
+    @Query() query: SignUpToTrainer,
     @User('id') userId: number,
   ) {
-    return new GetUserWithPhoneRdo(await this.userService.signUp(link, userId));
+    return new GetUserWithPhoneRdo(
+      await this.userService.signUp(query.link, userId),
+    );
   }
 }

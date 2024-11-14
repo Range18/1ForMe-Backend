@@ -10,7 +10,6 @@ import { TokenService } from '#src/core/token/token.service';
 import { JwtService } from '@nestjs/jwt';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { AssetEntity } from '#src/core/assets/entities/asset.entity';
-import { RolesModule } from '#src/core/roles/roles.module';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 
@@ -25,7 +24,6 @@ import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
       Tariff,
       ChatTypes,
     ]),
-    RolesModule,
   ],
   providers: [SessionService, TokenService, JwtService, UserService],
   controllers: [UserController],

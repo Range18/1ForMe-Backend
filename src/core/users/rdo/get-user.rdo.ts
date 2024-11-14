@@ -8,33 +8,24 @@ import { GetTrainerRdo } from '#src/core/users/rdo/get-trainer.rdo';
 import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 
 export class GetUserRdo {
-  @ApiProperty()
-  readonly id: number;
+  id: number;
 
-  @ApiProperty()
-  readonly name: string;
+  name: string;
 
-  @ApiProperty()
-  readonly surname: string;
+  surname: string;
 
   @ApiProperty({ type: () => RolesEntity })
-  readonly role: RolesEntity;
+  role: RolesEntity;
 
-  @ApiProperty({ nullable: true })
-  readonly avatar?: string;
+  avatar?: string;
 
   @ApiProperty({ nullable: true, type: () => GetTrainerRdo })
-  readonly trainerProfile?: GetTrainerRdo;
+  trainerProfile?: GetTrainerRdo;
 
-  @ApiProperty({ nullable: true })
-  readonly birthday?: Date;
+  birthday?: Date;
 
-  //only if client
-  @ApiProperty({ nullable: true })
-  readonly closestTraining?: GetTrainingRdo;
-
-  // @ApiProperty({ nullable: true })
-  // readonly comment?: string;
+  //Only if client
+  closestTraining?: GetTrainingRdo;
 
   userNameInMessenger?: string;
 
@@ -42,11 +33,9 @@ export class GetUserRdo {
 
   chatType: ChatTypes;
 
-  @ApiProperty()
-  readonly updatedAt: Date;
+  updatedAt: Date;
 
-  @ApiProperty()
-  readonly createdAt: Date;
+  createdAt: Date;
 
   constructor(user: UserEntity, training?: Training) {
     this.id = user.id;
@@ -60,10 +49,6 @@ export class GetUserRdo {
     this.closestTraining = training ? new GetTrainingRdo(training) : undefined;
     this.trainerProfile =
       user?.role?.name == 'trainer' ? new GetTrainerRdo(user) : undefined;
-    // this.comment =
-    //   user.relatedComments && user.relatedComments.length !== 0
-    //     ? user?.relatedComments[0].text
-    //     : undefined;
     this.birthday = user.birthday;
     this.chatType = user.chatType ?? undefined;
     this.userNameInMessenger = user.userNameInMessenger;

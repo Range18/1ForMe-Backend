@@ -7,45 +7,32 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 export class GetTrainerRdo {
   //Only for trainers
   @ApiProperty({ nullable: true, type: () => GetStudioRdo })
-  readonly studios?: GetStudioRdo[];
+  studios?: GetStudioRdo[];
 
-  @ApiProperty({ nullable: true })
-  readonly category?: string;
+  category?: string;
 
-  // @ApiProperty({ nullable: true, type: () => [GetTariffRdo] })
-  // readonly tariff?: GetTariffRdo[];
+  whatsApp?: string;
 
-  @ApiProperty({ nullable: true })
-  readonly whatsApp?: string;
+  link?: string;
 
-  @ApiProperty({ nullable: true })
-  readonly link?: string;
+  experience?: number;
 
-  @ApiProperty({ nullable: true })
-  readonly experience?: number;
+  description?: string;
 
-  @ApiProperty({ nullable: true })
-  readonly description?: string;
+  tax?: number;
 
-  @ApiProperty({ nullable: true })
-  readonly tax?: number;
+  sports?: Sport[];
 
-  readonly sports?: Sport[];
-
-  readonly isActive: boolean;
+  isActive: boolean;
 
   constructor(user: UserEntity) {
     this.studios = user.studios
       ? user.studios.map((studio) => new GetStudioRdo(studio))
       : undefined;
-    // this.tariff = user?.tariffs
-    //   ? user.tariffs.map((tariff) => new GetTariffRdo(tariff))
-    //   : undefined;
     this.category = user.category ? user.category.name : undefined;
     this.whatsApp = user.whatsApp ?? undefined;
     this.experience = user.experience ?? undefined;
     this.description = user.description ?? undefined;
-    //TODO
     this.link = user.link
       ? `${frontendServer.url}/trainers?link=${user.link}`
       : undefined;

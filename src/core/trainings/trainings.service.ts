@@ -348,7 +348,7 @@ export class TrainingsService extends BaseEntityService<
 
         if (existingTraining) {
           throw new ApiException(
-            HttpStatus.BAD_REQUEST,
+            HttpStatus.CONFLICT,
             'TrainingExceptions',
             TrainingExceptions.TrainingAlreadyExists,
           );

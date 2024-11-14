@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { RolesService } from '#src/core/roles/roles.service';
 import UserExceptions = AllExceptions.UserExceptions;
 
 @Injectable()
@@ -16,7 +15,6 @@ export class UserService extends BaseEntityService<
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly rolesService: RolesService,
   ) {
     super(
       userRepository,

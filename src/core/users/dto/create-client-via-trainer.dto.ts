@@ -1,31 +1,55 @@
 import { CreateUserDto } from '#src/core/users/dto/create-user.dto';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
+import { Roles } from '#src/core/roles/types/roles.enum';
+import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 
 export class CreateClientViaTrainerDto
   implements
     Pick<CreateUserDto, 'name' | 'surname' | 'role' | 'phone' | 'password'>
 {
-  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
-  @ApiProperty()
+  @IsString()
+  @IsOptional()
   surname?: string;
 
-  @ApiProperty()
+  @IsString()
+  @IsOptional()
   password?: string;
 
-  @ApiProperty()
+  @IsPhoneNumber()
+  @IsString()
+  @IsNotEmpty()
   phone: string;
 
-  @ApiProperty()
-  role: string;
+  @IsEnum(Roles)
+  @IsString()
+  @IsNotEmpty()
+  role: Roles;
 
-  @ApiProperty({ nullable: true, required: false })
+  @IsString()
+  @IsOptional()
   comment?: string;
 
+  @IsNumber()
+  @IsOptional()
   chatType?: number;
 
+  @IsString()
+  @IsOptional()
   chatId?: string;
 
-  userNameInMessenger?: string;
+  @IsEnum(ChatTypes)
+  @IsString()
+  @IsOptional()
+  userNameInMessenger?: ChatTypes;
 }

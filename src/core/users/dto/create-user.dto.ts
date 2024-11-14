@@ -1,46 +1,78 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { Optional } from '@nestjs/common';
-import { IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
+import { Roles } from '#src/core/roles/types/roles.enum';
+import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 
 export class CreateUserDto {
-  readonly name?: string;
+  @IsString()
+  @IsOptional()
+  name?: string;
 
-  readonly surname?: string;
+  @IsString()
+  @IsOptional()
+  surname?: string;
 
-  readonly phone: string;
+  @IsPhoneNumber()
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
 
-  readonly password?: string;
+  @IsString()
+  @IsOptional()
+  password?: string;
 
-  readonly role: string;
+  @IsEnum(Roles)
+  @IsString()
+  @IsNotEmpty()
+  role: Roles;
 
-  readonly birthday?: Date;
+  @IsDateString()
+  @IsOptional()
+  birthday?: Date;
 
-  userNameInMessenger?: string;
+  @IsEnum(ChatTypes)
+  @IsString()
+  @IsOptional()
+  userNameInMessenger?: ChatTypes;
 
   @IsString()
   @Optional()
   telegramUsername?: string;
 
-  //If registered by trainer
-  @ApiProperty({ nullable: true, required: false })
-  readonly trainer?: number;
+  @IsNumber()
+  @IsOptional()
+  trainer?: number; //If registered by trainer
 
-  //only for trainers
-  @ApiProperty({ nullable: true, required: false })
-  readonly studio?: number;
+  //Only for trainers
+  @IsNumber()
+  @IsOptional()
+  studio?: number;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly whatsApp?: string;
+  @IsString()
+  @IsOptional()
+  whatsApp?: string;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly link?: string;
+  @IsString()
+  @IsOptional()
+  link?: string;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly experience?: number;
+  @IsNumber()
+  @IsOptional()
+  experience?: number;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly description?: string;
+  @IsString()
+  @IsOptional()
+  description?: string;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly category?: number;
+  @IsNumber()
+  @IsOptional()
+  category?: number;
 }

@@ -1,34 +1,54 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
-import { IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class UpdateTrainerDto extends UpdateUserDto {
-  @ApiProperty({ nullable: true, required: false })
+  @Max(100)
+  @Min(0)
+  @IsNumber()
+  @IsOptional()
   tax?: number;
 
-  @ApiProperty({ nullable: true, required: false })
+  @IsArray()
+  @IsOptional()
   studios?: number[];
 
-  @ApiProperty({ nullable: true, required: false })
+  @IsNumber()
+  @IsOptional()
   category?: number;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly experience?: number;
+  @IsString()
+  @IsOptional()
+  experience?: number;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly description?: string;
+  @IsString()
+  @IsOptional()
+  description?: string;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly whatsApp?: string;
+  @IsString()
+  @IsOptional()
+  whatsApp?: string;
 
   @IsString()
   @IsOptional()
   telegramUsername?: string;
 
-  @ApiProperty({ nullable: true, required: false })
-  readonly link?: string;
+  @IsString()
+  @IsOptional()
+  link?: string;
 
-  readonly isActive?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 
-  readonly sports?: number[];
+  @IsArray()
+  @IsOptional()
+  sports?: number[];
 }

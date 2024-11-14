@@ -1,38 +1,45 @@
-import { IsOptional, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
+import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 
 export class UpdateUserDto {
   @IsString()
   @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
   name?: string;
 
   @IsString()
   @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
   surname?: string;
 
   @IsString()
   @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
   password?: string;
+
+  @IsPhoneNumber()
+  @IsString()
+  @IsOptional()
+  phone?: string;
 
   @IsString()
   @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
-  phone?: string;
-
-  @IsOptional()
-  @ApiProperty({ nullable: true, required: false })
-  role?: number;
-
-  @ApiProperty({ nullable: true, required: false })
   comment?: string;
 
-  @ApiProperty({ nullable: true, required: false })
+  @IsDateString()
+  @IsOptional()
   birthday?: Date;
 
+  @IsNumber()
+  @IsOptional()
   chatType?: number;
 
+  @IsEnum(ChatTypes)
+  @IsString()
+  @IsOptional()
   userNameInMessenger?: string;
 }
