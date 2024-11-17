@@ -4,52 +4,63 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { ApiException } from './api-exception';
 import { Response } from 'express';
-import { ExceptionResponse } from './exception-response.type';
+import { ExceptionResponse } from '#src/common/exception-handler/exception-response.type';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
 
-    const statusCode =
-      exception instanceof ApiException
-        ? exception.status
-        : exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let statusCode: number;
+    let message: string;
+    let description: string | object;
 
-    const message =
-      exception instanceof ApiException
-        ? exception.message
-        : exception instanceof HttpException
-        ? exception.message
-        : 'INTERNAL_SERVER_ERROR';
-
-    const type = exception instanceof ApiException ? exception.type : undefined;
-
-    if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
-      console.log(host.getArgs(), host.getType());
-      console.log(exception);
+    if (exception instanceof ApiException) {
+      statusCode = exception.status;
+      message = exception.message;
+      description = exception.description;
+    } else if (exception instanceof HttpException) {
+      statusCode = exception.getStatus();
+      description = exception.getResponse();
+      message = this.getFormatedHttpExceptionMessage(exception);
+    } else {
+      statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = 'INTERNAL_SERVER_ERROR';
     }
 
-    if (statusCode === HttpStatus.BAD_REQUEST) {
-      console.log(host.getArgs(), host.getType());
-      console.log(exception);
+    if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
+      Logger.error(exception);
     }
 
     response.status(statusCode).json({
+      success: false,
       statusCode: statusCode,
-      type: type,
+      type: exception instanceof ApiException ? exception.type : undefined,
       message: message,
+      description: description,
       output:
-        statusCode === HttpStatus.INTERNAL_SERVER_ERROR
-          ? exception
-          : exception instanceof HttpException
-          ? exception.cause
-          : undefined,
+        statusCode === HttpStatus.INTERNAL_SERVER_ERROR ? exception : undefined,
     } as ExceptionResponse);
+  }
+
+  private getFormatedHttpExceptionMessage(exception: HttpException): string {
+    if (
+      exception.getResponse() &&
+      typeof exception.getResponse() === 'object'
+    ) {
+      const responseMessage = (<{ message: string[] | string }>(
+        exception.getResponse()
+      )).message;
+
+      return Array.isArray(responseMessage)
+        ? responseMessage.join(', ')
+        : responseMessage;
+    }
+
+    return exception.message;
   }
 }
