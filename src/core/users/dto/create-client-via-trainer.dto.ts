@@ -8,7 +8,6 @@ import {
   Matches,
 } from 'class-validator';
 import { Roles } from '#src/core/roles/types/roles.enum';
-import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 
 export class CreateClientViaTrainerDto
   implements
@@ -48,8 +47,7 @@ export class CreateClientViaTrainerDto
   @IsOptional()
   chatId?: string;
 
-  @IsEnum(ChatTypes)
   @IsString()
   @IsOptional()
-  userNameInMessenger?: ChatTypes;
+  userNameInMessenger?: string;
 }

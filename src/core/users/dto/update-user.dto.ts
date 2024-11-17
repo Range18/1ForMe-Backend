@@ -1,12 +1,10 @@
 import {
   IsDateString,
-  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
   Matches,
 } from 'class-validator';
-import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 
 export class UpdateUserDto {
   @IsString()
@@ -38,7 +36,6 @@ export class UpdateUserDto {
   @IsOptional()
   chatType?: number;
 
-  @IsEnum(ChatTypes)
   @IsString()
   @IsOptional()
   userNameInMessenger?: string;
