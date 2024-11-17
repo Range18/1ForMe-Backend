@@ -5,8 +5,8 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsPhoneNumber,
   IsString,
+  Matches,
 } from 'class-validator';
 import { Roles } from '#src/core/roles/types/roles.enum';
 import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
@@ -20,7 +20,7 @@ export class CreateUserDto {
   @IsOptional()
   surname?: string;
 
-  @IsPhoneNumber()
+  @Matches('^7\\d{10}$')
   @IsString()
   @IsNotEmpty()
   phone: string;

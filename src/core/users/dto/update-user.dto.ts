@@ -3,8 +3,8 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
-  IsPhoneNumber,
   IsString,
+  Matches,
 } from 'class-validator';
 import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 
@@ -21,7 +21,7 @@ export class UpdateUserDto {
   @IsOptional()
   password?: string;
 
-  @IsPhoneNumber()
+  @Matches('^7\\d{10}$')
   @IsString()
   @IsOptional()
   phone?: string;
