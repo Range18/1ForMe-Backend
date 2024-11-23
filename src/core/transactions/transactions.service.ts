@@ -52,19 +52,19 @@ export class TransactionsService extends BaseEntityService<
     }
 
     const selectQuery = [
-      `MONTH(COALESCE(training.date, MIN(subscriptionTrainings.date))) as month`,
-      `YEAR(COALESCE(training.date, MIN(subscriptionTrainings.date))) as year`,
-      `SUM(cost) as costSum`,
-      `DATE(COALESCE(training.date, MIN(subscriptionTrainings.date))) as date`,
+      `YEAR(COALESCE(training.date, subTrainings.firstTrainingDate)) as year`,
+      `MONTH(COALESCE(training.date, subTrainings.firstTrainingDate)) as month`,
+      `SUM(transaction.cost) as costSum`,
+      `COALESCE(training.date, subTrainings.firstTrainingDate) as date`,
     ];
 
     if (period !== 'month') {
       selectQuery.push(
-        `WEEK(COALESCE(training.date, MIN(subscriptionTrainings.date)), 1) as week`,
+        `WEEK(COALESCE(training.date, subTrainings.firstTrainingDate), 1) as week`,
       );
       if (period !== 'week') {
         selectQuery.push(
-          `DAY(COALESCE(training.date, MIN(subscriptionTrainings.date))) as day`,
+          `DAY(COALESCE(training.date, subTrainings.firstTrainingDate)) as day`,
         );
       }
     }
@@ -72,26 +72,31 @@ export class TransactionsService extends BaseEntityService<
     return (
       await this.transactionRepository
         .createQueryBuilder('transaction')
-        .leftJoin('transaction.training', 'training')
-        .leftJoin('transaction.subscription', 'subscription')
-        .leftJoin('subscription.trainings', 'subscriptionTrainings') // Join subscription's trainings
+        .leftJoin('transaction.training', 'training') // Привязываем индивидуальные тренировки
+        .leftJoin('transaction.subscription', 'subscription') // Привязываем подписки
+        .leftJoin(
+          // Подзапрос для минимальной даты тренировки, связанной с подпиской
+          (qb) =>
+            qb
+              .select('training.subscription.id', 'subscriptionId') // Связь тренировок с подпиской
+              .addSelect('MIN(training.date)', 'firstTrainingDate') // Находим минимальную дату
+              .from('training', 'training') // Работаем с таблицей тренировок
+              .where('training.subscription.id IS NOT NULL') // Только тренировки, привязанные к подпискам
+              .groupBy('training.subscription.id'), // Группируем по подписке
+          'subTrainings',
+          'subscription.id = subTrainings.subscriptionId', // Привязываем подзапрос к основной подписке
+        )
         .select(selectQuery)
         .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
-        .andWhere(
-          'transaction.createdAt >= COALESCE(CAST(:from AS DATE), transaction.createdAt)',
-          { from: from ?? undefined },
-        )
-        .andWhere(
-          'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
-          { to: to ?? undefined },
-        )
-        .andWhere('transaction.status = :status', { status: 'Paid' })
-        .addGroupBy(`YEAR(COALESCE(training.date, subscriptionTrainings.date))`)
-        .addGroupBy(period ? SqlPeriodsEnum[period] : SqlPeriodsEnum.day)
+        .andWhere('transaction.status = :status', { status: 'Paid' }) // Только оплаченные транзакции
+        .groupBy(
+          `YEAR(COALESCE(training.date, subTrainings.firstTrainingDate))`,
+        ) // Группируем по году
+        .addGroupBy(period ? SqlPeriodsEnum[period] : SqlPeriodsEnum.day) // Группируем по периоду
         .addOrderBy(
-          `COALESCE(training.date, MIN(subscriptionTrainings.date))`,
+          `COALESCE(training.date, subTrainings.firstTrainingDate)`,
           'ASC',
-        )
+        ) // Сортируем по дате
         .getRawMany()
     ).map((entity) => new GetTransactionSumsRdo(entity, trainer.tax));
   }
@@ -126,17 +131,36 @@ export class TransactionsService extends BaseEntityService<
   ) {
     let query = this.transactionRepository
       .createQueryBuilder('transaction')
-      .leftJoin('transaction.training', 'training')
+      .leftJoin('transaction.training', 'training') // Привязываем индивидуальные тренировки
+      .leftJoin('transaction.subscription', 'subscription') // Привязываем подписки
+      .leftJoin(
+        // Подзапрос для минимальной даты тренировки, связанной с подпиской
+        (qb) =>
+          qb
+            .select('training.subscription.id', 'subscriptionId') // Связь тренировок с подпиской
+            .addSelect('MIN(training.date)', 'firstTrainingDate') // Находим минимальную дату
+            .from('training', 'training') // Работаем с таблицей тренировок
+            .where('training.subscription.id IS NOT NULL') // Только тренировки, привязанные к подпискам
+            .groupBy('training.subscription.id'), // Группируем по подписке
+        'subTrainings',
+        'subscription.id = subTrainings.subscriptionId', // Привязываем подзапрос к основной подписке
+      )
       .select([
-        'MONTH(training.date) as month',
-        'DAY(training.date) as day',
+        'MONTH(COALESCE(training.date, subTrainings.firstTrainingDate)) as month',
+        'DAY(COALESCE(training.date, subTrainings.firstTrainingDate)) as day',
         'SUM(cost) as costSum',
         'GROUP_CONCAT(transaction.id) as transactionsArray',
       ])
-      .where(`transaction.trainer.id = :trainerId `, { trainerId: trainerId })
-      .andWhere('transaction.status = :status', { status: 'Paid' })
-      .addGroupBy('MONTH(training.date), DAY(training.date)')
-      .addOrderBy('training.date', 'ASC');
+      .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
+      .andWhere('transaction.status = :status', { status: 'Paid' }) // Только оплаченные транзакции
+      .groupBy(`YEAR(COALESCE(training.date, subTrainings.firstTrainingDate))`) // Группируем по году
+      .addGroupBy(
+        'MONTH(COALESCE(training.date, subTrainings.firstTrainingDate)), DAY(COALESCE(training.date, subTrainings.firstTrainingDate))',
+      ) // Группируем по периоду
+      .addOrderBy(
+        `COALESCE(training.date, subTrainings.firstTrainingDate)`,
+        'ASC',
+      ); // Сортируем по дате
 
     if (from) {
       query = query.andWhere(
