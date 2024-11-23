@@ -13,11 +13,22 @@ export type ExceptionMessage<T extends keyof CustomExceptions> =
 
 export class ApiException<T extends keyof CustomExceptions> {
   readonly status: HttpStatus;
+
   readonly type: T;
+
   readonly message: ExceptionMessage<T>;
-  constructor(status: HttpStatus, error: T, message: ExceptionMessage<T>) {
+
+  readonly description?: string;
+
+  constructor(
+    status: HttpStatus,
+    error: T,
+    message: ExceptionMessage<T>,
+    description?: string,
+  ) {
     this.status = status;
     this.type = error;
     this.message = message;
+    this.description = description;
   }
 }

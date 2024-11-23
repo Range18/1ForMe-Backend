@@ -157,10 +157,9 @@ export class WazzupMessagingService
           responsibleUserId: options?.responsibleUserId
             ? options.responsibleUserId.toString()
             : '0',
-          name:
-            userEntity.surname.length !== 0
-              ? `${userEntity.name} ${userEntity.surname}`
-              : `${userEntity.name}`,
+          name: userEntity.surname
+            ? `${userEntity.name} ${userEntity.surname}`
+            : `${userEntity.name}`,
           contactData: [
             {
               chatType: chatType,

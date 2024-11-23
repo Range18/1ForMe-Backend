@@ -4,11 +4,10 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsPhoneNumber,
   IsString,
+  Matches,
 } from 'class-validator';
 import { Roles } from '#src/core/roles/types/roles.enum';
-import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 
 export class CreateClientViaTrainerDto
   implements
@@ -26,7 +25,7 @@ export class CreateClientViaTrainerDto
   @IsOptional()
   password?: string;
 
-  @IsPhoneNumber()
+  @Matches('^7\\d{10}$')
   @IsString()
   @IsNotEmpty()
   phone: string;
@@ -48,8 +47,7 @@ export class CreateClientViaTrainerDto
   @IsOptional()
   chatId?: string;
 
-  @IsEnum(ChatTypes)
   @IsString()
   @IsOptional()
-  userNameInMessenger?: ChatTypes;
+  userNameInMessenger?: string;
 }
