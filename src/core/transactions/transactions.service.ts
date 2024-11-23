@@ -10,9 +10,6 @@ import { SqlPeriodsEnum } from '#src/core/transactions/types/sql-periods.enum';
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { UserService } from '#src/core/users/user.service';
-import { getDateRange } from '#src/common/utilities/date-range.func';
-import { getWeek } from '#src/common/utilities/get-week.func';
-import { DaysEnum } from '#src/core/transactions/types/days.enum';
 import TrainerExceptions = AllExceptions.TrainerExceptions;
 import TransactionExceptions = AllExceptions.TransactionExceptions;
 
@@ -55,22 +52,29 @@ export class TransactionsService extends BaseEntityService<
     }
 
     const selectQuery = [
-      'MONTH(createdAt) as month',
-      'YEAR(createdAt) as year',
-      'SUM(cost) as costSum',
+      `MONTH(COALESCE(training.date, MIN(subscriptionTrainings.date))) as month`,
+      `YEAR(COALESCE(training.date, MIN(subscriptionTrainings.date))) as year`,
+      `SUM(cost) as costSum`,
+      `DATE(COALESCE(training.date, MIN(subscriptionTrainings.date))) as date`,
     ];
 
-    if (period != 'month') {
-      selectQuery.push('WEEK(createdAt,1) as week');
-      if (period != 'week') {
-        selectQuery.push('DAY(createdAt) as day');
-        selectQuery.push('DATE(createdAt) as date');
+    if (period !== 'month') {
+      selectQuery.push(
+        `WEEK(COALESCE(training.date, MIN(subscriptionTrainings.date)), 1) as week`,
+      );
+      if (period !== 'week') {
+        selectQuery.push(
+          `DAY(COALESCE(training.date, MIN(subscriptionTrainings.date))) as day`,
+        );
       }
     }
 
     return (
       await this.transactionRepository
         .createQueryBuilder('transaction')
+        .leftJoin('transaction.training', 'training')
+        .leftJoin('transaction.subscription', 'subscription')
+        .leftJoin('subscription.trainings', 'subscriptionTrainings') // Join subscription's trainings
         .select(selectQuery)
         .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
         .andWhere(
@@ -82,24 +86,14 @@ export class TransactionsService extends BaseEntityService<
           { to: to ?? undefined },
         )
         .andWhere('transaction.status = :status', { status: 'Paid' })
-        .addGroupBy('YEAR(createdAt)')
+        .addGroupBy(`YEAR(COALESCE(training.date, subscriptionTrainings.date))`)
         .addGroupBy(period ? SqlPeriodsEnum[period] : SqlPeriodsEnum.day)
-        .addOrderBy('createdAt', 'ASC')
+        .addOrderBy(
+          `COALESCE(training.date, MIN(subscriptionTrainings.date))`,
+          'ASC',
+        )
         .getRawMany()
     ).map((entity) => new GetTransactionSumsRdo(entity, trainer.tax));
-  }
-
-  private getDaysRange(
-    timeUnit: GetTransactionSumsRdo,
-    nextTimeUnit: GetTransactionSumsRdo,
-    period?: string,
-  ) {
-    if (period == 'day' && timeUnit.month !== nextTimeUnit.month) {
-      return Math.abs(timeUnit.day - (timeUnit.day - nextTimeUnit.day));
-    } else if (period == 'month' && timeUnit.year !== nextTimeUnit.year) {
-      return Math.abs(timeUnit.month - (timeUnit.month - nextTimeUnit.month));
-    }
-    return Math.abs(timeUnit[period] - nextTimeUnit[period]);
   }
 
   async getAnalytics(
@@ -116,67 +110,12 @@ export class TransactionsService extends BaseEntityService<
         to,
       );
 
-    if (
-      from &&
-      transactionSumsPerTimeUnit[0]?.date &&
-      new Date(from) < new Date(transactionSumsPerTimeUnit[0]?.date)
-    ) {
-      const [year, month, date] = from.split('-');
-      transactionSumsPerTimeUnit.unshift(
-        new GetTransactionSumsRdo({
-          costSum: 0,
-          year: Number(year),
-          month: Number(month),
-          day: Number(date),
-          date: new Date(from).toISOString(),
-        }),
-      );
+    const periodSums = [];
+
+    for (const periodSum of transactionSumsPerTimeUnit) {
+      periodSums.push(periodSum);
     }
-
-    if (transactionSumsPerTimeUnit.length <= 1)
-      return transactionSumsPerTimeUnit;
-
-    const transactionSumsWithTabs: GetTransactionSumsRdo[] = [];
-    for (let i = 0; i < transactionSumsPerTimeUnit.length - 1; ++i) {
-      const transactionSum = transactionSumsPerTimeUnit[i];
-      const nextTransactionSum = transactionSumsPerTimeUnit[i + 1];
-
-      transactionSumsWithTabs.push(transactionSum);
-      const daysRangeAmount = this.getDaysRange(
-        transactionSum,
-        nextTransactionSum,
-        period,
-      );
-
-      if (daysRangeAmount <= 1) continue;
-
-      const startDate = new Date(
-        transactionSum.date.split('.').reverse().join('-'),
-      );
-      startDate.setDate(startDate.getDate() + 1);
-      const datesRange = getDateRange(startDate, daysRangeAmount, 1);
-
-      for (const date of datesRange) {
-        const [year, month, week, day] = [
-          date.getFullYear(),
-          date.getMonth() + 1,
-          getWeek(date, DaysEnum.Monday),
-          date.getDate(),
-        ];
-        transactionSumsWithTabs.push(
-          new GetTransactionSumsRdo({
-            costSum: 0,
-            day,
-            week,
-            month,
-            year,
-            date: date.toISOString(),
-          }),
-        );
-      }
-    }
-    transactionSumsWithTabs.push(transactionSumsPerTimeUnit.at(-1));
-    return transactionSumsWithTabs;
+    return periodSums;
   }
 
   async getTransactionsPerDayRaw(
@@ -185,31 +124,46 @@ export class TransactionsService extends BaseEntityService<
     from?: string,
     to?: string,
   ) {
-    return await this.transactionRepository
+    let query = this.transactionRepository
       .createQueryBuilder('transaction')
+      .leftJoin('transaction.training', 'training')
       .select([
-        'MONTH(createdDate) as month',
-        'DAY(createdDate) as day',
+        'MONTH(training.date) as month',
+        'DAY(training.date) as day',
         'SUM(cost) as costSum',
-        'GROUP_CONCAT(id) as transactionsArray',
+        'GROUP_CONCAT(transaction.id) as transactionsArray',
       ])
-      .where(`transaction.trainer.id = :trainerId`, { trainerId: trainerId })
-      .andWhere(
-        'transaction.createdAt >= COALESCE(CAST(:from AS DATE), transaction.createdAt)',
-        { from: from ?? undefined },
-      )
-      .andWhere(
-        'transaction.createdAt <= COALESCE(CAST(:to AS DATE), transaction.createdAt)',
-        { to: to ?? undefined },
-      )
-      .andWhere(
-        'transaction.client = COALESCE(:clientId, transaction.client)',
-        { clientId: clientId ?? undefined },
-      )
+      .where(`transaction.trainer.id = :trainerId `, { trainerId: trainerId })
       .andWhere('transaction.status = :status', { status: 'Paid' })
-      .addGroupBy('createdDate')
-      .addOrderBy('createdDate', 'ASC')
-      .getRawMany();
+      .addGroupBy('MONTH(training.date), DAY(training.date)')
+      .addOrderBy('training.date', 'ASC');
+
+    if (from) {
+      query = query.andWhere(
+        'training.date >= COALESCE(CAST(:from AS DATE), training.date)',
+        { from: from },
+      );
+    }
+
+    if (to) {
+      query = query.andWhere(
+        'training.date <= COALESCE(CAST(:to AS DATE), training.date)',
+        {
+          to: to,
+        },
+      );
+    }
+
+    if (clientId) {
+      query = query.andWhere(
+        'transaction.client = COALESCE(:clientId, transaction.client)',
+        { clientId: clientId },
+      );
+    }
+
+    const rawResults = await query.getRawMany();
+    console.log(rawResults);
+    return rawResults;
   }
 
   async getTransactionsPerDay(

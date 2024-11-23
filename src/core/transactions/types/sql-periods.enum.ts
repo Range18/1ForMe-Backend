@@ -1,5 +1,5 @@
 export enum SqlPeriodsEnum {
-  day = 'DAY(createdAt)',
-  week = 'WEEK(createdAt,1)',
-  month = 'MONTH(createdAt)',
+  day = 'DAY(training.date)',
+  week = 'WEEK(training.date,1)',
+  month = 'MONTH(training.date)',
 }

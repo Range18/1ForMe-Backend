@@ -58,7 +58,7 @@ export class TransactionsController {
   }
 
   @AuthGuard()
-  @Get('analytics')
+  @Get('analytics/sums-per-time-unit')
   async analytics(
     @User() user: UserRequest,
     @Query() query: TransactionsSumsPerTimeUnitQuery,
@@ -72,7 +72,7 @@ export class TransactionsController {
   }
 
   @AuthGuard()
-  @Get('/analytics/entities')
+  @Get('/analytics/per-day')
   async findAllAnalytics(
     @User() user: UserRequest,
     @Query() query: TransactionsPerDayQuery,
