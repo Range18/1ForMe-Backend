@@ -41,6 +41,10 @@ export namespace AllExceptions {
     NotFound = 'Клуб не найден',
   }
 
+  export enum TrainerSlotsExceptions {
+    AlreadyExists = 'Слот уже забронирован вами',
+  }
+
   export enum TransactionExceptions {
     NotFound = 'Транзакция не найдена',
   }

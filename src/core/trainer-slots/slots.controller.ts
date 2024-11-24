@@ -31,6 +31,8 @@ import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
+import TrainerSlotsExceptions = AllExceptions.TrainerSlotsExceptions;
+import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 
 @ApiTags('Slots')
 @Controller('api/slots')
@@ -58,11 +60,31 @@ export class SlotsController {
       where: { end: createSlotDto.end },
     });
 
-    if (!beginningSlot && !endSlot) {
+    if (!beginningSlot || !endSlot) {
       throw new ApiException(
         HttpStatus.NOT_FOUND,
-        'EntityExceptions',
-        EntityExceptions.NotFound,
+        'ClubSlotsExceptions',
+        ClubSlotsExceptions.NotFound,
+      );
+    }
+
+    const trainerSlot = await this.slotsService.findOne(
+      {
+        where: {
+          trainer: { id: user.id },
+          date: createSlotDto.date,
+          beginning: beginningSlot,
+          end: endSlot,
+        },
+      },
+      false,
+    );
+
+    if (trainerSlot) {
+      throw new ApiException(
+        HttpStatus.CONFLICT,
+        'TrainerSlotsExceptions',
+        TrainerSlotsExceptions.AlreadyExists,
       );
     }
 
