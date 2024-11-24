@@ -261,6 +261,7 @@ export class SlotsController {
 
   @Delete(':id')
   async remove(@Param('id') id: number) {
-    return await this.slotsService.remove({ where: { id } });
+    await this.slotsService.remove({ where: { id } });
+    return 'OK';
   }
 }
