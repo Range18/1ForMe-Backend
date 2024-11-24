@@ -9,6 +9,10 @@ export class GetClubSlotRdo {
 
   end: string;
 
+  beginningTime: Date;
+
+  endingTime: Date;
+
   club: GetClubRdo;
 
   isAvailable?: boolean;
@@ -17,6 +21,8 @@ export class GetClubSlotRdo {
     this.id = slot.id;
     this.beginning = slot.beginning;
     this.end = slot.end;
+    this.beginningTime = slot.beginningTime;
+    this.endingTime = slot.endingTime;
     this.club = club ? new GetClubRdo(club) : undefined;
     this.isAvailable = isAvailable;
   }

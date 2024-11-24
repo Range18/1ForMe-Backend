@@ -22,6 +22,12 @@ export class ClubSlots extends BaseEntity {
   @Column({ nullable: false })
   end: string;
 
+  @Column({ nullable: true, type: 'time' })
+  beginningTime: Date;
+
+  @Column({ nullable: true, type: 'time' })
+  endingTime: Date;
+
   @ManyToOne(() => Studio, (studio) => studio.studioSlots, {
     nullable: true,
     onDelete: 'SET NULL',

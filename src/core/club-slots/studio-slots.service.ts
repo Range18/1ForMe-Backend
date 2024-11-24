@@ -67,7 +67,7 @@ export class StudioSlotsService extends BaseEntityService<
 
     const slots = await this.find({
       where: { studio: { id: club.studio.id } },
-      order: { id: 'ASC' },
+      order: { beginningTime: 'ASC' },
       relations: { studio: true },
     });
 
@@ -86,7 +86,7 @@ export class StudioSlotsService extends BaseEntityService<
 
     const slots = await this.find({
       where: { studio: { id: studioId } },
-      order: { id: 'ASC' },
+      order: { beginningTime: 'ASC' },
       relations: { studio: true },
     });
 
@@ -237,8 +237,8 @@ export class StudioSlotsService extends BaseEntityService<
           const availableTrainers: UserEntity[] = [];
           for (const trainerSlot of trainerSlots) {
             if (
-              trainerSlot.beginning.id <= slot.id &&
-              slot.id <= trainerSlot.end.id
+              trainerSlot.beginning.beginningTime <= slot.beginningTime &&
+              slot.endingTime <= trainerSlot.end.endingTime
             ) {
               const training = await this.trainingService.findOne(
                 {
