@@ -51,11 +51,11 @@ export class SlotsController {
     @User() user: UserRequest,
   ) {
     const beginningSlot = await this.clubsRepository.findOne({
-      where: { id: createSlotDto.beginning },
+      where: { beginning: createSlotDto.beginning },
     });
 
     const endSlot = await this.clubsRepository.findOne({
-      where: { id: createSlotDto.end },
+      where: { end: createSlotDto.end },
     });
 
     if (!beginningSlot && !endSlot) {
@@ -231,11 +231,11 @@ export class SlotsController {
     @User() user: UserRequest,
   ) {
     const beginningSlot = await this.clubsRepository.findOne({
-      where: { id: updateSlotDto.beginning },
+      where: { beginning: updateSlotDto.beginning },
     });
 
     const endSlot = await this.clubsRepository.findOne({
-      where: { id: updateSlotDto.end },
+      where: { end: updateSlotDto.end },
     });
 
     if (!beginningSlot && !endSlot) {

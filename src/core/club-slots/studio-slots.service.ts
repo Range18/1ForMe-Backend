@@ -150,7 +150,7 @@ export class StudioSlotsService extends BaseEntityService<
   ): Promise<GetClubSlotRdo[]> {
     const studio = await this.studiosService.findOne({
       where: { id: studioId },
-      relations: { clubs: true },
+      relations: { clubs: { studio: true } },
     });
 
     if (!studio) {
@@ -188,7 +188,7 @@ export class StudioSlotsService extends BaseEntityService<
   ): Promise<GetTimeTableRdo> {
     const studio = await this.studiosService.findOne({
       where: { id: studioId },
-      relations: { clubs: { city: true } },
+      relations: { clubs: { city: true, studio: true } },
     });
 
     if (!studio) {

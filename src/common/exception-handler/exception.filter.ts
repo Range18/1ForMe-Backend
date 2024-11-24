@@ -4,7 +4,6 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
 import { ApiException } from './api-exception';
 import { Response } from 'express';
@@ -33,7 +32,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
-      Logger.error(exception);
+      console.log(exception);
     }
 
     response.status(statusCode).json({

@@ -1,11 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateSlotDto {
-  @ApiProperty({ required: false })
-  beginning?: number;
+  @IsString()
+  @IsOptional()
+  beginning?: string;
 
-  @ApiProperty({ required: false })
-  end?: number;
+  @IsString()
+  @IsOptional()
+  end?: string;
 
   @ApiProperty()
   studio: number;

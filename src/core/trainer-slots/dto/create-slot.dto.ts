@@ -1,12 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateSlotDto {
-  @ApiProperty()
-  beginning: number;
+  @IsString()
+  @IsNotEmpty()
+  beginning: string;
 
-  @ApiProperty()
-  end: number;
+  @IsString()
+  @IsNotEmpty()
+  end: string;
 
+  @IsNotEmpty()
   date: Date;
 
   @ApiProperty()
