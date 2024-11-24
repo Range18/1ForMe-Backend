@@ -120,7 +120,7 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   link?: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 45 })
   tax?: number;
 
   @Column({ nullable: true })
