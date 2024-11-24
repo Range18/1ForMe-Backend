@@ -34,6 +34,7 @@ export class StudioSlotsController {
   async findAllForClubsOfStudios(
     @Param('studioId', new ParseIntPipe()) studioId: number,
   ) {
+    //TODO get days from db
     return await this.studioSlotsService.getSlotsForClubsOfStudio(
       studioId,
       new Date(),
@@ -45,12 +46,14 @@ export class StudioSlotsController {
   @AuthGuard()
   @Get('studios/slots/all')
   async findAllForStudios() {
+    //TODO get days from db
     return await this.studioSlotsService.getSlotsForStudioAll(new Date(), 6);
   }
 
   @ApiOkResponse({ type: GetTimeTableRdo })
   @Get('studios/:studioId/timetable')
   async getTimeTable(@Param('studioId', new ParseIntPipe()) studioId: number) {
+    //TODO get days from db
     return await this.studioSlotsService.getStudioTimeTable(14, studioId);
   }
 }

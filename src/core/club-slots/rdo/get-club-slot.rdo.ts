@@ -9,9 +9,9 @@ export class GetClubSlotRdo {
 
   end: string;
 
-  beginningTime: Date;
+  beginningTime: string;
 
-  endingTime: Date;
+  endingTime: string;
 
   club: GetClubRdo;
 

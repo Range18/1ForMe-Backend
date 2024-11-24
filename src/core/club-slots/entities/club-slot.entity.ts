@@ -23,10 +23,10 @@ export class ClubSlots extends BaseEntity {
   end: string;
 
   @Column({ nullable: true, type: 'time' })
-  beginningTime: Date;
+  beginningTime: string;
 
   @Column({ nullable: true, type: 'time' })
-  endingTime: Date;
+  endingTime: string;
 
   @ManyToOne(() => Studio, (studio) => studio.studioSlots, {
     nullable: true,
