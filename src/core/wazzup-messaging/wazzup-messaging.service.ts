@@ -141,13 +141,16 @@ export class WazzupMessagingService
 
   async createContact(
     userId: number,
-    options?: { responsibleUserId?: number; chatId?: string },
+    options?: {
+      responsibleUserId?: number;
+      chatId?: string;
+      chatType?: string;
+    },
   ): Promise<void> {
     const userEntity = await this.userService.findOne({
       where: { id: userId },
       relations: { chatType: true, trainers: true },
     });
-
     const chatType = userEntity.chatType.name.toLowerCase();
 
     await this.httpClient

@@ -102,9 +102,14 @@ export class TrainingsController {
         client = await this.userService.findOne({
           where: { phone },
         });
+      } else {
+        await this.userService.updateOne(
+          { where: { id: client.id } },
+          { chatType: { id: createTrainingDto.createClient.chatType } },
+        );
       }
 
-      const clients = createTrainingDto.client ? createTrainingDto.client : [];
+      const clients = createTrainingDto.client ?? [];
       clients.push(client.id);
 
       trainings = await this.trainingsService.create(

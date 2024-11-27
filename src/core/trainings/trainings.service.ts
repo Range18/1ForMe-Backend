@@ -69,11 +69,36 @@ export class TrainingsService extends BaseEntityService<
     });
   }
 
-  async create(
-    createTrainingDto: CreateTrainingDto,
+  private async checkIfTrainingExists(
+    slotId: number,
+    date: Date,
+    clubId: number,
+  ) {
+    const existingTraining = await this.findOne(
+      {
+        where: {
+          slot: { id: slotId },
+          date: date,
+          club: { id: clubId },
+          isCanceled: false,
+        },
+      },
+      false,
+    );
+
+    if (existingTraining) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainingExceptions',
+        TrainingExceptions.TrainingAlreadyExists,
+      );
+    }
+  }
+
+  private async getAllEntitiesForTrainingCreation(
     trainerId: number,
-    clientIds: number[],
-  ): Promise<GetCreatedTrainingsRdo> {
+    createTrainingDto: CreateTrainingDto,
+  ) {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
       relations: { slots: true },
@@ -124,8 +149,21 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    const clients = await this.getClients(clientIds);
+    return { trainer, slot, tariff, club };
+  }
 
+  async create(
+    createTrainingDto: CreateTrainingDto,
+    trainerId: number,
+    clientIds: number[],
+  ): Promise<GetCreatedTrainingsRdo> {
+    const { trainer, slot, tariff, club } =
+      await this.getAllEntitiesForTrainingCreation(
+        trainerId,
+        createTrainingDto,
+      );
+
+    const clients = await this.getClients(clientIds);
     if (!clients && clients.length == 0) {
       throw new ApiException(
         HttpStatus.NOT_FOUND,
@@ -134,28 +172,13 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    const trainingsIds: number[] = [];
-
-    const existingTraining = await this.findOne(
-      {
-        where: {
-          slot: { id: slot.id },
-          date: createTrainingDto.date,
-          club: { id: createTrainingDto.club },
-          isCanceled: false,
-        },
-      },
-      false,
+    await this.checkIfTrainingExists(
+      slot.id,
+      createTrainingDto.date,
+      createTrainingDto.club,
     );
 
-    if (existingTraining) {
-      throw new ApiException(
-        HttpStatus.BAD_REQUEST,
-        'TrainingExceptions',
-        TrainingExceptions.TrainingAlreadyExists,
-      );
-    }
-
+    const trainingsIds: number[] = [];
     const existingTrainingsDates = [];
 
     for (const client of clients) {
@@ -165,7 +188,6 @@ export class TrainingsService extends BaseEntityService<
         client.trainers.push({ id: trainerId } as UserEntity);
         await this.userService.save(client);
       }
-
       await this.wazzupMessagingService.createContact(client.id, {
         responsibleUserId: trainer.id,
       });
