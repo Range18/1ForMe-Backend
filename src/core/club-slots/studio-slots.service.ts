@@ -221,6 +221,7 @@ export class StudioSlotsService extends BaseEntityService<
         const trainerSlots = await this.trainerSlotsService.find({
           where: {
             date: convertedDate,
+            studio: { id: studioId },
             trainer: {
               id: In(trainers.map((trainer) => trainer.id)),
               isTrainerActive: true,
