@@ -298,33 +298,6 @@ export class TrainingsService extends BaseEntityService<
               createdDate: new Date(),
             });
 
-            const paymentURL = await this.tinkoffPaymentsService
-              .createPayment({
-                transactionId: trainingTransaction.id,
-                amount: trainingTransaction.cost,
-                quantity: 1,
-                user: {
-                  id: client.id,
-                  phone: client.phone,
-                },
-                metadata: {
-                  name: tariff.name,
-                  description: `Заказ №${trainingTransaction.id}`,
-                },
-              })
-              .catch(async (err) => {
-                console.log(err);
-                await this.transactionsService.removeOne(trainingTransaction);
-              });
-
-            if (!paymentURL) {
-              throw new ApiException(
-                HttpStatus.BAD_REQUEST,
-                'PaymentExceptions',
-                PaymentExceptions.FailedToCreatePayment,
-              );
-            }
-
             const training = await this.save({
               slot: slot,
               date: dateRange[i].toISOString().split('T')[0],
@@ -599,7 +572,7 @@ export class TrainingsService extends BaseEntityService<
         isCanceled: false,
       },
       relations: {
-        transaction: true,
+        transaction: { tariff: true },
         client: { chatType: true },
         club: { studio: true },
         slot: true,
@@ -638,12 +611,42 @@ export class TrainingsService extends BaseEntityService<
                 where: { transactionId: training.transaction.id },
               });
 
+            const paymentURL = tinkoffTransaction
+              ? tinkoffTransaction.paymentURL
+              : await this.tinkoffPaymentsService
+                  .createPayment({
+                    transactionId: transaction.id,
+                    amount: transaction.cost,
+                    quantity: 1,
+                    user: {
+                      id: training.client.id,
+                      phone: training.client.phone,
+                    },
+                    metadata: {
+                      name: transaction.tariff.name,
+                      description: `Заказ №${transaction.id}`,
+                    },
+                  })
+                  .catch(async (err) => {
+                    console.log(err);
+                    return null;
+                    // await this.transactionsService.removeOne(transaction);
+                  });
+
+            // if (!paymentURL) {
+            //   throw new ApiException(
+            //     HttpStatus.BAD_REQUEST,
+            //     'PaymentExceptions',
+            //     PaymentExceptions.FailedToCreatePayment,
+            //   );
+            // }
+
             await this.wazzupMessagingService.sendTelegramMessage(
               training.client.phone,
               messageTemplates['notify-about-tomorrow-unpaid-training'](
                 training.club.studio.address,
                 training.slot.beginning,
-                tinkoffTransaction.paymentURL,
+                paymentURL,
               ),
             );
           }
@@ -664,12 +667,34 @@ export class TrainingsService extends BaseEntityService<
                 where: { transactionId: training.transaction.id },
               });
 
+            const paymentURL = tinkoffTransaction
+              ? tinkoffTransaction.paymentURL
+              : await this.tinkoffPaymentsService
+                  .createPayment({
+                    transactionId: transaction.id,
+                    amount: transaction.cost,
+                    quantity: 1,
+                    user: {
+                      id: training.client.id,
+                      phone: training.client.phone,
+                    },
+                    metadata: {
+                      name: transaction.tariff.name,
+                      description: `Заказ №${transaction.id}`,
+                    },
+                  })
+                  .catch(async (err) => {
+                    console.log(err);
+                    return null;
+                    // await this.transactionsService.removeOne(transaction);
+                  });
+
             await this.wazzupMessagingService.sendWhatsAppMessage(
               training.client.phone,
               messageTemplates['notify-about-tomorrow-unpaid-training'](
                 training.club.address,
                 training.slot.beginning,
-                tinkoffTransaction.paymentURL,
+                paymentURL,
               ),
             );
           }

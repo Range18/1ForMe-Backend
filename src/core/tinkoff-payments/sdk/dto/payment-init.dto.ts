@@ -24,6 +24,8 @@ export class PaymentInitDto {
 
   Receipt?: ReceiptFFD105Dto;
 
+  RedirectDueDate?: Date;
+
   constructor(
     terminalKey: string,
     amount: number,
