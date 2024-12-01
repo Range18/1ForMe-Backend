@@ -14,6 +14,17 @@ export const messageTemplates = {
       'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
     );
   },
+  'single-training-booking-for-trainer': (
+    trainingCost: number,
+    date: string,
+    studioName: string,
+    studioAddress: string,
+  ) => {
+    return (
+      `У вас забронировали тренировку в студии пилатеса ${studioName} по адресу ${studioAddress}, в ${date}, стоимость тренировки ${trainingCost} руб.` +
+      '\n'
+    );
+  },
   'subscription-booking': (
     trainingsCount: number,
     subscriptionCost: number,
@@ -28,6 +39,19 @@ export const messageTemplates = {
       `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
       '\n' +
       'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
+    );
+  },
+
+  'subscription-booking-for-trainer': (
+    trainingsCount: number,
+    subscriptionCost: number,
+    date: string,
+    studioName: string,
+    studioAddress: string,
+  ) => {
+    return (
+      `У вас забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса ${studioName} по адресу ${studioAddress}, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
+      '\n'
     );
   },
   'subscription-with-first-training-booking': (

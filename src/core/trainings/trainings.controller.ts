@@ -338,7 +338,8 @@ export class TrainingsController {
   @AuthGuard()
   @Post('cancel/:id')
   async cancelTraining(@Param('id') id: number, @User() user: UserRequest) {
-    return this.trainingsService.cancelTraining(id, user.id);
+    await this.trainingsService.cancelTraining(id, user.id);
+    return 'OK';
   }
 
   @RolesGuard('trainer', 'client', 'admin')
@@ -348,6 +349,7 @@ export class TrainingsController {
     @Param('id') id: number,
     @User() user: UserRequest,
   ) {
-    return this.trainingsService.cancelRepeatedTraining(id, user.id);
+    await this.trainingsService.cancelRepeatedTraining(id, user.id);
+    return 'OK';
   }
 }

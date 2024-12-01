@@ -101,7 +101,7 @@ export class TrainingsService extends BaseEntityService<
   ) {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
-      relations: { slots: true },
+      relations: { slots: true, chatType: true },
     });
 
     if (!trainer.isTrainerActive) {
@@ -235,6 +235,17 @@ export class TrainingsService extends BaseEntityService<
           transaction.cost,
           dateToRecordString(createTrainingDto.date, slot.beginning),
           paymentURL,
+          club.studio.name,
+          club.studio.address,
+        ),
+      );
+
+      await this.wazzupMessagingService.sendMessage(
+        trainer.chatType?.name ?? 'telegram',
+        trainer.phone,
+        messageTemplates['single-training-booking-for-trainer'](
+          transaction.cost,
+          dateToRecordString(createTrainingDto.date, slot.beginning),
           club.studio.name,
           club.studio.address,
         ),
@@ -447,9 +458,12 @@ export class TrainingsService extends BaseEntityService<
       : 'whatsapp';
 
     if (training.transaction.status === TransactionStatus.Paid) {
-      await this.tinkoffPaymentsService.cancelOrRefundPayment(
-        training.transaction.id,
-      );
+      await Promise.all([
+        this.tinkoffPaymentsService.cancelOrRefundPayment(
+          training.transaction.id,
+        ),
+        this.updateOne(training, { isCanceled: true }),
+      ]);
 
       await this.wazzupMessagingService.sendMessage(
         chatType as unknown as NormalizedChatType,
@@ -460,9 +474,12 @@ export class TrainingsService extends BaseEntityService<
         ),
       );
     } else if (training.transaction.status === TransactionStatus.Unpaid) {
-      await this.transactionsService.updateOne(training.transaction, {
-        status: TransactionStatus.Canceled,
-      });
+      await Promise.all([
+        this.transactionsService.updateOne(training.transaction, {
+          status: TransactionStatus.Canceled,
+        }),
+        this.updateOne(training, { isCanceled: true }),
+      ]);
 
       await this.wazzupMessagingService.sendMessage(
         chatType as unknown as NormalizedChatType,
@@ -472,8 +489,6 @@ export class TrainingsService extends BaseEntityService<
         ),
       );
     }
-
-    return await this.updateOne(training, { isCanceled: true });
   }
 
   async cancelRepeatedTraining(id: number, userId: number) {

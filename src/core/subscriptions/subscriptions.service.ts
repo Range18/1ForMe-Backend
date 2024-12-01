@@ -22,6 +22,7 @@ import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 import SubscriptionExceptions = AllExceptions.SubscriptionExceptions;
 import PermissionExceptions = AllExceptions.PermissionExceptions;
+import TrainerExceptions = AllExceptions.TrainerExceptions;
 
 @Injectable()
 export class SubscriptionsService extends BaseEntityService<
@@ -54,6 +55,19 @@ export class SubscriptionsService extends BaseEntityService<
     createSubscriptionDto: CreateSubscriptionDto,
     trainerId: number,
   ) {
+    const trainer = await this.userService.findOne({
+      where: { id: trainerId },
+      relations: { slots: true, chatType: true },
+    });
+
+    if (!trainer.isTrainerActive) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainerExceptions',
+        TrainerExceptions.NotWorking,
+      );
+    }
+
     const client = await this.userService.findOne({
       where: { id: createSubscriptionDto.client },
       relations: { chatType: true },
@@ -180,6 +194,21 @@ export class SubscriptionsService extends BaseEntityService<
         club.studio.address,
       ),
     );
+
+    // await this.wazzupMessagingService.sendMessage(
+    //   trainer.chatType?.name ?? 'telegram',
+    //   trainer.phone,
+    //   messageTemplates['subscription-booking-for-trainer'](
+    //     createSubscriptionDto.createTrainingDto.length,
+    //     transaction.cost,
+    //     dateToRecordString(
+    //       createSubscriptionDto.createTrainingDto[0].date,
+    //       firstTrainingSlot.beginning,
+    //     ),
+    //     club.studio.name,
+    //     club.studio.address,
+    //   ),
+    // );
 
     return await this.findOne({
       where: { id: subId },

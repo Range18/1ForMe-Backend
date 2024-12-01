@@ -127,8 +127,6 @@ export class TinkoffPaymentsService extends BaseEntityService<
     });
 
     const paymentState = await this.getPaymentState(tinkoffPayment.paymentId);
-
-    console.log(paymentState);
     if (!paymentState.Success) {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
