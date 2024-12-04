@@ -1,13 +1,7 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import {
-  ApiBody,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TrainingTypeService } from '#src/core/training-type/training-type.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
-import { UpdateTrainingTypeDto } from '#src/core/training-type/dto/update-tr-type.dto';
 import { CreateTrainingTypeDto } from '#src/core/training-type/dto/create-tr-type.dto';
 
 @ApiTags('Training Types')
@@ -34,16 +28,16 @@ export class TrainingTypeController {
   }
 
   // TODO PERMS
-  @ApiOkResponse({ type: Training })
-  @ApiBody({ type: UpdateTrainingTypeDto })
-  @Patch(':id')
-  async update(
-    @Param('id') id: number,
-    @Body() updateTrainingTypeDto: UpdateTrainingTypeDto,
-  ) {
-    return await this.typesService.updateOne(
-      { where: { id } },
-      updateTrainingTypeDto,
-    );
-  }
+  // @ApiOkResponse({ type: Training })
+  // @ApiBody({ type: UpdateTrainingTypeDto })
+  // @Patch(':id')
+  // async update(
+  //   @Param('id') id: number,
+  //   @Body() updateTrainingTypeDto: UpdateTrainingTypeDto,
+  // ) {
+  //   return await this.typesService.updateOne(
+  //     { where: { id } },
+  //     updateTrainingTypeDto,
+  //   );
+  // }
 }
