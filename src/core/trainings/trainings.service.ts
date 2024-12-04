@@ -567,6 +567,19 @@ export class TrainingsService extends BaseEntityService<
   ) {
     const training = await this.findOne(optionsOrEntity);
     const oldDate = dateToRecordString(training.date, training.slot.beginning);
+
+    if (
+      training.date == toUpdate.date &&
+      training.slot.id == toUpdate.slot.id &&
+      training.club.id == toUpdate.club?.id
+    ) {
+      throw new ApiException(
+        HttpStatus.CONFLICT,
+        'TrainingExceptions',
+        TrainingExceptions.TrainingAlreadyExists,
+      );
+    }
+
     await super.updateOne(training, toUpdate, throwError);
 
     const newTraining = await this.findOne({
