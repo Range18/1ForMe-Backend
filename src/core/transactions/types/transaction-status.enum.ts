@@ -3,4 +3,5 @@ export enum TransactionStatus {
   Paid = 'Paid',
   Refunded = 'Refunded',
   Canceled = 'Canceled',
+  Expired = 'Expired',
 }

@@ -8,4 +8,5 @@ export enum PaymentStatus {
   Refunded = 'REFUNDED',
   Canceled = 'CANCELED',
   Rejected = 'REJECTED',
+  Expired = 'DEADLINE_EXPIRED',
 }

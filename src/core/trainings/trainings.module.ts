@@ -16,6 +16,7 @@ import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messagi
 import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import { AuthModule } from '#src/core/auth/auth.module';
 import { ClubsModule } from '#src/core/clubs/clubs.module';
+import { NotifyClosestTrainingService } from '#src/core/trainings/notify-closest-training.service';
 
 @Module({
   imports: [
@@ -37,7 +38,7 @@ import { ClubsModule } from '#src/core/clubs/clubs.module';
     ClubsModule,
   ],
   controllers: [TrainingsController],
-  providers: [TrainingsService],
+  providers: [TrainingsService, NotifyClosestTrainingService],
   exports: [TrainingsService],
 })
 export class TrainingsModule {}
