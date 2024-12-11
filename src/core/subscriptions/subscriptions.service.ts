@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,6 +17,7 @@ import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { StudioSlotsService } from '#src/core/club-slots/studio-slots.service';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import { ClubsService } from '#src/core/clubs/clubs.service';
+import ms from 'ms';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -51,23 +52,9 @@ export class SubscriptionsService extends BaseEntityService<
     );
   }
 
-  async create(
+  private async getNecessaryEntities(
     createSubscriptionDto: CreateSubscriptionDto,
-    trainerId: number,
   ) {
-    const trainer = await this.userService.findOne({
-      where: { id: trainerId },
-      relations: { slots: true, chatType: true },
-    });
-
-    if (!trainer.isTrainerActive) {
-      throw new ApiException(
-        HttpStatus.BAD_REQUEST,
-        'TrainerExceptions',
-        TrainerExceptions.NotWorking,
-      );
-    }
-
     const client = await this.userService.findOne({
       where: { id: createSubscriptionDto.client },
       relations: { chatType: true },
@@ -93,6 +80,16 @@ export class SubscriptionsService extends BaseEntityService<
       );
     }
 
+    if (
+      tariff.trainingAmount != createSubscriptionDto.createTrainingDto.length
+    ) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'SubscriptionExceptions',
+        SubscriptionExceptions.TrainingAmountErr,
+      );
+    }
+
     const club = await this.clubsService.findOne({
       where: { id: createSubscriptionDto.createTrainingDto[0].club },
       relations: { studio: true },
@@ -106,15 +103,29 @@ export class SubscriptionsService extends BaseEntityService<
       );
     }
 
-    if (
-      tariff.trainingAmount != createSubscriptionDto.createTrainingDto.length
-    ) {
+    return { client, tariff, club };
+  }
+
+  async create(
+    createSubscriptionDto: CreateSubscriptionDto,
+    trainerId: number,
+  ) {
+    const trainer = await this.userService.findOne({
+      where: { id: trainerId },
+      relations: { slots: true, chatType: true },
+    });
+
+    if (!trainer.isTrainerActive) {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
-        'SubscriptionExceptions',
-        SubscriptionExceptions.TrainingAmountErr,
+        'TrainerExceptions',
+        TrainerExceptions.NotWorking,
       );
     }
+
+    const { client, tariff, club } = await this.getNecessaryEntities(
+      createSubscriptionDto,
+    );
 
     const firstTrainingSlot = await this.clubSlotsService.findOne({
       where: { id: createSubscriptionDto.createTrainingDto[0].slot },
@@ -142,7 +153,7 @@ export class SubscriptionsService extends BaseEntityService<
         trainer: { id: trainerId },
         transaction: transaction,
         expireAt: tariff.subExpireAt
-          ? new Date(Date.now() + tariff.subExpireAt * 24 * 60 * 60 * 1000)
+          ? new Date(Date.now() + tariff.subExpireAt * ms('24h'))
           : undefined,
       })
     ).id;
@@ -177,7 +188,10 @@ export class SubscriptionsService extends BaseEntityService<
         await this.transactionsService.removeOne(transaction);
       });
 
-    if (!paymentURL) return;
+    if (!paymentURL) {
+      Logger.log('Payment url creation error in subscription service');
+      return;
+    }
 
     await this.wazzupMessagingService.sendMessage(
       client.chatType.name,
@@ -194,21 +208,6 @@ export class SubscriptionsService extends BaseEntityService<
         club.studio.address,
       ),
     );
-
-    // await this.wazzupMessagingService.sendMessage(
-    //   trainer.chatType?.name ?? 'telegram',
-    //   trainer.phone,
-    //   messageTemplates['subscription-booking-for-trainer'](
-    //     createSubscriptionDto.createTrainingDto.length,
-    //     transaction.cost,
-    //     dateToRecordString(
-    //       createSubscriptionDto.createTrainingDto[0].date,
-    //       firstTrainingSlot.beginning,
-    //     ),
-    //     club.studio.name,
-    //     club.studio.address,
-    //   ),
-    // );
 
     return await this.findOne({
       where: { id: subId },
