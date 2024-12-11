@@ -159,7 +159,7 @@ export class TransactionsService extends BaseEntityService<
       ) // Группируем по периоду
       .addOrderBy(
         `COALESCE(training.date, subTrainings.firstTrainingDate)`,
-        'ASC',
+        'DESC',
       ); // Сортируем по дате
 
     if (from) {
