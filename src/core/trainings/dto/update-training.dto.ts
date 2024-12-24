@@ -1,11 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { IsDateString, IsNumber, IsOptional } from 'class-validator';
 
 export class UpdateTrainingDto {
-  @ApiProperty({ required: false })
+  @IsDateString()
+  @IsOptional()
   readonly date?: Date;
 
-  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsOptional()
   readonly club?: number;
 
-  readonly slot: number;
+  @IsNumber()
+  @IsOptional()
+  readonly slot?: number;
 }

@@ -1,4 +1,3 @@
-import { CreateUserDto } from '#src/core/users/dto/create-user.dto';
 import {
   IsEnum,
   IsNotEmpty,
@@ -6,13 +5,12 @@ import {
   IsOptional,
   IsString,
   Matches,
+  MinLength,
 } from 'class-validator';
 import { Roles } from '#src/core/roles/types/roles.enum';
+import { IUser } from '#src/core/users/types/user.interface';
 
-export class CreateClientDto
-  implements
-    Pick<CreateUserDto, 'name' | 'surname' | 'role' | 'phone' | 'password'>
-{
+export class CreateClientDto implements IUser {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -39,6 +37,8 @@ export class CreateClientDto
   @IsNotEmpty()
   chatType: number;
 
+  @Matches('^@[a-zA-Z0-9_]+$')
+  @MinLength(6)
   @IsString()
   @IsNotEmpty()
   userNameInMessenger: string;

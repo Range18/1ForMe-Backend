@@ -9,8 +9,9 @@ import {
   Matches,
 } from 'class-validator';
 import { Roles } from '#src/core/roles/types/roles.enum';
+import { IUser } from '#src/core/users/types/user.interface';
 
-export class CreateUserDto {
+export class CreateUserDto implements IUser {
   @IsString()
   @IsOptional()
   name?: string;

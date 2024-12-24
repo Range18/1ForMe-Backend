@@ -1,29 +1,49 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
-import { IsBoolean, IsOptional } from 'class-validator';
-import { Transform } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsNotEmpty,
+  IsNotEmptyObject,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  Validate,
+} from 'class-validator';
+import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
 
-export class CreateTrainingViaClientDto {
-  @ApiProperty()
+export class CreateTrainingViaClientDto implements ICreateTraining {
+  @IsNumber()
+  @IsNotEmpty()
   readonly slot: number;
 
-  @ApiProperty()
+  @IsDateString()
+  @IsNotEmpty()
   readonly date: Date;
 
-  @ApiProperty({ type: [Number] })
-  readonly client: number[];
+  @IsArray()
+  @IsOptional()
+  readonly client?: number[];
 
-  @ApiProperty()
+  // @IsNumber()
+  @IsNotEmpty()
   readonly club: number;
 
+  @IsNumber()
+  @IsNotEmpty()
   readonly tariff: number;
 
+  @IsNumber()
+  @IsNotEmpty()
   readonly trainerId: number;
 
+  @Validate(CreateClientDto)
+  @IsNotEmptyObject()
+  @IsObject()
+  @IsOptional()
   readonly createClient?: CreateClientDto;
 
   @IsBoolean()
-  @Transform(({ ...value }) => String(value) == 'true')
   @IsOptional()
   isRepeated?: boolean;
 }

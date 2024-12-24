@@ -22,6 +22,7 @@ import { ClubsService } from '#src/core/clubs/clubs.service';
 import { NormalizedChatType } from '#src/core/wazzup-messaging/types/chat.type';
 import { getDateRange } from '#src/common/utilities/date-range.func';
 import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
+import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -95,7 +96,7 @@ export class TrainingsService extends BaseEntityService<
 
   private async getAllEntitiesForTrainingCreation(
     trainerId: number,
-    createTrainingDto: CreateTrainingDto,
+    createTrainingDto: ICreateTraining,
   ) {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
@@ -151,7 +152,7 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async create(
-    createTrainingDto: CreateTrainingDto,
+    createTrainingDto: ICreateTraining,
     trainerId: number,
     clientIds: number[],
   ): Promise<GetCreatedTrainingsRdo> {
