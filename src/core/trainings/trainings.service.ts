@@ -23,6 +23,8 @@ import { NormalizedChatType } from '#src/core/wazzup-messaging/types/chat.type';
 import { getDateRange } from '#src/common/utilities/date-range.func';
 import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
 import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
+import { CreateTrainingViaClientDto } from '#src/core/trainings/dto/create-training-via-client.dto';
+import { ClientsService } from '#src/core/clients/clients.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -47,6 +49,7 @@ export class TrainingsService extends BaseEntityService<
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly wazzupMessagingService: WazzupMessagingService,
     private readonly clubsService: ClubsService,
+    private readonly clientsService: ClientsService,
   ) {
     super(
       trainingRepository,
@@ -168,6 +171,14 @@ export class TrainingsService extends BaseEntityService<
         HttpStatus.NOT_FOUND,
         'UserExceptions',
         UserExceptions.UserNotFound,
+      );
+    }
+
+    if (tariff.clientsAmount && clients.length !== tariff.clientsAmount) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainingExceptions',
+        TrainingExceptions.ClientsAmountError,
       );
     }
 
@@ -325,6 +336,21 @@ export class TrainingsService extends BaseEntityService<
         },
       }),
       existingTrainingsDates,
+    );
+  }
+
+  async createWithUnknownClients(
+    createTrainingViaClientDto: CreateTrainingViaClientDto,
+  ) {
+    const clients = await Promise.all(
+      createTrainingViaClientDto.clients.map(
+        async (client) => (await this.clientsService.createClient(client)).id,
+      ),
+    );
+    return await this.create(
+      createTrainingViaClientDto,
+      createTrainingViaClientDto.trainerId,
+      clients,
     );
   }
 

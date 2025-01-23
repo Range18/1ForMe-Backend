@@ -55,6 +55,7 @@ export namespace AllExceptions {
 
   export enum TrainingExceptions {
     NotFound = 'Тренировка не найдена',
+    ClientsAmountError = 'Тариф подразумевает другое кол-во клиентов',
     TrainingAlreadyExists = 'На это время и в этот зал уже есть запись',
   }
 

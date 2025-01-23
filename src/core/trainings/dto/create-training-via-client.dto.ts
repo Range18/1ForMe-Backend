@@ -1,6 +1,5 @@
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 import {
-  IsArray,
   IsBoolean,
   IsDateString,
   IsNotEmpty,
@@ -21,11 +20,7 @@ export class CreateTrainingViaClientDto implements ICreateTraining {
   @IsNotEmpty()
   readonly date: Date;
 
-  @IsArray()
-  @IsOptional()
-  readonly client?: number[];
-
-  // @IsNumber()
+  @IsNumber()
   @IsNotEmpty()
   readonly club: number;
 
@@ -37,11 +32,11 @@ export class CreateTrainingViaClientDto implements ICreateTraining {
   @IsNotEmpty()
   readonly trainerId: number;
 
-  @Validate(CreateClientDto)
+  @Validate(CreateClientDto, { each: true })
   @IsNotEmptyObject()
   @IsObject()
   @IsOptional()
-  readonly createClient?: CreateClientDto;
+  readonly clients: CreateClientDto[];
 
   @IsBoolean()
   @IsOptional()

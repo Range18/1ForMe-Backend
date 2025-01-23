@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Param,
   Patch,
   Post,
@@ -28,13 +27,9 @@ import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 import { MoreThanOrEqual } from 'typeorm';
 import { TrainingCountPerDateRdo } from '#src/core/trainings/rdo/training-count-per-date.rdo';
 import { CreateTrainingViaClientDto } from '#src/core/trainings/dto/create-training-via-client.dto';
-import { AuthService } from '#src/core/auth/auth.service';
-import { ApiException } from '#src/common/exception-handler/api-exception';
-import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
 import { RolesGuard } from '#src/common/decorators/guards/roles-guard.decorator';
 import { TrainingQuery } from '#src/core/trainings/dto/training.query';
-import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('Trainings')
 @Controller('api/trainings')
@@ -42,7 +37,6 @@ export class TrainingsController {
   constructor(
     private readonly trainingsService: TrainingsService,
     private readonly userService: UserService,
-    private readonly authService: AuthService,
   ) {}
 
   @ApiBody({ type: CreateTrainingDto })
@@ -64,62 +58,11 @@ export class TrainingsController {
   @ApiCreatedResponse({ type: GetCreatedTrainingsRdo })
   @Post('clientForm')
   async createClientForm(
-    @Body() createTrainingDto: CreateTrainingViaClientDto,
+    @Body() createTrainingViaClientDto: CreateTrainingViaClientDto,
   ): Promise<GetCreatedTrainingsRdo> {
-    let trainings: GetCreatedTrainingsRdo;
-
-    if (
-      !createTrainingDto.client &&
-      createTrainingDto.client?.length == 0 &&
-      !createTrainingDto.createClient
-    ) {
-      throw new ApiException(
-        HttpStatus.BAD_REQUEST,
-        'UserExceptions',
-        UserExceptions.NoClientData,
-      );
-    }
-
-    if (createTrainingDto.client && createTrainingDto.client?.length > 0) {
-      trainings = await this.trainingsService.create(
-        createTrainingDto,
-        createTrainingDto.trainerId,
-        createTrainingDto.client,
-      );
-    } else {
-      let client = await this.userService.findOne(
-        {
-          where: { phone: createTrainingDto.createClient.phone },
-        },
-        false,
-      );
-
-      if (!client) {
-        const { phone } = await this.authService.register(
-          createTrainingDto.createClient,
-        );
-
-        client = await this.userService.findOne({
-          where: { phone },
-        });
-      } else {
-        await this.userService.updateOne(
-          { where: { id: client.id } },
-          { chatType: { id: createTrainingDto.createClient.chatType } },
-        );
-      }
-
-      const clients = createTrainingDto.client ?? [];
-      clients.push(client.id);
-
-      trainings = await this.trainingsService.create(
-        createTrainingDto,
-        createTrainingDto.trainerId,
-        clients,
-      );
-    }
-
-    return trainings;
+    return await this.trainingsService.createWithUnknownClients(
+      createTrainingViaClientDto,
+    );
   }
 
   @ApiOkResponse({ type: [GetTrainingRdo] })
