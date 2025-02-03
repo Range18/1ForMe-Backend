@@ -25,6 +25,7 @@ import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trai
 import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
 import { CreateTrainingViaClientDto } from '#src/core/trainings/dto/create-training-via-client.dto';
 import { ClientsService } from '#src/core/clients/clients.service';
+import ms from 'ms';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -447,7 +448,7 @@ export class TrainingsService extends BaseEntityService<
       throw new ApiException(
         HttpStatus.FORBIDDEN,
         'PermissionExceptions',
-        PermissionExceptions.NoRequiredRole,
+        PermissionExceptions.NotTheSameUser,
       );
     }
 
@@ -536,6 +537,8 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async getTrainingsPerDay(trainerId: number) {
+    const yesterday = new Date();
+    yesterday.setTime(yesterday.getTime() - ms('1d'));
     return (
       await this.trainingRepository
         .createQueryBuilder('training')
@@ -543,9 +546,13 @@ export class TrainingsService extends BaseEntityService<
           'DAY(training.`date`) as day',
           'MONTH(training.`date`) as month',
           'COUNT(training.`id`) as trainingCount',
+          'training.trainer',
         ])
         .where('training.trainer = :trainerId', { trainerId })
-        .where('training.isCanceled = :isCanceled', { isCanceled: false })
+        .andWhere('training.isCanceled = :isCanceled', { isCanceled: false })
+        .andWhere('training.date >= :date', {
+          date: yesterday.toISOString().split('T')[0] as unknown as Date,
+        })
         .addGroupBy('DAY(training.`date`)')
         .addGroupBy('MONTH(training.`date`)')
         .getRawMany()
