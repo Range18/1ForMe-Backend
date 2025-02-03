@@ -545,6 +545,7 @@ export class TrainingsService extends BaseEntityService<
           'COUNT(training.`id`) as trainingCount',
         ])
         .where('training.trainer = :trainerId', { trainerId })
+        .where('training.isCanceled = :isCanceled', { isCanceled: false })
         .addGroupBy('DAY(training.`date`)')
         .addGroupBy('MONTH(training.`date`)')
         .getRawMany()

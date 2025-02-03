@@ -75,6 +75,7 @@ export class TrainingsController {
         client: query.clientId ? { id: query.clientId } : undefined,
         trainer: query.trainerId ? { id: query.trainerId } : undefined,
         club: query.clubId ? { id: query.clubId } : undefined,
+        isCanceled: false,
       },
       relations: {
         client: true,
@@ -97,7 +98,11 @@ export class TrainingsController {
   @Get('/trainers/my')
   async findAllMine(@User() user: UserRequest, @Query('date') date?: Date) {
     const trainings = await this.trainingsService.find({
-      where: { trainer: { id: user.id }, date: date ? date : undefined },
+      where: {
+        trainer: { id: user.id },
+        date: date ? date : undefined,
+        isCanceled: false,
+      },
       relations: {
         client: true,
         trainer: true,
@@ -185,7 +190,7 @@ export class TrainingsController {
   @Get('my')
   async getMyTrainings(@User() user: UserRequest) {
     const trainings = await this.trainingsService.find({
-      where: { client: { id: user.id } },
+      where: { client: { id: user.id }, isCanceled: false },
       relations: {
         trainer: true,
         club: { city: true },
@@ -208,6 +213,7 @@ export class TrainingsController {
       where: {
         client: { id: id },
         trainer: user.role.name === 'trainer' ? { id: user.id } : undefined,
+        isCanceled: false,
       },
       relations: {
         trainer: true,
