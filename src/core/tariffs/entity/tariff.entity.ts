@@ -24,6 +24,9 @@ export class Tariff extends BaseEntity {
   @Column({ nullable: false })
   cost: number;
 
+  @Column({ nullable: false, default: false })
+  isPublic: boolean;
+
   @ManyToOne(() => Studio, (studio) => studio.tariffs, {
     nullable: true,
     onDelete: 'CASCADE',

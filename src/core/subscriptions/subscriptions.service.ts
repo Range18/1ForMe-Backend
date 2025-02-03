@@ -69,7 +69,7 @@ export class SubscriptionsService extends BaseEntityService<
     }
 
     const tariff = await this.tariffsService.findOne({
-      where: { id: createSubscriptionDto.tariff },
+      where: { id: createSubscriptionDto.tariff, isPublic: true },
     });
 
     if (!tariff) {

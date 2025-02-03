@@ -60,6 +60,7 @@ export class TariffsService extends BaseEntityService<
         studio: { id: In(studiosIds) },
         category: { id: trainer.category.id },
         isForSubscription: isForSubscription,
+        isPublic: true,
       },
       relations: {
         studio: true,

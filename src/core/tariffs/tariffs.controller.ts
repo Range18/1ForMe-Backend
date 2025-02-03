@@ -1,56 +1,36 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBody,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
-import { UpdateTariffDto } from '#src/core/tariffs/dto/update-tariff.dto';
-import { CreateTariffDto } from '#src/core/tariffs/dto/create-tariff.dto';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { User } from '#src/common/decorators/User.decorator';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
-import { UserService } from '#src/core/users/user.service';
 import { TariffQueryDto } from '#src/core/tariffs/dto/tariff-query.dto';
 
 @ApiTags('Tariffs')
 @Controller('api')
 export class TariffsController {
-  constructor(
-    private readonly tariffsService: TariffsService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly tariffsService: TariffsService) {}
 
-  @AuthGuard()
-  @ApiCreatedResponse({ type: Tariff })
-  @Post('studios/:studioId/tariffs')
-  async create(
-    @Body() body: CreateTariffDto,
-    @User() user: UserRequest,
-    @Param('studioId') studioId: number,
-  ) {
-    return new GetTariffRdo(
-      await this.tariffsService.save({
-        ...body,
-        category: { id: body.category },
-        sport: { id: body.sport },
-        studio: { id: studioId },
-        type: { id: body.type },
-      }),
-    );
-  }
+  // @AuthGuard()
+  // @ApiCreatedResponse({ type: Tariff })
+  // @Post('studios/:studioId/tariffs')
+  // async create(
+  //   @Body() body: CreateTariffDto,
+  //   @User() user: UserRequest,
+  //   @Param('studioId') studioId: number,
+  // ) {
+  //   return new GetTariffRdo(
+  //     await this.tariffsService.save({
+  //       ...body,
+  //       category: { id: body.category },
+  //       sport: { id: body.sport },
+  //       studio: { id: studioId },
+  //       type: { id: body.type },
+  //     }),
+  //   );
+  // }
 
   @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
@@ -64,6 +44,7 @@ export class TariffsController {
       where: {
         isForSubscription: isForSubscription ? isForSubscription : undefined,
         studio: { id: studioId },
+        isPublic: true,
       },
       relations: {
         studio: true,
@@ -86,6 +67,7 @@ export class TariffsController {
     const tariffs = await this.tariffsService.find({
       where: {
         isForSubscription: isForSubscription ? isForSubscription : undefined,
+        isPublic: true,
       },
       relations: {
         studio: true,
@@ -128,10 +110,10 @@ export class TariffsController {
 
   @ApiOkResponse({ type: Tariff })
   @Get('/tariffs/:id')
-  async get(@Param('id') id: number) {
+  async findOne(@Param('id') id: number) {
     return new GetTariffRdo(
       await this.tariffsService.findOne({
-        where: { id },
+        where: { id, isPublic: true },
         relations: {
           studio: true,
           category: true,
@@ -142,31 +124,31 @@ export class TariffsController {
     );
   }
 
-  // TODO PERMS
-  @ApiOkResponse({ type: Tariff })
-  @ApiBody({ type: UpdateTariffDto })
-  @Patch('/tariffs/:id')
-  async update(
-    @Param('id') id: number,
-    @Body() updateTariffDto: UpdateTariffDto,
-  ) {
-    return new GetTariffRdo(
-      await this.tariffsService.updateOne(
-        {
-          where: { id },
-          relations: {
-            studio: true,
-            category: true,
-            sport: true,
-            type: true,
-          },
-        },
-        {
-          ...updateTariffDto,
-          category: { id: updateTariffDto.category },
-          sport: { id: updateTariffDto.sport },
-        },
-      ),
-    );
-  }
+  // // TODO PERMS
+  // @ApiOkResponse({ type: Tariff })
+  // @ApiBody({ type: UpdateTariffDto })
+  // @Patch('/tariffs/:id')
+  // async update(
+  //   @Param('id') id: number,
+  //   @Body() updateTariffDto: UpdateTariffDto,
+  // ) {
+  //   return new GetTariffRdo(
+  //     await this.tariffsService.updateOne(
+  //       {
+  //         where: { id },
+  //         relations: {
+  //           studio: true,
+  //           category: true,
+  //           sport: true,
+  //           type: true,
+  //         },
+  //       },
+  //       {
+  //         ...updateTariffDto,
+  //         category: { id: updateTariffDto.category },
+  //         sport: { id: updateTariffDto.sport },
+  //       },
+  //     ),
+  //   );
+  // }
 }
