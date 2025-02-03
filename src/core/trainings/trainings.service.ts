@@ -4,7 +4,10 @@ import { DeepPartial, FindOneOptions, In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
-import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import {
+  AllExceptions,
+  TransactionExceptions,
+} from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { CreateTrainingDto } from '#src/core/trainings/dto/create-training.dto';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
@@ -456,37 +459,49 @@ export class TrainingsService extends BaseEntityService<
       ? training.client.chatType.name.toLowerCase()
       : 'whatsapp';
 
-    if (training.transaction.status === TransactionStatus.Paid) {
-      await Promise.all([
-        this.tinkoffPaymentsService.cancelOrRefundPayment(
-          training.transaction.id,
-        ),
-        this.updateOne(training, { isCanceled: true }),
-      ]);
+    switch (training.transaction.status) {
+      case TransactionStatus.Paid:
+        await Promise.all([
+          this.tinkoffPaymentsService.cancelOrRefundPayment(
+            training.transaction.id,
+          ),
+          this.updateOne(training, { isCanceled: true }),
+        ]);
 
-      await this.wazzupMessagingService.sendMessage(
-        chatType as unknown as NormalizedChatType,
-        training.client.phone,
-        messageTemplates['training-is-refunded'](
-          dateToRecordString(training.date, training.slot.beginning),
-          training.transaction.cost,
-        ),
-      );
-    } else if (training.transaction.status === TransactionStatus.Unpaid) {
-      await Promise.all([
-        this.transactionsService.updateOne(training.transaction, {
-          status: TransactionStatus.Canceled,
-        }),
-        this.updateOne(training, { isCanceled: true }),
-      ]);
+        await this.wazzupMessagingService.sendMessage(
+          chatType as unknown as NormalizedChatType,
+          training.client.phone,
+          messageTemplates['training-is-refunded'](
+            dateToRecordString(training.date, training.slot.beginning),
+            training.transaction.cost,
+          ),
+        );
+        break;
 
-      await this.wazzupMessagingService.sendMessage(
-        chatType as unknown as NormalizedChatType,
-        training.client.phone,
-        messageTemplates['training-is-canceled'](
-          dateToRecordString(training.date, training.slot.beginning),
-        ),
-      );
+      case TransactionStatus.Unpaid:
+      case TransactionStatus.Expired:
+        await Promise.all([
+          this.transactionsService.updateOne(training.transaction, {
+            status: TransactionStatus.Canceled,
+          }),
+          this.updateOne(training, { isCanceled: true }),
+        ]);
+
+        await this.wazzupMessagingService.sendMessage(
+          chatType as unknown as NormalizedChatType,
+          training.client.phone,
+          messageTemplates['training-is-canceled'](
+            dateToRecordString(training.date, training.slot.beginning),
+          ),
+        );
+        break;
+
+      default:
+        throw new ApiException(
+          HttpStatus.BAD_REQUEST,
+          'TransactionExceptions',
+          TransactionExceptions.AlreadyCanceled,
+        );
     }
   }
 

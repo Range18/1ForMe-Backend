@@ -47,6 +47,7 @@ export namespace AllExceptions {
 
   export enum TransactionExceptions {
     NotFound = 'Транзакция не найдена',
+    AlreadyCanceled = 'Транзакция уже отменена',
   }
 
   export enum EntityExceptions {
