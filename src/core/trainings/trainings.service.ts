@@ -4,10 +4,7 @@ import { DeepPartial, FindOneOptions, In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
-import {
-  AllExceptions,
-  TransactionExceptions,
-} from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { CreateTrainingDto } from '#src/core/trainings/dto/create-training.dto';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
@@ -36,6 +33,7 @@ import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 import TrainingExceptions = AllExceptions.TrainingExceptions;
 import PermissionExceptions = AllExceptions.PermissionExceptions;
 import PaymentExceptions = AllExceptions.PaymentExceptions;
+import TransactionExceptions = AllExceptions.TransactionExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
