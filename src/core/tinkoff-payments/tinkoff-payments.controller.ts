@@ -14,7 +14,7 @@ export class TinkoffPaymentsController {
     @Ip() ip: string,
     @Body() paymentNotificationDto: PaymentNotificationDto,
   ): Promise<'OK'> {
-    return this.tinkoffPaymentsService.handleNotification(
+    return await this.tinkoffPaymentsService.handleNotification(
       ip,
       paymentNotificationDto,
     );

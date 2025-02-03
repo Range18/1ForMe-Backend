@@ -1,11 +1,10 @@
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 import {
+  IsArray,
   IsBoolean,
   IsDateString,
   IsNotEmpty,
-  IsNotEmptyObject,
   IsNumber,
-  IsObject,
   IsOptional,
   Validate,
 } from 'class-validator';
@@ -33,8 +32,7 @@ export class CreateTrainingViaClientDto implements ICreateTraining {
   readonly trainerId: number;
 
   @Validate(CreateClientDto, { each: true })
-  @IsNotEmptyObject()
-  @IsObject()
+  @IsArray()
   @IsOptional()
   readonly clients: CreateClientDto[];
 
