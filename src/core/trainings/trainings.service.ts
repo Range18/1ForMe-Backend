@@ -495,6 +495,7 @@ export class TrainingsService extends BaseEntityService<
         break;
 
       default:
+        await this.updateOne(training, { isCanceled: true });
         throw new ApiException(
           HttpStatus.BAD_REQUEST,
           'TransactionExceptions',
