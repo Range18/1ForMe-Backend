@@ -58,6 +58,7 @@ export namespace AllExceptions {
     NotFound = 'Тренировка не найдена',
     ClientsAmountError = 'Тариф подразумевает другое кол-во клиентов',
     TrainingAlreadyExists = 'На это время и в этот зал уже есть запись',
+    RepeatedAndPaidViaCashBox = 'Тренировки, которые повторяются не могут быть оплачены через кассу!',
   }
 
   export enum SubscriptionExceptions {

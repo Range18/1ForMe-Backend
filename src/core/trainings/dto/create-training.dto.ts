@@ -5,8 +5,10 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsString,
 } from 'class-validator';
 import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 
 export class CreateTrainingDto implements ICreateTraining {
   @IsNumber()
@@ -21,15 +23,19 @@ export class CreateTrainingDto implements ICreateTraining {
   @IsNotEmpty()
   readonly client: number[];
 
-  // @IsNumber()
+  @IsNumber()
   @IsNotEmpty()
   readonly club: number;
 
-  // @IsNumber()
+  @IsNumber()
   @IsNotEmpty()
   readonly tariff: number;
 
   @IsBoolean()
   @IsOptional()
   isRepeated?: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  payVia: TransactionPaidVia;
 }
