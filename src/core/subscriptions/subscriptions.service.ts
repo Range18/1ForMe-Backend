@@ -18,6 +18,8 @@ import { StudioSlotsService } from '#src/core/club-slots/studio-slots.service';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import { ClubsService } from '#src/core/clubs/clubs.service';
 import ms from 'ms';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
+import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -145,6 +147,11 @@ export class SubscriptionsService extends BaseEntityService<
       cost: tariff.cost,
       tariff: { id: createSubscriptionDto.tariff },
       createdDate: new Date(),
+      status:
+        createSubscriptionDto.payVia === TransactionPaidVia.CashBox
+          ? TransactionStatus.Paid
+          : TransactionStatus.Unpaid,
+      paidVia: createSubscriptionDto.payVia,
     });
 
     const subId = (
@@ -164,10 +171,9 @@ export class SubscriptionsService extends BaseEntityService<
     });
 
     await this.trainingsService.createForSubscription(
-      createSubscriptionDto.createTrainingDto,
-      trainerId,
-      client.id,
+      createSubscriptionDto,
       subscription,
+      trainerId,
     );
 
     const paymentURL = await this.tinkoffPaymentsService

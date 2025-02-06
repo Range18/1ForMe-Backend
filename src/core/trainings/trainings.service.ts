@@ -5,7 +5,6 @@ import { ApiException } from '#src/common/exception-handler/api-exception';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { CreateTrainingDto } from '#src/core/trainings/dto/create-training.dto';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
@@ -26,6 +25,8 @@ import { ICreateTraining } from '#src/core/trainings/types/create-training.inter
 import { CreateTrainingViaClientDto } from '#src/core/trainings/dto/create-training-via-client.dto';
 import { ClientsService } from '#src/core/clients/clients.service';
 import ms from 'ms';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
+import { CreateSubscriptionDto } from '#src/core/subscriptions/dto/create-subscription.dto';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -161,6 +162,17 @@ export class TrainingsService extends BaseEntityService<
     trainerId: number,
     clientIds: number[],
   ): Promise<GetCreatedTrainingsRdo> {
+    if (
+      createTrainingDto.payVia === TransactionPaidVia.CashBox &&
+      createTrainingDto.isRepeated
+    ) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainingExceptions',
+        TrainingExceptions.RepeatedAndPaidViaCashBox,
+      );
+    }
+
     const { trainer, slot, tariff, club } =
       await this.getAllEntitiesForTrainingCreation(
         trainerId,
@@ -212,6 +224,11 @@ export class TrainingsService extends BaseEntityService<
           ? tariff.cost / tariff.clientsAmount
           : tariff.cost,
         createdDate: new Date(),
+        status:
+          createTrainingDto.payVia === TransactionPaidVia.CashBox
+            ? TransactionStatus.Paid
+            : TransactionStatus.Unpaid,
+        paidVia: createTrainingDto.payVia,
       });
 
       const paymentURL = await this.tinkoffPaymentsService
@@ -357,16 +374,12 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async createForSubscription(
-    createTrainingDtoArray: Omit<
-      CreateTrainingDto,
-      'type' | 'client' | 'tariff'
-    >[],
-    trainerId: number,
-    clientId: number,
+    createSubscriptionDto: CreateSubscriptionDto,
     subscriptionEntity: Subscription,
+    trainerId: number,
   ) {
     await Promise.all(
-      createTrainingDtoArray.map(async (training) => {
+      createSubscriptionDto.createTrainingDto.map(async (training) => {
         const existingTraining = await this.findOne(
           {
             where: {
@@ -389,12 +402,12 @@ export class TrainingsService extends BaseEntityService<
       }),
     );
 
-    await Promise.all(
-      createTrainingDtoArray.map(async (training) => {
+    return await Promise.all(
+      createSubscriptionDto.createTrainingDto.map(async (training) => {
         return await this.save({
           date: training.date,
           slot: { id: training.slot },
-          client: { id: clientId },
+          client: { id: createSubscriptionDto.client },
           trainer: { id: trainerId },
           club: { id: training.club },
           subscription: subscriptionEntity,

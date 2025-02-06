@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateSubTrainingDto } from '#src/core/trainings/dto/create-sub-training.dto';
-import { IsArray, IsNotEmpty, IsNumber, IsObject } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 
 export class CreateSubscriptionDto {
   @IsNumber()
@@ -18,4 +26,8 @@ export class CreateSubscriptionDto {
   @IsNumber()
   @IsNotEmpty()
   tariff: number;
+
+  @IsString()
+  @IsOptional()
+  payVia: TransactionPaidVia = TransactionPaidVia.OnlineService;
 }
