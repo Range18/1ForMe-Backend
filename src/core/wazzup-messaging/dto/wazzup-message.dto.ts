@@ -1,4 +1,4 @@
-import { NormalizedChatType } from '#src/core/wazzup-messaging/types/chat.type';
+import { NormalizedChatType } from '#src/core/chat-types/types/chat.type';
 
 export class WazzupMessageDto {
   readonly messageId: string;

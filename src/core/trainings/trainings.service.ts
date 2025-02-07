@@ -18,7 +18,7 @@ import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 import { ClubsService } from '#src/core/clubs/clubs.service';
-import { NormalizedChatType } from '#src/core/wazzup-messaging/types/chat.type';
+import { NormalizedChatType } from '#src/core/chat-types/types/chat.type';
 import { getDateRange } from '#src/common/utilities/date-range.func';
 import { GetCreatedTrainingsRdo } from '#src/core/trainings/rdo/get-created-trainings.rdo';
 import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';

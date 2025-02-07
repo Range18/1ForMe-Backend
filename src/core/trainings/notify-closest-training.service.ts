@@ -7,10 +7,11 @@ import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
-import { ChatTypes } from '#src/core/chat-types/types/chat-types.enum';
 import { PaymentStatus } from '#src/core/tinkoff-payments/enums/payment-status.enum';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { NormalizedChatType } from '#src/core/chat-types/types/chat.type';
+import { chatTypes } from '#src/core/chat-types/constants/chat-types.constant';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -23,9 +24,9 @@ export class NotifyClosestTrainingService {
   ) {}
 
   private async sendNotification(training: Training) {
-    const chatType = training.client.chatType.name
-      ? training.client.chatType.name.toLowerCase()
-      : ChatTypes.WhatsApp;
+    const chatType = training.client?.chatType?.name
+      ? training.client?.chatType?.name
+      : chatTypes.whatsapp;
 
     const transaction = training.subscription
       ? training.subscription.transaction
@@ -117,20 +118,9 @@ export class NotifyClosestTrainingService {
     }
   }
 
-  async sendForPaidTraining(training: Training, chatType: string) {
-    if (chatType == 'telegram') {
-      //Paid training notification in telegram
-      await this.wazzupMessagingService.sendTelegramMessage(
-        training.client.phone,
-        messageTemplates['notify-about-tomorrow-paid-training'](
-          training.club.address,
-          training.slot.beginning,
-        ),
-      );
-    }
-
-    //Paid training notification in whatsapp
-    await this.wazzupMessagingService.sendWhatsAppMessage(
+  async sendForPaidTraining(training: Training, chatType: NormalizedChatType) {
+    await this.wazzupMessagingService.sendMessage(
+      chatType,
       training.client.phone,
       messageTemplates['notify-about-tomorrow-paid-training'](
         training.club.address,
@@ -141,26 +131,14 @@ export class NotifyClosestTrainingService {
 
   async sendForUnPaidTraining(
     training: Training,
-    chatType: string,
+    chatType: NormalizedChatType,
     paymentURL: string,
   ) {
-    if (chatType == 'telegram') {
-      //Unpaid training notification in telegram
-      await this.wazzupMessagingService.sendTelegramMessage(
-        training.client.phone,
-        messageTemplates['notify-about-tomorrow-unpaid-training'](
-          training.club.studio.address,
-          training.slot.beginning,
-          paymentURL,
-        ),
-      );
-    }
-
-    //Unpaid training notification in whatsapp
-    await this.wazzupMessagingService.sendWhatsAppMessage(
+    await this.wazzupMessagingService.sendMessage(
+      chatType,
       training.client.phone,
       messageTemplates['notify-about-tomorrow-unpaid-training'](
-        training.club.address,
+        training.club.studio.address,
         training.slot.beginning,
         paymentURL,
       ),

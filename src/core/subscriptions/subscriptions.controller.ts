@@ -22,6 +22,7 @@ import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription
 import { CreateSubscriptionViaClientDto } from '#src/core/subscriptions/dto/create-subscription-via-client.dto';
 import { AuthService } from '#src/core/auth/auth.service';
 import { UserService } from '#src/core/users/user.service';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 
 @ApiTags('Subscriptions')
 @Controller('api/subscriptions')
@@ -68,7 +69,11 @@ export class SubscriptionsController {
 
     return new GetSubscriptionRdo(
       await this.subscriptionsService.create(
-        { client: client.id, ...createSubscriptionDto },
+        {
+          client: client.id,
+          ...createSubscriptionDto,
+          payVia: TransactionPaidVia.OnlineService,
+        },
         createSubscriptionDto.trainerId,
       ),
     );

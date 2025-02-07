@@ -12,7 +12,7 @@ import { wazzupConfig } from '#src/common/configs/wazzup.config';
 import {
   ChatType,
   NormalizedChatType,
-} from '#src/core/wazzup-messaging/types/chat.type';
+} from '#src/core/chat-types/types/chat.type';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { WazzupContactRdo } from '#src/core/wazzup-messaging/rdo/wazzup-contact.rdo';
 import { backendServer } from '#src/common/configs/config';
@@ -62,7 +62,10 @@ export class WazzupMessagingService
     }
   }
 
-  async sendTelegramMessage(userPhone: string, message: string): Promise<void> {
+  private async sendTelegramMessage(
+    userPhone: string,
+    message: string,
+  ): Promise<void> {
     await this.httpClient
       .post('message', {
         channelId: this.messengersChannels['telegram'],
@@ -76,7 +79,10 @@ export class WazzupMessagingService
       });
   }
 
-  async sendWhatsAppMessage(userPhone: string, message: string): Promise<void> {
+  private async sendWhatsAppMessage(
+    userPhone: string,
+    message: string,
+  ): Promise<void> {
     await this.httpClient
       .post('message', {
         channelId: this.messengersChannels['whatsapp'],
@@ -217,7 +223,7 @@ export class WazzupMessagingService
       await this.userService.updateOne(user, {
         userNameInMessenger:
           messages[0].contact.username ?? user.userNameInMessenger,
-        chatId: user.chatId ?? messages[0].chatId,
+        chatId: messages[0].chatId ?? user.chatId,
       });
     }
   }
