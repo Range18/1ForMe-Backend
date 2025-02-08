@@ -1,13 +1,12 @@
-import { IsBoolean, IsBooleanString, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class TariffQueryDto {
-  @IsBoolean()
-  @Transform(({ value }) => Boolean(Number.parseInt(value)))
+  @Transform(({ value }) => value == 'true')
   @IsOptional()
   isForSubscription?: boolean;
 
-  @IsBooleanString()
+  @Transform(({ value }) => value == 'true')
   @IsOptional()
   isPublic?: boolean;
 }

@@ -31,6 +31,8 @@ export class GetTariffRdo {
 
   type: string;
 
+  isPublic: boolean;
+
   constructor(tariff: Tariff) {
     this.id = tariff.id;
     this.name = tariff.name;
@@ -43,5 +45,6 @@ export class GetTariffRdo {
     this.trainingAmount = tariff.trainingAmount;
     this.clientsAmount = tariff.clientsAmount;
     this.type = tariff.type ? tariff.type.name : undefined;
+    this.isPublic = tariff.isPublic;
   }
 }

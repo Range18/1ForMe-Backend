@@ -13,37 +13,12 @@ import { TariffQueryDto } from '#src/core/tariffs/dto/tariff-query.dto';
 export class TariffsController {
   constructor(private readonly tariffsService: TariffsService) {}
 
-  // @AuthGuard()
-  // @ApiCreatedResponse({ type: Tariff })
-  // @Post('studios/:studioId/tariffs')
-  // async create(
-  //   @Body() body: CreateTariffDto,
-  //   @User() user: UserRequest,
-  //   @Param('studioId') studioId: number,
-  // ) {
-  //   return new GetTariffRdo(
-  //     await this.tariffsService.save({
-  //       ...body,
-  //       category: { id: body.category },
-  //       sport: { id: body.sport },
-  //       studio: { id: studioId },
-  //       type: { id: body.type },
-  //     }),
-  //   );
-  // }
-
   @ApiOkResponse({ type: [Tariff] })
-  @Get('studios/byId/:studioId/tariffs')
-  async getAllForStudio(
-    @Param('studioId') studioId: number,
-    @Query() query: TariffQueryDto,
-  ) {
+  @Get('studios/tariffs')
+  async getAll(@Query() query: TariffQueryDto) {
     const tariffs = await this.tariffsService.find({
       where: {
-        isForSubscription: query.isForSubscription
-          ? query.isForSubscription
-          : undefined,
-        studio: { id: studioId },
+        isForSubscription: query.isForSubscription,
         isPublic: query.isPublic,
       },
       relations: {
@@ -58,13 +33,15 @@ export class TariffsController {
   }
 
   @ApiOkResponse({ type: [Tariff] })
-  @Get('studios/tariffs')
-  async getAll(@Query() query: TariffQueryDto) {
+  @Get('studios/byId/:studioId/tariffs')
+  async getAllForStudio(
+    @Param('studioId') studioId: number,
+    @Query() query: TariffQueryDto,
+  ) {
     const tariffs = await this.tariffsService.find({
       where: {
-        isForSubscription: query.isForSubscription
-          ? query.isForSubscription
-          : undefined,
+        isForSubscription: query.isForSubscription,
+        studio: { id: studioId },
         isPublic: query.isPublic,
       },
       relations: {
@@ -84,10 +61,7 @@ export class TariffsController {
     @Param('userId') userId: number,
     @Query() query: TariffQueryDto,
   ) {
-    return await this.tariffsService.getAllForTrainer(
-      userId,
-      query.isForSubscription,
-    );
+    return await this.tariffsService.getAllForTrainer(userId, query);
   }
 
   @ApiOkResponse({ type: [Tariff] })
@@ -97,10 +71,7 @@ export class TariffsController {
     @User() user: UserRequest,
     @Query() query: TariffQueryDto,
   ) {
-    return await this.tariffsService.getAllForTrainer(
-      user.id,
-      query.isForSubscription,
-    );
+    return await this.tariffsService.getAllForTrainer(user.id, query);
   }
 
   @ApiOkResponse({ type: Tariff })
@@ -108,7 +79,7 @@ export class TariffsController {
   async findOne(@Param('id') id: number) {
     return new GetTariffRdo(
       await this.tariffsService.findOne({
-        where: { id, isPublic: true },
+        where: { id },
         relations: {
           studio: true,
           category: true,
@@ -118,32 +89,4 @@ export class TariffsController {
       }),
     );
   }
-
-  // // TODO PERMS
-  // @ApiOkResponse({ type: Tariff })
-  // @ApiBody({ type: UpdateTariffDto })
-  // @Patch('/tariffs/:id')
-  // async update(
-  //   @Param('id') id: number,
-  //   @Body() updateTariffDto: UpdateTariffDto,
-  // ) {
-  //   return new GetTariffRdo(
-  //     await this.tariffsService.updateOne(
-  //       {
-  //         where: { id },
-  //         relations: {
-  //           studio: true,
-  //           category: true,
-  //           sport: true,
-  //           type: true,
-  //         },
-  //       },
-  //       {
-  //         ...updateTariffDto,
-  //         category: { id: updateTariffDto.category },
-  //         sport: { id: updateTariffDto.sport },
-  //       },
-  //     ),
-  //   );
-  // }
 }

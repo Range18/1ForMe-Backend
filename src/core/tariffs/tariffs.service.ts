@@ -7,6 +7,7 @@ import { ApiException } from '#src/common/exception-handler/api-exception';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 import { UserService } from '#src/core/users/user.service';
+import { TariffQueryDto } from '#src/core/tariffs/dto/tariff-query.dto';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -31,7 +32,7 @@ export class TariffsService extends BaseEntityService<
     );
   }
 
-  async getAllForTrainer(trainerId: number, isForSubscription?: boolean) {
+  async getAllForTrainer(trainerId: number, query: TariffQueryDto) {
     const trainer = await this.userService.findOne({
       where: { id: trainerId },
       relations: { studios: true, category: true },
@@ -59,8 +60,8 @@ export class TariffsService extends BaseEntityService<
       where: {
         studio: { id: In(studiosIds) },
         category: { id: trainer.category.id },
-        isForSubscription: isForSubscription,
-        isPublic: true,
+        isForSubscription: query.isForSubscription,
+        isPublic: query.isPublic,
       },
       relations: {
         studio: true,
