@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -17,14 +16,9 @@ import { User } from '#src/common/decorators/User.decorator';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
-import { Studio } from '#src/core/studios/entities/studio.entity';
-import { Sport } from '#src/core/sports/entity/sports.entity';
-import { ApiException } from '#src/common/exception-handler/api-exception';
-import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { GetUserWithPhoneRdo } from '#src/core/users/rdo/get-user-with-phone.rdo';
 import { UsersQuery } from '#src/core/users/dto/users.query';
 import { SignUpToTrainer } from '#src/core/users/dto/sign-up-to-trainer.query';
-import UserExceptions = AllExceptions.UserExceptions;
 
 @ApiTags('users')
 @Controller('api/users')
@@ -138,66 +132,7 @@ export class UserController {
     @User() user: UserRequest,
     @Body() updateTrainerDto: UpdateTrainerDto,
   ) {
-    const userEntity = await this.userService.findOne({
-      where: { id: user.id },
-      relations: {
-        role: true,
-        avatar: true,
-        studios: true,
-        category: true,
-        sports: true,
-        chatType: true,
-      },
-    });
-
-    if (updateTrainerDto.phone) {
-      const userWithSamePhone = await this.userService.findOne({
-        where: { phone: updateTrainerDto.phone },
-      });
-
-      if (userWithSamePhone && userEntity.id !== userWithSamePhone.id) {
-        throw new ApiException(
-          HttpStatus.BAD_REQUEST,
-          'UserExceptions',
-          UserExceptions.UserAlreadyExists,
-        );
-      }
-    }
-
-    if (updateTrainerDto.sports) {
-      userEntity.sports = null;
-    }
-    if (updateTrainerDto.studios) {
-      userEntity.studios = null;
-    }
-    if (updateTrainerDto.sports || updateTrainerDto.studios) {
-      await this.userService.save(userEntity);
-    }
-
-    const studios = [];
-    if (updateTrainerDto.studios) {
-      for (const studio of updateTrainerDto.studios) {
-        studios.push({ id: studio } as Studio);
-      }
-      userEntity.studios = studios;
-    }
-
-    const sports = [];
-    if (updateTrainerDto.sports) {
-      for (const sport of updateTrainerDto.sports) {
-        sports.push({ id: sport } as Sport);
-      }
-      userEntity.sports = sports;
-    }
-
-    await this.userService.updateOne(userEntity, {
-      ...updateTrainerDto,
-      isTrainerActive: updateTrainerDto.isActive,
-      studios: [],
-      category: { id: updateTrainerDto.category },
-      sports: [],
-      chatType: { id: updateTrainerDto.chatType },
-    });
+    await this.userService.updateTrainerWithChecks(user.id, updateTrainerDto);
 
     return new GetUserWithPhoneRdo(
       await this.userService.findOne({ where: { id: user.id } }),
@@ -211,24 +146,9 @@ export class UserController {
   async updateSomeone(
     @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
-    @User() user: UserRequest,
   ) {
     return new GetUserWithPhoneRdo(
-      await this.userService.updateOne(
-        {
-          where: { id: id },
-          relations: {
-            role: true,
-            avatar: true,
-            relatedComments: true,
-            chatType: true,
-          },
-        },
-        {
-          ...updateUserDto,
-          chatType: { id: updateUserDto.chatType },
-        },
-      ),
+      await this.userService.updateUserWithChecks(id, updateUserDto),
     );
   }
 
