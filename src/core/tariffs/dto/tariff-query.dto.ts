@@ -9,5 +9,5 @@ export class TariffQueryDto {
 
   @IsBooleanString()
   @IsOptional()
-  isPublic = true;
+  isPublic?: boolean;
 }
