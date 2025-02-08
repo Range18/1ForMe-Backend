@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
@@ -32,19 +32,19 @@ export class TariffsController {
   //   );
   // }
 
-  @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
   @Get('studios/byId/:studioId/tariffs')
   async getAllForStudio(
     @Param('studioId') studioId: number,
-    @Query('isForSubscription')
-    isForSubscription?: boolean,
+    @Query() query: TariffQueryDto,
   ) {
     const tariffs = await this.tariffsService.find({
       where: {
-        isForSubscription: isForSubscription ? isForSubscription : undefined,
+        isForSubscription: query.isForSubscription
+          ? query.isForSubscription
+          : undefined,
         studio: { id: studioId },
-        isPublic: true,
+        isPublic: query.isPublic,
       },
       relations: {
         studio: true,
@@ -57,17 +57,15 @@ export class TariffsController {
     return tariffs.map((entity) => new GetTariffRdo(entity));
   }
 
-  @ApiQuery({ name: 'isForSubscription' })
   @ApiOkResponse({ type: [Tariff] })
   @Get('studios/tariffs')
-  async getAll(
-    @Query('isForSubscription')
-    isForSubscription?: boolean,
-  ) {
+  async getAll(@Query() query: TariffQueryDto) {
     const tariffs = await this.tariffsService.find({
       where: {
-        isForSubscription: isForSubscription ? isForSubscription : undefined,
-        isPublic: true,
+        isForSubscription: query.isForSubscription
+          ? query.isForSubscription
+          : undefined,
+        isPublic: query.isPublic,
       },
       relations: {
         studio: true,
@@ -81,21 +79,18 @@ export class TariffsController {
   }
 
   @ApiOkResponse({ type: [Tariff] })
-  @ApiQuery({ name: 'isForSubscription' })
   @Get('users/:userId/tariffs')
   async getAllForTrainerById(
     @Param('userId') userId: number,
-    @Query('isForSubscription')
-    isForSubscription?: boolean,
+    @Query() query: TariffQueryDto,
   ) {
     return await this.tariffsService.getAllForTrainer(
       userId,
-      isForSubscription,
+      query.isForSubscription,
     );
   }
 
   @ApiOkResponse({ type: [Tariff] })
-  @ApiQuery({ name: 'isForSubscription' })
   @AuthGuard()
   @Get('users/trainers/my/tariffs')
   async getAllForTrainer(
