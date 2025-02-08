@@ -267,7 +267,6 @@ export class StudioSlotsService extends BaseEntityService<
                     date: convertedDate,
                     isCanceled: false,
                     slot: { id: slot.id },
-                    trainer: { id: trainerSlot.trainer.id },
                   },
                 },
                 false,
