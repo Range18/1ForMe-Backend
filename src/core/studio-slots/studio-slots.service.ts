@@ -271,18 +271,9 @@ export class StudioSlotsService extends BaseEntityService<
     trainerSlots: Slot[],
     trainingSlot: GetClubSlotRdo,
     date: Date,
-    timeNow: number,
   ) {
     const availableTrainers: UserEntity[] = [];
     for (const trainerSlot of trainerSlots) {
-      const slotBeginningDate = this.getSlotDate(
-        date,
-        trainingSlot.beginningTime,
-      );
-
-      //TODO change ms('3h') by property from db
-      if (slotBeginningDate.getTime() - timeNow < ms('3h')) continue;
-
       const isTrainerAvailable = await this.checkIsTrainerAvailable(
         trainerSlot,
         trainingSlot,
@@ -319,11 +310,18 @@ export class StudioSlotsService extends BaseEntityService<
     });
 
     for (const trainingSlot of trainingSlots) {
+      const slotBeginningDate = this.getSlotDate(
+        date,
+        trainingSlot.beginningTime,
+      );
+
+      //TODO change ms('3h') by property from db
+      if (slotBeginningDate.getTime() - timeNow < ms('3h')) continue;
+
       const availableTrainers = await this.getAvailableTrainers(
         trainerSlots,
         trainingSlot,
         date,
-        timeNow,
       );
       if (availableTrainers.length > 0) {
         slotsForTimeTable.push(
