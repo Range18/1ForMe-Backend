@@ -23,11 +23,11 @@ export class CreateTrainingDto implements ICreateTraining {
   @IsNotEmpty()
   readonly client: number[];
 
-  @IsNumber()
+  // @IsNumber()
   @IsNotEmpty()
   readonly club: number;
 
-  @IsNumber()
+  // @IsNumber()
   @IsNotEmpty()
   readonly tariff: number;
 

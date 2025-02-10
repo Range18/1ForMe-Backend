@@ -19,6 +19,7 @@ import { backendServer } from '#src/common/configs/config';
 import console from 'node:console';
 import { WazzupMessageDto } from '#src/core/wazzup-messaging/dto/wazzup-message.dto';
 import { UserService } from '#src/core/users/user.service';
+import { WazzupWebhooksDto } from '#src/core/wazzup-messaging/dto/wazzup-webhooks.dto';
 
 @Injectable()
 export class WazzupMessagingService
@@ -165,6 +166,8 @@ export class WazzupMessagingService
           id: userEntity.id.toString(),
           responsibleUserId: options?.responsibleUserId
             ? options.responsibleUserId.toString()
+            : userEntity.trainers
+            ? userEntity.trainers.at(-1)
             : '0',
           name: userEntity.surname
             ? `${userEntity.name} ${userEntity.surname}`
@@ -199,6 +202,12 @@ export class WazzupMessagingService
     return response instanceof AxiosError ? null : response.data;
   }
 
+  async resolveWebhook(webhookDto: WazzupWebhooksDto) {
+    if (webhookDto.messages) {
+      await this.changeChatIdOrCreateContact(webhookDto.messages);
+    }
+  }
+
   async changeChatIdOrCreateContact(messages: WazzupMessageDto[]) {
     const userPhone =
       messages[0].chatType === 'telegram'
@@ -211,20 +220,16 @@ export class WazzupMessagingService
           relations: { chatType: true },
         })
       : null;
-
+    console.log(messages[0].contact);
     if (!user) {
       return;
     }
-
-    const contact = await this.getContact(user.id);
-
-    if (!contact) {
-      await this.createContact(user.id, { chatId: messages[0].chatId });
-      await this.userService.updateOne(user, {
-        userNameInMessenger:
-          messages[0].contact.username ?? user.userNameInMessenger,
-        chatId: messages[0].chatId ?? user.chatId,
-      });
-    }
+    console.log(user.id);
+    await this.createContact(user.id, { chatId: messages[0].chatId });
+    await this.userService.updateOne(user, {
+      userNameInMessenger:
+        messages[0].contact.username ?? user.userNameInMessenger,
+      chatId: messages[0].chatId ?? user.chatId,
+    });
   }
 }
