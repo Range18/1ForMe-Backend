@@ -1,4 +1,4 @@
-const daysOfWeek: string[] = [
+const daysOfWeek = [
   'воскресенье',
   'понедельник',
   'вторник',
@@ -6,8 +6,11 @@ const daysOfWeek: string[] = [
   'четверг',
   'пятницу',
   'субботу',
-];
+] as const;
 
+/**
+ * Converts date to message record string.
+ **/
 export function dateToRecordString(
   date: Date,
   hoursAndMinutes: string,
