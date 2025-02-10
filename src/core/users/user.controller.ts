@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -19,6 +20,7 @@ import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
 import { GetUserWithPhoneRdo } from '#src/core/users/rdo/get-user-with-phone.rdo';
 import { UsersQuery } from '#src/core/users/dto/users.query';
 import { SignUpToTrainer } from '#src/core/users/dto/sign-up-to-trainer.query';
+import { AttachClientDto } from '#src/core/users/dto/attach-client.dto';
 
 @ApiTags('users')
 @Controller('api/users')
@@ -158,7 +160,29 @@ export class UserController {
     @User('id') userId: number,
   ) {
     return new GetUserWithPhoneRdo(
-      await this.userService.signUp(query.link, userId),
+      await this.userService.attachClient(userId, query.link),
+    );
+  }
+
+  @AuthGuard()
+  @Patch('/clients/:id/attach')
+  async attachClient(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() attachClientDto: AttachClientDto,
+  ) {
+    return new GetUserWithPhoneRdo(
+      await this.userService.attachClient(id, attachClientDto.trainerId),
+    );
+  }
+
+  @AuthGuard()
+  @Delete('/clients/:id/detach')
+  async detachClient(
+    @User() user: UserRequest,
+    @Param('id', new ParseIntPipe()) id: number,
+  ) {
+    return new GetUserWithPhoneRdo(
+      await this.userService.detachClient(user.id, id),
     );
   }
 }

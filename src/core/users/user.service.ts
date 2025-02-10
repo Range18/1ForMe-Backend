@@ -10,6 +10,7 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
 import UserExceptions = AllExceptions.UserExceptions;
+import TrainerExceptions = AllExceptions.TrainerExceptions;
 
 @Injectable()
 export class UserService extends BaseEntityService<
@@ -114,9 +115,17 @@ export class UserService extends BaseEntityService<
     });
   }
 
-  async signUp(link: string, clientId: number) {
+  async attachClient(clientId: number, link: string): Promise<UserEntity>;
+  async attachClient(clientId: number, trainerId: number): Promise<UserEntity>;
+  async attachClient(
+    clientId: number,
+    trainerIdOrLink: number | string,
+  ): Promise<UserEntity> {
     const trainer = await this.findOne({
-      where: { link: link },
+      where: {
+        id: typeof trainerIdOrLink === 'number' ? trainerIdOrLink : undefined,
+        link: typeof trainerIdOrLink === 'string' ? trainerIdOrLink : undefined,
+      },
       relations: { role: true, studios: true },
     });
 
@@ -141,7 +150,64 @@ export class UserService extends BaseEntityService<
       );
     }
 
+    if (
+      client.trainers.some((clientTrainer) => clientTrainer.id === trainer.id)
+    ) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainerExceptions',
+        TrainerExceptions.AttachedAlready,
+      );
+    }
+
     client.trainers.push(trainer);
+
+    await Promise.all([await this.save(client), await this.save(trainer)]);
+    return client;
+  }
+
+  async detachClient(trainerId: number, clientId: number) {
+    const trainer = await this.findOne({
+      where: {
+        id: trainerId,
+      },
+      relations: { role: true, studios: true },
+    });
+
+    if (!trainer) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
+    const client = await this.findOne({
+      where: { id: clientId },
+      relations: { role: true, trainers: true },
+    });
+
+    if (!client) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
+    const index = client.trainers
+      .map((clientTrainer) => clientTrainer.id)
+      .indexOf(trainer.id);
+
+    if (index === -1) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainerExceptions',
+        TrainerExceptions.NotAttached,
+      );
+    }
+
+    client.trainers.splice(index, 1);
 
     await Promise.all([await this.save(client), await this.save(trainer)]);
     return client;

@@ -27,6 +27,8 @@ export namespace AllExceptions {
     NotWorking = 'Тренер не работает',
     WithoutCategory = 'Невозможно найти тариф по роли квалификации тренера',
     NotFound = 'Тренер не найден',
+    NotAttached = 'Тренер не привязан к клиенту',
+    AttachedAlready = 'Тренер уже привязан к клиенту',
   }
 
   export enum RolesExceptions {
