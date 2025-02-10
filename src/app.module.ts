@@ -21,7 +21,7 @@ import { VerificationModule } from '#src/core/verification-codes/verification.mo
 import { ClubsModule } from '#src/core/clubs/clubs.module';
 import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.module';
 import { SlotsModule } from '#src/core/trainer-slots/slots.module';
-import { StudioSlotsModule } from '#src/core/club-slots/studio-slots.module';
+import { StudioSlotsModule } from '#src/core/studio-slots/studio-slots.module';
 import { ChatTypesModule } from '#src/core/chat-types/chat-types.module';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';

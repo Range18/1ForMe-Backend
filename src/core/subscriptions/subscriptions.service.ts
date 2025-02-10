@@ -14,7 +14,7 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
-import { StudioSlotsService } from '#src/core/club-slots/studio-slots.service';
+import { StudioSlotsService } from '#src/core/studio-slots/studio-slots.service';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import { ClubsService } from '#src/core/clubs/clubs.service';
 import ms from 'ms';

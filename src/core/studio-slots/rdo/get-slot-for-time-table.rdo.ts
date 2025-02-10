@@ -1,7 +1,7 @@
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import { UserEntity } from '#src/core/users/entity/user.entity';
-import { GetClubSlotRdo } from '#src/core/club-slots/rdo/get-club-slot.rdo';
+import { GetClubSlotRdo } from '#src/core/studio-slots/rdo/get-club-slot.rdo';
 
 export class GetSlotForTimeTableRdo {
   slotId: number;

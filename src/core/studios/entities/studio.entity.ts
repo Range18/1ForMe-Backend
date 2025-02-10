@@ -14,7 +14,7 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 
 @Entity('studios')
 export class Studio extends BaseEntity {

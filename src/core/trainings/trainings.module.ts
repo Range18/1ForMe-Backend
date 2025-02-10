@@ -13,7 +13,7 @@ import { TariffsModule } from '#src/core/tariffs/tariffs.module';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import { ClubsModule } from '#src/core/clubs/clubs.module';
 import { NotifyClosestTrainingService } from '#src/core/trainings/notify-closest-training.service';
 import { ClientModule } from '#src/core/clients/clients.module';

@@ -7,7 +7,7 @@ import { UserModule } from '#src/core/users/user.module';
 import { SessionModule } from '#src/core/session/session.module';
 import { TokenModule } from '#src/core/token/token.module';
 import { TrainingsModule } from '#src/core/trainings/trainings.module';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 
 @Module({
   imports: [

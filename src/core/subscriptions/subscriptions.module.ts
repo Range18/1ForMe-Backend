@@ -13,7 +13,7 @@ import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { TariffsModule } from '#src/core/tariffs/tariffs.module';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
-import { StudioSlotsModule } from '#src/core/club-slots/studio-slots.module';
+import { StudioSlotsModule } from '#src/core/studio-slots/studio-slots.module';
 import { AuthModule } from '#src/core/auth/auth.module';
 import { ClubsModule } from '#src/core/clubs/clubs.module';
 

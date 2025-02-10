@@ -11,7 +11,7 @@ import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
-import { ClubSlots } from '#src/core/club-slots/entities/club-slot.entity';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 
 @Entity()
 export class Training extends BaseEntity {
