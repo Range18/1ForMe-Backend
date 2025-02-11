@@ -10,6 +10,7 @@ import { UserEntity } from '#src/core/users/entity/user.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 
+//TODO: Add Unique constraint
 @Entity('trainer_slots')
 export class Slot extends BaseEntity {
   @PrimaryGeneratedColumn('increment')

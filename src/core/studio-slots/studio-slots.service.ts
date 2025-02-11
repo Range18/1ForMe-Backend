@@ -194,9 +194,10 @@ export class StudioSlotsService extends BaseEntityService<
       return new GetTimeTableRdo(studio, []);
     }
 
+    const weekStart = new Date();
+    weekStart.setHours(weekStart.getHours() + 5);
     const dateRange = getDateRange(new Date(), days);
     const timeTable: GetTimeTableForStudioRdo[] = [];
-    const timeNow = Date.now();
 
     for (const date of dateRange) {
       const convertedDate = setZeroHours(date);
@@ -213,7 +214,7 @@ export class StudioSlotsService extends BaseEntityService<
               trainerIds,
               slots,
               convertedDate,
-              timeNow,
+              weekStart.getTime(),
             ),
           ),
         );
@@ -316,6 +317,12 @@ export class StudioSlotsService extends BaseEntityService<
       );
 
       //TODO change ms('3h') by property from db
+      console.log(ms('3h'));
+      console.log(
+        slotBeginningDate,
+        slotBeginningDate.getTime() - timeNow,
+        slotBeginningDate.getTime() - timeNow < ms('3h'),
+      );
       if (slotBeginningDate.getTime() - timeNow < ms('3h')) continue;
 
       const availableTrainers = await this.getAvailableTrainers(
