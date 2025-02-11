@@ -2,11 +2,11 @@ import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { ApiProperty } from '@nestjs/swagger';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { GetClubRdo } from '#src/core/clubs/rdo/get-club.rdo';
-import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes';
 import { TrainingStatusType } from '#src/core/trainings/training-status.type';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
+import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes.func';
 
 export class GetTrainingRdo {
   @ApiProperty()

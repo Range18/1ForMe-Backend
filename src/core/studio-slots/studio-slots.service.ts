@@ -25,6 +25,7 @@ import { isTimeLTE } from '#src/common/utilities/is-time-lte.func';
 import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes.func';
 import { addTimeToDate } from '#src/common/utilities/add-time-to-date.func';
+import console from 'node:console';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
 
@@ -196,16 +197,17 @@ export class StudioSlotsService extends BaseEntityService<
 
     const weekStart = new Date();
     weekStart.setHours(weekStart.getHours() + 5);
-    const dateRange = getDateRange(new Date(), days);
+    console.log(weekStart);
+    const dateRange = getDateRange(weekStart, days);
     const timeTable: GetTimeTableForStudioRdo[] = [];
-
+    console.log(dateRange);
     for (const date of dateRange) {
       const convertedDate = setZeroHours(date);
       const clubTimeTable: GetClubScheduleRdo[] = [];
 
       for (const club of studio.clubs) {
         const slots = await this.getClubSlots(club, convertedDate);
-
+        console.log(slots);
         clubTimeTable.push(
           new GetClubScheduleRdo(
             club,
@@ -259,7 +261,6 @@ export class StudioSlotsService extends BaseEntityService<
             isCanceled: false,
             slot: { id: trainingSlot.id },
             club: { id: trainingSlot.id },
-            trainer: { id: trainerSlot.trainer.id },
           },
         },
         false,
@@ -317,7 +318,6 @@ export class StudioSlotsService extends BaseEntityService<
       );
 
       //TODO change ms('3h') by property from db
-      console.log(ms('3h'));
       console.log(
         slotBeginningDate,
         slotBeginningDate.getTime() - timeNow,
