@@ -118,7 +118,7 @@ export class TrainingsService extends BaseEntityService<
     }
 
     const tariff = await this.tariffsService.findOne({
-      where: { id: createTrainingDto.tariff, isPublic: true },
+      where: { id: createTrainingDto.tariff },
     });
 
     if (!tariff) {

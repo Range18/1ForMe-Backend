@@ -1,68 +1,60 @@
 import { PaymentStatus } from '../enums/payment-status.enum';
-import {
-  IsBoolean,
-  IsEnum,
-  IsNotEmpty,
-  IsObject,
-  IsOptional,
-  IsString,
-} from 'class-validator';
 
 export class PaymentNotificationDto {
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   TerminalKey: string;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   Amount: number;
 
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   OrderId: string;
 
-  @IsNotEmpty()
-  @IsBoolean()
+  // @IsNotEmpty()
+  // @IsBoolean()
   Success: boolean;
 
-  @IsNotEmpty()
-  @IsEnum(PaymentStatus)
+  // @IsNotEmpty()
+  // @IsEnum(PaymentStatus)
   Status: PaymentStatus;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   PaymentId: number;
 
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   ErrorCode: string;
 
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   Message: string;
 
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   Details: string;
 
-  @IsOptional()
-  @IsString()
+  // @IsOptional()
+  // @IsString()
   RebillId: string;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   CardId: number;
 
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   Pan: string;
 
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   ExpDate: string;
 
-  @IsNotEmpty()
-  @IsString()
+  // @IsNotEmpty()
+  // @IsString()
   Token: string;
 
-  @IsOptional()
-  @IsObject()
+  // @IsOptional()
+  // @IsObject()
   DATA?: Record<string, string>;
 }
