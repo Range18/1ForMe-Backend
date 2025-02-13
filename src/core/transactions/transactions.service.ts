@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { GetTransactionSumsRdo } from '#src/core/transactions/rdo/get-transactions-sums.rdo';
@@ -10,6 +10,8 @@ import { SqlPeriodsEnum } from '#src/core/transactions/types/sql-periods.enum';
 import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { UserService } from '#src/core/users/user.service';
+import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
+import console from 'node:console';
 import TrainerExceptions = AllExceptions.TrainerExceptions;
 import TransactionExceptions = AllExceptions.TransactionExceptions;
 
@@ -22,6 +24,7 @@ export class TransactionsService extends BaseEntityService<
     @InjectRepository(Transaction)
     readonly transactionRepository: Repository<Transaction>,
     private readonly userService: UserService,
+    private readonly dataSource: DataSource,
   ) {
     super(
       transactionRepository,
@@ -229,5 +232,59 @@ export class TransactionsService extends BaseEntityService<
     }
 
     return transactionsPerDay;
+  }
+
+  async updateExpiredAndCreteNew(expiredTransactionId: number) {
+    const expiredTransaction = await this.findOne({
+      where: { id: expiredTransactionId },
+      relations: {
+        client: true,
+        subscription: true,
+        tariff: true,
+        training: true,
+        trainer: true,
+      },
+    });
+
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let newTransaction: Transaction;
+    try {
+      expiredTransaction.training = null;
+      expiredTransaction.subscription = null;
+      expiredTransaction.status = TransactionStatus.Expired;
+      await queryRunner.manager.save(expiredTransaction);
+
+      const { id } = await queryRunner.manager.save(Transaction, {
+        client: expiredTransaction.client,
+        training: expiredTransaction.training,
+        subscription: expiredTransaction.subscription,
+        tariff: expiredTransaction.tariff,
+        cost: expiredTransaction.cost,
+        paidVia: expiredTransaction.paidVia,
+        trainer: expiredTransaction.trainer,
+      });
+
+      newTransaction = await queryRunner.manager.findOne(Transaction, {
+        where: { id: id },
+        relations: {
+          client: true,
+          training: true,
+          tariff: true,
+          subscription: true,
+          trainer: true,
+        },
+      });
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
+    return newTransaction;
   }
 }

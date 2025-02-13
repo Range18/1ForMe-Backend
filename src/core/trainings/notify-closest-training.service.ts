@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import console from 'node:console';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
@@ -9,9 +9,9 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { PaymentStatus } from '#src/core/tinkoff-payments/enums/payment-status.enum';
 import { TransactionsService } from '#src/core/transactions/transactions.service';
-import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
-import { NormalizedChatType } from '#src/core/chat-types/types/chat.type';
 import { chatTypes } from '#src/core/chat-types/constants/chat-types.constant';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
+import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -22,6 +22,37 @@ export class NotifyClosestTrainingService {
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly transactionsService: TransactionsService,
   ) {}
+
+  @Cron(CronExpression.EVERY_DAY_AT_NOON, {
+    name: 'notificationsAboutCloseTraining',
+  })
+  async notifyAboutCloseTraining() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const closeTrainings = await this.trainingsService.find({
+      where: {
+        date: tomorrow.toISOString().split('T')[0] as unknown as Date,
+        isCanceled: false,
+      },
+      relations: {
+        transaction: { tariff: true },
+        client: { chatType: true },
+        trainer: true,
+        tariff: true,
+        club: { studio: true },
+        slot: true,
+        subscription: { transaction: true },
+      },
+    });
+    if (!closeTrainings || closeTrainings.length === 0) return;
+
+    await Promise.all(
+      closeTrainings.map(
+        async (training) => await this.sendNotification(training),
+      ),
+    );
+  }
 
   private async sendNotification(training: Training) {
     const chatType = training.client?.chatType?.name
@@ -37,11 +68,19 @@ export class NotifyClosestTrainingService {
       return;
     }
 
-    if (transaction.status === TransactionStatus.Paid)
-      await this.sendForPaidTraining(training, chatType);
-    else if (transaction.status === TransactionStatus.Unpaid) {
+    if (transaction.status === TransactionStatus.Paid) {
+      await this.wazzupMessagingService.sendMessage(
+        chatType,
+        training.client.phone,
+        messageTemplates['notify-about-tomorrow-paid-training'](
+          training.club.address,
+          training.slot.beginning,
+        ),
+      );
+      return;
+    } else if (transaction.status === TransactionStatus.Unpaid) {
       const tinkoffTransaction = await this.tinkoffPaymentsService.findOne({
-        where: { transactionId: training.transaction.id },
+        where: { transactionId: transaction.id },
       });
 
       const tinkoffTransactionState = tinkoffTransaction
@@ -50,61 +89,24 @@ export class NotifyClosestTrainingService {
           )
         : undefined;
 
+      //TODO: remove
       console.log(tinkoffTransactionState);
 
-      let paymentURL;
+      let paymentURL: string;
       if (
         tinkoffTransactionState &&
         tinkoffTransactionState.Status == PaymentStatus.Expired
       ) {
-        const expiredTransaction = await this.transactionsService.findOne({
-          where: { id: transaction.id },
-          relations: {
-            client: true,
-            subscription: true,
-            tariff: true,
-            training: true,
-            trainer: true,
-          },
-        });
-
-        await this.transactionsService.updateOne(expiredTransaction, {
-          training: null,
-          subscription: null,
-          status: TransactionStatus.Expired,
-        });
-
-        const newTransaction = await this.transactionsService.save({
-          client: expiredTransaction.client,
-          training: expiredTransaction.training,
-          subscription: expiredTransaction.subscription,
-          tariff: expiredTransaction.tariff,
-          cost: expiredTransaction.cost,
-          paidVia: expiredTransaction.paidVia,
-          trainer: expiredTransaction.trainer,
-          status: expiredTransaction.status,
-        });
-
-        paymentURL = await this.tinkoffPaymentsService
-          .createPayment({
-            transactionId: newTransaction.id,
-            amount: newTransaction.cost,
-            quantity: 1,
-            user: {
-              id: training.client.id,
-              phone: training.client.phone,
-            },
-            metadata: {
-              name: transaction.tariff.name,
-              description: `Заказ №${newTransaction.id}`,
-            },
-          })
-          .catch(async (err) => {
-            Logger.error('Error due creating paymentURL');
-            console.log(err);
-            return null;
-            // await this.transactionsService.removeOne(transaction);
-          });
+        paymentURL = await this.getPaymentURLForTrainingWithExpiredTransaction(
+          transaction.id,
+          training,
+        );
+      } else if (
+        training.isRepeated &&
+        training.tariff &&
+        !training.transaction
+      ) {
+        paymentURL = await this.getPaymentURLForRepeatedTraining(training);
       } else {
         paymentURL = tinkoffTransaction.paymentURL;
       }
@@ -114,61 +116,77 @@ export class NotifyClosestTrainingService {
         return;
       }
 
-      await this.sendForUnPaidTraining(training, chatType, paymentURL);
+      await this.wazzupMessagingService.sendMessage(
+        chatType,
+        training.client.phone,
+        messageTemplates['notify-about-tomorrow-unpaid-training'](
+          training.club.studio.address,
+          training.slot.beginning,
+          paymentURL,
+        ),
+      );
     }
   }
 
-  async sendForPaidTraining(training: Training, chatType: NormalizedChatType) {
-    await this.wazzupMessagingService.sendMessage(
-      chatType,
-      training.client.phone,
-      messageTemplates['notify-about-tomorrow-paid-training'](
-        training.club.address,
-        training.slot.beginning,
-      ),
-    );
-  }
-
-  async sendForUnPaidTraining(
+  private async getPaymentURLForTrainingWithExpiredTransaction(
+    transactionId: number,
     training: Training,
-    chatType: NormalizedChatType,
-    paymentURL: string,
   ) {
-    await this.wazzupMessagingService.sendMessage(
-      chatType,
-      training.client.phone,
-      messageTemplates['notify-about-tomorrow-unpaid-training'](
-        training.club.studio.address,
-        training.slot.beginning,
-        paymentURL,
-      ),
-    );
+    const newTransaction =
+      await this.transactionsService.updateExpiredAndCreteNew(transactionId);
+
+    return await this.tinkoffPaymentsService
+      .createPayment({
+        transactionId: newTransaction.id,
+        amount: newTransaction.cost,
+        quantity: 1,
+        user: {
+          id: training.client.id,
+          phone: training.client.phone,
+        },
+        metadata: {
+          name: newTransaction.tariff.name,
+          description: `Заказ №${newTransaction.id}`,
+        },
+      })
+      .catch(async (err) => {
+        Logger.error('Error due creating paymentURL');
+        console.log(err);
+        return null;
+        // await this.transactionsService.removeOne(transaction);
+      });
   }
 
-  @Cron('0 0 12 * * *', { name: 'notificationsAboutCloseTraining' })
-  async notifyAboutCloseTraining() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const closeTrainings = await this.trainingsService.find({
-      where: {
-        date: tomorrow.toISOString().split('T')[0] as unknown as Date,
-        isCanceled: false,
-      },
-      relations: {
-        transaction: { tariff: true },
-        client: { chatType: true },
-        club: { studio: true },
-        slot: true,
-        subscription: { transaction: true },
-      },
+  private async getPaymentURLForRepeatedTraining(training: Training) {
+    const newTransaction = await this.transactionsService.save({
+      client: training.client,
+      training: training,
+      subscription: training.subscription,
+      tariff: training.tariff,
+      cost: training.tariff.cost,
+      paidVia: TransactionPaidVia.OnlineService,
+      trainer: training.trainer,
     });
-    if (!closeTrainings || closeTrainings.length === 0) return;
 
-    await Promise.all(
-      closeTrainings.map(
-        async (training) => await this.sendNotification(training),
-      ),
-    );
+    return await this.tinkoffPaymentsService
+      .createPayment({
+        transactionId: newTransaction.id,
+        amount: newTransaction.cost,
+        quantity: 1,
+        user: {
+          id: training.client.id,
+          phone: training.client.phone,
+        },
+        metadata: {
+          name: training.tariff.name,
+          description: `Заказ №${newTransaction.id}`,
+        },
+      })
+      .catch(async (err) => {
+        Logger.error('Error due creating paymentURL');
+        console.log(err);
+        return null;
+        // await this.transactionsService.removeOne(transaction);
+      });
   }
 }

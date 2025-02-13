@@ -20,6 +20,12 @@ import console from 'node:console';
 import { WazzupMessageDto } from '#src/core/wazzup-messaging/dto/wazzup-message.dto';
 import { UserService } from '#src/core/users/user.service';
 import { WazzupWebhooksDto } from '#src/core/wazzup-messaging/dto/wazzup-webhooks.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { WazzupMessagingSettings } from '#src/core/wazzup-messaging/entities/wazzup-messaging-settings.entity';
+import { Repository } from 'typeorm';
+import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { chatTypes } from '#src/core/chat-types/constants/chat-types.constant';
+import BootstrapExceptions = AllExceptions.BootstrapExceptions;
 
 @Injectable()
 export class WazzupMessagingService
@@ -34,7 +40,13 @@ export class WazzupMessagingService
   });
   private readonly messengersChannels: Record<string, string> = {};
 
-  constructor(private readonly userService: UserService) {}
+  private wazzupMessagingSettings: WazzupMessagingSettings;
+
+  constructor(
+    private readonly userService: UserService,
+    @InjectRepository(WazzupMessagingSettings)
+    private readonly messagingSettingsRepository: Repository<WazzupMessagingSettings>,
+  ) {}
 
   onApplicationBootstrap(): void {
     this.connectWebHooks();
@@ -42,6 +54,7 @@ export class WazzupMessagingService
 
   async onModuleInit(): Promise<void> {
     try {
+      await this.getWazzupMessagingSettingsAndCacheIt();
       await this.fetchChannelsAndCacheIt();
       setInterval(async () => await this.fetchChannelsAndCacheIt(), 1800000);
     } catch (err) {
@@ -49,10 +62,42 @@ export class WazzupMessagingService
     }
   }
 
+  private async getWazzupMessagingSettingsAndCacheIt() {
+    this.wazzupMessagingSettings =
+      await this.messagingSettingsRepository.findOne({
+        relations: { messagingService: true },
+        where: {},
+      });
+
+    if (!this.wazzupMessagingSettings) {
+      Logger.error(BootstrapExceptions.WazzupMessagingSettingsNotFound);
+    }
+  }
+
+  async sendNotificationToOwner(message: string) {
+    if (!this.wazzupMessagingSettings) return;
+
+    if (
+      this.wazzupMessagingSettings.messagingService.name.toLowerCase() ===
+      chatTypes.telegram
+    ) {
+      await this.sendTelegramMessage(
+        this.wazzupMessagingSettings.notificationPhone,
+        message,
+      );
+    } else {
+      await this.sendWhatsAppMessage(
+        this.wazzupMessagingSettings.notificationPhone,
+        message,
+      );
+    }
+  }
+
   async sendMessage(
     chatType: NormalizedChatType,
     userPhone: string,
     message: string,
+    notificationMessage?: string,
   ): Promise<void> {
     chatType = String(chatType).toLowerCase() as NormalizedChatType;
 
@@ -61,6 +106,9 @@ export class WazzupMessagingService
     } else {
       await this.sendWhatsAppMessage(userPhone, message);
     }
+
+    if (notificationMessage)
+      await this.sendNotificationToOwner(notificationMessage);
   }
 
   private async sendTelegramMessage(

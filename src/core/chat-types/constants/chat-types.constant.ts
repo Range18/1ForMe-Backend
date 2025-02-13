@@ -1,6 +1,4 @@
-import { NormalizedChatType } from '#src/core/chat-types/types/chat.type';
-
-export const chatTypes: { [key in NormalizedChatType]: NormalizedChatType } = {
+export const chatTypes = {
   whatsapp: 'whatsapp',
   telegram: 'telegram',
-};
+} as const;

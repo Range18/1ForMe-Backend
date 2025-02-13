@@ -12,6 +12,10 @@ export namespace AllExceptions {
     ErrorWhileDeleting = 'Файла нет или он сломан',
   }
 
+  export enum TariffExceptions {
+    NotFound = 'Тариф не найден',
+  }
+
   export enum SessionExceptions {
     SessionNotFound = 'Сессия не найдена',
     SessionExpired = 'Сессия истекла',
@@ -80,6 +84,10 @@ export namespace AllExceptions {
 
   export enum Queries {
     InvalidLimitOffset = 'limit * offset - offset can`t be < 0',
+  }
+
+  export enum BootstrapExceptions {
+    WazzupMessagingSettingsNotFound = 'Wazzup messaging settings are not found',
   }
 
   export enum PaymentExceptions {

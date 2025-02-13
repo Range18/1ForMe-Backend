@@ -12,6 +12,7 @@ import { Transaction } from '#src/core/transactions/entities/transaction.entity'
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
+import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Entity()
 export class Training extends BaseEntity {
@@ -65,4 +66,10 @@ export class Training extends BaseEntity {
   })
   @JoinColumn({ name: 'transaction' })
   transaction?: Transaction;
+
+  @ManyToOne(() => Tariff, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'tariffId' })
+  tariff?: Tariff;
 }

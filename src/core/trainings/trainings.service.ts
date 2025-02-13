@@ -27,6 +27,8 @@ import { ClientsService } from '#src/core/clients/clients.service';
 import ms from 'ms';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { CreateSubscriptionDto } from '#src/core/subscriptions/dto/create-subscription.dto';
+import { notificationMessageTemplates } from '#src/core/wazzup-messaging/notification-message-templates';
+import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -231,7 +233,7 @@ export class TrainingsService extends BaseEntityService<
         paidVia: createTrainingDto.payVia,
       });
 
-      const paymentURL = await this.tinkoffPaymentsService
+      const paymentURL: string | null = await this.tinkoffPaymentsService
         .createPayment({
           transactionId: transaction.id,
           amount: transaction.cost,
@@ -247,6 +249,7 @@ export class TrainingsService extends BaseEntityService<
         })
         .catch(async () => {
           await this.transactionsService.removeOne(transaction);
+          return null;
         });
 
       if (!paymentURL) {
@@ -257,6 +260,19 @@ export class TrainingsService extends BaseEntityService<
         );
       }
 
+      const training = await this.save({
+        slot: slot,
+        date: createTrainingDto.date,
+        client: { id: client.id },
+        trainer: { id: trainerId },
+        club: { id: createTrainingDto.club },
+        transaction: transaction,
+        isRepeated: createTrainingDto.isRepeated,
+        tariff: tariff,
+      });
+
+      trainingsIds.push(training.id);
+
       await this.wazzupMessagingService.sendMessage(
         client.chatType.name,
         client.phone,
@@ -266,6 +282,12 @@ export class TrainingsService extends BaseEntityService<
           paymentURL,
           club.studio.name,
           club.studio.address,
+        ),
+        notificationMessageTemplates['single-training-booking'](
+          trainer.name,
+          client.name,
+          ISODateToString(new Date(training.date), false),
+          slot.beginning,
         ),
       );
 
@@ -279,18 +301,6 @@ export class TrainingsService extends BaseEntityService<
           club.studio.address,
         ),
       );
-
-      const training = await this.save({
-        slot: slot,
-        date: createTrainingDto.date,
-        client: { id: client.id },
-        trainer: { id: trainerId },
-        club: { id: createTrainingDto.club },
-        transaction: transaction,
-        isRepeated: createTrainingDto.isRepeated,
-      });
-
-      trainingsIds.push(training.id);
 
       if (createTrainingDto.isRepeated) {
         const dateRange = getDateRange(new Date(createTrainingDto.date), 90);
@@ -317,15 +327,15 @@ export class TrainingsService extends BaseEntityService<
           ) {
             existingTrainingsDates.push(existingTraining.date);
           } else {
-            const trainingTransaction = await this.transactionsService.save({
-              client: { id: client.id },
-              trainer: { id: trainerId },
-              tariff: tariff,
-              cost: tariff.clientsAmount
-                ? tariff.cost / tariff.clientsAmount
-                : tariff.cost,
-              createdDate: new Date(),
-            });
+            // const trainingTransaction = await this.transactionsService.save({
+            //   client: { id: client.id },
+            //   trainer: { id: trainerId },
+            //   tariff: tariff,
+            //   cost: tariff.clientsAmount
+            //     ? tariff.cost / tariff.clientsAmount
+            //     : tariff.cost,
+            //   createdDate: new Date(),
+            // });
 
             const training = await this.save({
               slot: slot,
@@ -333,7 +343,7 @@ export class TrainingsService extends BaseEntityService<
               client: { id: client.id },
               trainer: { id: trainerId },
               club: { id: createTrainingDto.club },
-              transaction: trainingTransaction,
+              tariff: tariff,
               isRepeated: createTrainingDto.isRepeated,
             });
 
