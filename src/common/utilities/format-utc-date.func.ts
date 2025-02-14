@@ -20,5 +20,5 @@ export function dateToRecordString(
   const dayOfMonth = date.getDate();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
 
-  return `${dayOfWeek} ${dayOfMonth}.${month} в ${hoursAndMinutes}`;
+  return `${dayOfMonth}.${month}, ${dayOfWeek}, ${hoursAndMinutes}`;
 }

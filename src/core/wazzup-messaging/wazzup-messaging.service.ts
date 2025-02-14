@@ -40,7 +40,7 @@ export class WazzupMessagingService
   });
   private readonly messengersChannels: Record<string, string> = {};
 
-  private wazzupMessagingSettings: WazzupMessagingSettings;
+  private wazzupMessagingSettings: WazzupMessagingSettings[];
 
   constructor(
     private readonly userService: UserService,
@@ -57,19 +57,25 @@ export class WazzupMessagingService
       await this.getWazzupMessagingSettingsAndCacheIt();
       await this.fetchChannelsAndCacheIt();
       setInterval(async () => await this.fetchChannelsAndCacheIt(), 1800000);
+      setInterval(
+        async () => await this.getWazzupMessagingSettingsAndCacheIt(),
+        1800000,
+      );
     } catch (err) {
       Logger.error(err);
     }
   }
 
   private async getWazzupMessagingSettingsAndCacheIt() {
-    this.wazzupMessagingSettings =
-      await this.messagingSettingsRepository.findOne({
-        relations: { messagingService: true },
-        where: {},
-      });
+    this.wazzupMessagingSettings = await this.messagingSettingsRepository.find({
+      relations: { messagingService: true },
+      where: {},
+    });
 
-    if (!this.wazzupMessagingSettings) {
+    if (
+      !this.wazzupMessagingSettings ||
+      this.wazzupMessagingSettings.length === 0
+    ) {
       Logger.error(BootstrapExceptions.WazzupMessagingSettingsNotFound);
     }
   }
@@ -77,19 +83,21 @@ export class WazzupMessagingService
   async sendNotificationToOwner(message: string) {
     if (!this.wazzupMessagingSettings) return;
 
-    if (
-      this.wazzupMessagingSettings.messagingService.name.toLowerCase() ===
-      chatTypes.telegram
-    ) {
-      await this.sendTelegramMessage(
-        this.wazzupMessagingSettings.notificationPhone,
-        message,
-      );
-    } else {
-      await this.sendWhatsAppMessage(
-        this.wazzupMessagingSettings.notificationPhone,
-        message,
-      );
+    for (const wazzupMessagingSetting of this.wazzupMessagingSettings) {
+      if (
+        wazzupMessagingSetting.messagingService.name.toLowerCase() ===
+        chatTypes.telegram
+      ) {
+        await this.sendTelegramMessage(
+          wazzupMessagingSetting.notificationPhone,
+          message,
+        );
+      } else {
+        await this.sendWhatsAppMessage(
+          wazzupMessagingSetting.notificationPhone,
+          message,
+        );
+      }
     }
   }
 

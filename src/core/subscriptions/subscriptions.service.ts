@@ -13,7 +13,6 @@ import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
-import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { StudioSlotsService } from '#src/core/studio-slots/studio-slots.service';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import { ClubsService } from '#src/core/clubs/clubs.service';
@@ -202,17 +201,7 @@ export class SubscriptionsService extends BaseEntityService<
     await this.wazzupMessagingService.sendMessage(
       client.chatType.name,
       client.phone,
-      messageTemplates['subscription-booking'](
-        createSubscriptionDto.createTrainingDto.length,
-        transaction.cost,
-        paymentURL,
-        dateToRecordString(
-          createSubscriptionDto.createTrainingDto[0].date,
-          firstTrainingSlot.beginning,
-        ),
-        club.studio.name,
-        club.studio.address,
-      ),
+      messageTemplates.subscriptionBooking(trainer.getNameWithSurname()),
     );
 
     return await this.findOne({

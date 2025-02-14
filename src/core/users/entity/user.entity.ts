@@ -186,4 +186,8 @@ export class UserEntity extends BaseEntity {
     nullable: true,
   })
   slots?: Slot[];
+
+  getNameWithSurname(): string {
+    return this.surname ? `${this.name} ${this.surname}` : this.name;
+  }
 }

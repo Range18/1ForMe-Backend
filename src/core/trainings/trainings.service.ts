@@ -29,6 +29,8 @@ import { TransactionPaidVia } from '#src/core/transactions/types/transaction-pai
 import { CreateSubscriptionDto } from '#src/core/subscriptions/dto/create-subscription.dto';
 import { notificationMessageTemplates } from '#src/core/wazzup-messaging/notification-message-templates';
 import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
+import { Clubs } from '#src/core/clubs/entity/clubs.entity';
+import { Transaction } from '../transactions/entities/transaction.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -159,6 +161,63 @@ export class TrainingsService extends BaseEntityService<
     return { trainer, slot, tariff, club };
   }
 
+  private async sendMessagesAfterTrainingCreated(
+    client: UserEntity,
+    trainer: UserEntity,
+    date: Date,
+    slot: ClubSlots,
+    transaction: Transaction,
+    paymentURL: string,
+    club: Clubs,
+  ) {
+    switch (transaction.paidVia) {
+      case TransactionPaidVia.OnlineService:
+        await this.wazzupMessagingService.sendMessage(
+          client.chatType.name,
+          client.phone,
+          messageTemplates.singleTrainingBooking.viaOnlineService(
+            trainer.getNameWithSurname(),
+            club.studio.address,
+            transaction.cost,
+            dateToRecordString(new Date(date), slot.beginning),
+            paymentURL,
+          ),
+        );
+        break;
+      case TransactionPaidVia.CashBox:
+        await this.wazzupMessagingService.sendMessage(
+          client.chatType.name,
+          client.phone,
+          messageTemplates.singleTrainingBooking.viaCashBox(
+            trainer.getNameWithSurname(),
+            club.studio.address,
+            transaction.cost,
+            dateToRecordString(new Date(date), slot.beginning),
+          ),
+        );
+        break;
+    }
+
+    notificationMessageTemplates['single-training-booking'](
+      trainer.name,
+      client.name,
+      ISODateToString(date, false),
+      slot.beginning,
+    );
+
+    //TODO: edit
+    await this.wazzupMessagingService.sendMessage(
+      trainer.chatType?.name ?? 'telegram',
+      trainer.phone,
+      messageTemplates['single-training-booking-for-trainer'](
+        transaction.cost,
+        dateToRecordString(date, slot.beginning),
+        club.studio.name,
+        club.studio.address,
+      ),
+    );
+  }
+
   async create(
     createTrainingDto: ICreateTraining,
     trainerId: number,
@@ -273,33 +332,14 @@ export class TrainingsService extends BaseEntityService<
 
       trainingsIds.push(training.id);
 
-      await this.wazzupMessagingService.sendMessage(
-        client.chatType.name,
-        client.phone,
-        messageTemplates['single-training-booking'](
-          transaction.cost,
-          dateToRecordString(createTrainingDto.date, slot.beginning),
-          paymentURL,
-          club.studio.name,
-          club.studio.address,
-        ),
-        notificationMessageTemplates['single-training-booking'](
-          trainer.name,
-          client.name,
-          ISODateToString(new Date(training.date), false),
-          slot.beginning,
-        ),
-      );
-
-      await this.wazzupMessagingService.sendMessage(
-        trainer.chatType?.name ?? 'telegram',
-        trainer.phone,
-        messageTemplates['single-training-booking-for-trainer'](
-          transaction.cost,
-          dateToRecordString(createTrainingDto.date, slot.beginning),
-          club.studio.name,
-          club.studio.address,
-        ),
+      await this.sendMessagesAfterTrainingCreated(
+        client,
+        trainer,
+        training.date,
+        slot,
+        transaction,
+        paymentURL,
+        club,
       );
 
       if (createTrainingDto.isRepeated) {
