@@ -66,7 +66,7 @@ ${firstClientName} приглашает вас на сплит или трени
     paidTrainingInTwoHours: (date: string) => {
       return `Через 2 часа начинаем тренировку! Ждем вас в ${date}. Не забудьте взять с собой форму. До скорой встречи!`;
     },
-    unpaid: (
+    notifyUnpaid: (
       trainerName: string,
       studioAddress: string,
       time: string,
@@ -78,16 +78,16 @@ ${firstClientName} приглашает вас на сплит или трени
       Без оплаты мы не сможем потведить вашу тренировку и вынуждены будем ее отменить. 
       Если возникли вопросы, напишите нам!`;
     },
-    canceledUnpaid: (date: string, time: string) => {
-      return `К сожалению, ваша тренировка на ${date} в ${time} отменена из-за отсутствия оплаты. 
+    canceledUnpaid: (dateAndTime: string) => {
+      return `К сожалению, ваша тренировка на ${dateAndTime} отменена из-за отсутствия оплаты. 
       Если хотите записаться снова, напишите нам или можете записаться самостоятельно на сайте 1forme.ru`;
     },
-    canceled: (date: string, time: string) => {
-      return `Ваша тренировка на ${date} в ${time} отменена. 
+    canceled: (dateAndTime: string) => {
+      return `Ваша тренировка на ${dateAndTime} отменена. 
       Если возникли вопросы или вы хотите записаться снова, напишите нам!`;
     },
-    reschedulingTraining: (newDate: string, newTime: string) => {
-      return ` аша тренировка перенесена на ${newDate} в ${newTime}  
+    reschedulingTraining: (newDateAndTime: string) => {
+      return `Ваша тренировка перенесена на ${newDateAndTime}  
       Ждем вас! Если возникли вопросы или вы хотите изменить время, напишите нам!`;
     },
     afterTraining: (date: string) => {
@@ -130,24 +130,22 @@ ${firstClientName} приглашает вас на сплит или трени
     По истечению срока абонемента, тренировки сгорают. 
     Если возникли вопросы, напишите нам!`;
   },
-
-  // 'subscription-booking': (
-  //   trainingsCount: number,
-  //   subscriptionCost: number,
-  //   paymentURL: string,
-  //   date: string,
-  //   studioName: string,
-  //   studioAddress: string,
-  // ) => {
-  //   return (
-  //     `Вы забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса ${studioName} по адресу ${studioAddress}, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
-  //     '\n' +
-  //     `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
-  //     '\n' +
-  //     'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
-  //   );
-  // },
-
+  'subscription-booking': (
+    trainingsCount: number,
+    subscriptionCost: number,
+    paymentURL: string,
+    date: string,
+    studioName: string,
+    studioAddress: string,
+  ) => {
+    return (
+      `Вы забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса ${studioName} по адресу ${studioAddress}, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
+      '\n' +
+      `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
+      '\n' +
+      'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
+    );
+  },
   'subscription-booking-for-trainer': (
     trainingsCount: number,
     subscriptionCost: number,
@@ -172,46 +170,6 @@ ${firstClientName} приглашает вас на сплит или трени
       `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
       '\n' +
       'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
-    );
-  },
-  'notify-about-tomorrow-paid-training': (
-    studioAddress: string,
-    time: string,
-  ) => {
-    return (
-      `Добрый день! Ждём вас завтра по тренировку по адресу ${studioAddress} в ${time}, ваша тренировка оплачена. ` +
-      '\n' +
-      'Отменить или перенести тренировку возможно не менее чем за 12 часов.'
-    );
-  },
-  'notify-about-tomorrow-unpaid-training': (
-    studioAddress: string,
-    time: string,
-    paymentURL: string,
-  ) => {
-    return (
-      `Добрый день! Ждём вас завтра по тренировку по адресу ${studioAddress} в ${time}, ваша тренировка не оплачена.` +
-      '\n' +
-      `Для подтверждения записи оплатите пожалуйста тренировку по ссылке: ${paymentURL}`
-    );
-  },
-
-  'training-is-canceled': (date: string) => {
-    return 'Здравствуйте!' + '\n' + `Ваша тренировка на ${date} отменена.`;
-  },
-
-  'training-is-refunded': (date: string, cost: number) => {
-    return (
-      'Здравствуйте!' +
-      '\n' +
-      `Ваша тренировка на ${date} отменена. В ближайшее время оплата в размере ${cost} руб. поступят на счёт, с которого вы оплачивали тренировку`
-    );
-  },
-  'training-date-is-changed': (oldDate: string, newDate: string) => {
-    return (
-      'Здравствуйте!' +
-      '\n' +
-      `Ваша тренировка на ${oldDate} перенесена на ${newDate}.`
     );
   },
 } as const;

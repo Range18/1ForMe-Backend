@@ -19,6 +19,7 @@ import { ClubsService } from '#src/core/clubs/clubs.service';
 import ms from 'ms';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
+import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -201,7 +202,17 @@ export class SubscriptionsService extends BaseEntityService<
     await this.wazzupMessagingService.sendMessage(
       client.chatType.name,
       client.phone,
-      messageTemplates.subscriptionBooking(trainer.getNameWithSurname()),
+      messageTemplates['subscription-booking'](
+        createSubscriptionDto.createTrainingDto.length,
+        transaction.cost,
+        paymentURL,
+        dateToRecordString(
+          createSubscriptionDto.createTrainingDto[0].date,
+          firstTrainingSlot.beginning,
+        ),
+        club.studio.name,
+        club.studio.address,
+      ),
     );
 
     return await this.findOne({

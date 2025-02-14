@@ -12,6 +12,7 @@ import { TransactionsService } from '#src/core/transactions/transactions.service
 import { chatTypes } from '#src/core/chat-types/constants/chat-types.constant';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
+import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -39,7 +40,7 @@ export class NotifyClosestTrainingService {
         transaction: { tariff: true },
         client: { chatType: true },
         trainer: true,
-        tariff: true,
+        tariff: { type: true },
         club: { studio: true },
         slot: true,
         subscription: { transaction: true },
@@ -72,9 +73,9 @@ export class NotifyClosestTrainingService {
       await this.wazzupMessagingService.sendMessage(
         chatType,
         training.client.phone,
-        messageTemplates['notify-about-tomorrow-paid-training'](
-          training.club.address,
-          training.slot.beginning,
+        messageTemplates.notifications.paidTrainingTomorrow(
+          training.trainer.getNameWithSurname(),
+          dateToRecordString(training.date, training.slot.beginning),
         ),
       );
       return;
@@ -119,9 +120,11 @@ export class NotifyClosestTrainingService {
       await this.wazzupMessagingService.sendMessage(
         chatType,
         training.client.phone,
-        messageTemplates['notify-about-tomorrow-unpaid-training'](
+        messageTemplates.notifications.notifyUnpaid(
+          training.trainer.getNameWithSurname(),
           training.club.studio.address,
           training.slot.beginning,
+          training.tariff.type.name,
           paymentURL,
         ),
       );
