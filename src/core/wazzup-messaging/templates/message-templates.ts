@@ -28,32 +28,57 @@ export const messageTemplates = {
     },
   },
   splitTrainingBooking: {
-    firstClient: (
-      trainerName: string,
-      studioAddress: string,
-      trainingCost: number,
-      date: string,
-      paymentURL: string,
-    ) => {
-      return ` 
+    firstClient: {
+      viaOnlineService: (
+        trainerName: string,
+        studioAddress: string,
+        trainingCost: number,
+        date: string,
+        paymentURL: string,
+      ) => {
+        return ` 
 Вы забронировали сплит тренировку в студии пилатеса 1forme к тренеру ${trainerName} по адресу ${studioAddress}, ${date}. 
 Стоимость ${trainingCost} руб. Для оплаты и подтверждение записи перейдите по ссылке: ${paymentURL}
 Отменить или перенести тренировку возможно не менее чем за 12 часов. 
 Если возникли вопросы, напишите нам!
           `;
+      },
+      viaCashBox: (
+        trainerName: string,
+        studioAddress: string,
+        date: string,
+      ) => {
+        return ` 
+Вы забронировали сплит тренировку в студии пилатеса 1forme к тренеру ${trainerName} по адресу ${studioAddress}, ${date}.
+Отменить или перенести тренировку возможно не менее чем за 12 часов. 
+Если возникли вопросы, напишите нам!
+          `;
+      },
     },
-    secondClient: (
-      firstClientName: string,
-      studioAddress: string,
-      trainingCost: number,
-      date: string,
-      paymentURL: string,
-    ) => {
-      return ` 
+    secondClient: {
+      viaOnlineService: (
+        firstClientName: string,
+        studioAddress: string,
+        trainingCost: number,
+        date: string,
+        paymentURL: string,
+      ) => {
+        return ` 
 ${firstClientName} приглашает вас на сплит или тренировку вдвоём в студии пилатеса 1forme по адресу ${studioAddress}, ${date}.
  Стоимость ${trainingCost} руб. Для оплаты и подтверждение записи перейдите по ссылке: ${paymentURL}
  Отменить или перенести тренировку возможно не менее чем за 12 часов. 
 Если возникли вопросы, напишите нам!`;
+      },
+      viaCashBox: (
+        firstClientName: string,
+        studioAddress: string,
+        date: string,
+      ) => {
+        return ` 
+${firstClientName} приглашает вас на сплит или тренировку вдвоём в студии пилатеса 1forme по адресу ${studioAddress}, ${date}.
+ Отменить или перенести тренировку возможно не менее чем за 12 часов. 
+Если возникли вопросы, напишите нам!`;
+      },
     },
   },
   notifications: {
@@ -90,9 +115,16 @@ ${firstClientName} приглашает вас на сплит или трени
       return `Ваша тренировка перенесена на ${newDateAndTime}  
       Ждем вас! Если возникли вопросы или вы хотите изменить время, напишите нам!`;
     },
-    afterTraining: (date: string) => {
+    afterTrainingWithNextTraining: (date: string) => {
       return `Спасибо, что были с нами сегодня! Не забывайте пить больше воды и берегите себя — вы сегодня потрудились! 
   Ждем вас снова на следующей тренировке: ${date}. 
+  Если что-то беспокоит или есть вопросы, просто напишите — мы всегда рядом!
+  С заботой, 
+  Ваша студия пилатеса `;
+    },
+    afterTraining: () => {
+      return `Спасибо, что были с нами сегодня! Не забывайте пить больше воды и берегите себя — вы сегодня потрудились! 
+  Ждем вас снова на следующей тренировке. 
   Если что-то беспокоит или есть вопросы, просто напишите — мы всегда рядом!
   С заботой, 
   Ваша студия пилатеса `;
@@ -107,56 +139,26 @@ ${firstClientName} приглашает вас на сплит или трени
       Забронируйте место: ${url}. 
       Если возникли вопросы или пожеления, напишите нам!`;
     },
-  },
-  'single-training-booking-for-trainer': (
-    trainingCost: number,
-    date: string,
-    studioName: string,
-    studioAddress: string,
-  ) => {
-    return (
-      `У вас забронировали тренировку в студии пилатеса ${studioName} по адресу ${studioAddress}, в ${date}, стоимость тренировки ${trainingCost} руб.` +
-      '\n'
-    );
-  },
-  subscriptionBooking: (trainerName: string) => {
-    return `Благодарим вас за покупку абонемента на 5 тренировок у тренера ${trainerName}.
-Срок действия абонемента 25 дней с даты покупки.
-По истечению срока абонемента, тренировки сгорают.
-Если возникли вопросы, напишите нам!`;
-  },
-  subscriptionCancellation: (trainerName: string) => {
-    return `Хотим напомнить, срок действия вашего абонемента у тренера ${trainerName} заказчивается через три дня. 
+    subscriptionCancellation: (trainerName: string) => {
+      return `Хотим напомнить, срок действия вашего абонемента у тренера ${trainerName} заказчивается через три дня. 
     По истечению срока абонемента, тренировки сгорают. 
     Если возникли вопросы, напишите нам!`;
+    },
   },
-  'subscription-booking': (
-    trainingsCount: number,
-    subscriptionCost: number,
-    paymentURL: string,
-    date: string,
-    studioName: string,
-    studioAddress: string,
-  ) => {
-    return (
-      `Вы забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса ${studioName} по адресу ${studioAddress}, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
-      '\n' +
-      `Для оплаты и подтверждение перейдите по ссылке: ${paymentURL}` +
-      '\n' +
-      'Отменить или перенести тренировку возможно не менее чем за 12 часов.\n'
-    );
-  },
-  'subscription-booking-for-trainer': (
-    trainingsCount: number,
-    subscriptionCost: number,
-    date: string,
-    studioName: string,
-    studioAddress: string,
-  ) => {
-    return (
-      `У вас забронировали абонемент на ${trainingsCount} тренировок в студию пилатеса ${studioName} по адресу ${studioAddress}, стоимость абонемента ${subscriptionCost} руб. Ваша 1я тренировка из ${trainingsCount} в ${date}.` +
-      '\n'
-    );
+  subscriptionBooking: {
+    viaCashBox: (trainerName: string) => {
+      return `Благодарим вас за покупку абонемента на 5 тренировок у тренера ${trainerName}.
+      Срок действия абонемента 25 дней с даты покупки.
+      По истечению срока абонемента, тренировки сгорают.
+      Если возникли вопросы, напишите нам!`;
+    },
+    viaOnlineService: (trainerName: string, paymentURL: string) => {
+      return `Благодарим вас за бронирование абонемента на 5 тренировок у тренера ${trainerName}, 
+        оплатить его можно по ссылке: ${paymentURL}.
+        Срок действия абонемента 25 дней с даты покупки.
+        По истечению срока абонемента, тренировки сгорают.
+        Если возникли вопросы, напишите нам!`;
+    },
   },
   'subscription-with-first-training-booking': (
     trainingsCount: number,

@@ -13,7 +13,7 @@ import { TrainingCountPerDateRdo } from './rdo/training-count-per-date.rdo';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
-import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
+import { messageTemplates } from '#src/core/wazzup-messaging/templates/message-templates';
 import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
 import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
@@ -27,11 +27,11 @@ import { ClientsService } from '#src/core/clients/clients.service';
 import ms from 'ms';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { CreateSubscriptionDto } from '#src/core/subscriptions/dto/create-subscription.dto';
-import { notificationMessageTemplates } from '#src/core/wazzup-messaging/notification-message-templates';
-import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
-import { Clubs } from '#src/core/clubs/entity/clubs.entity';
-import { Transaction } from '../transactions/entities/transaction.entity';
 import { TrainingTypes } from '#src/core/training-type/types/training-types.enum';
+import { notificationMessageTemplates } from '#src/core/wazzup-messaging/templates/notification-message-templates';
+import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TrainingCreatedEvent } from '#src/core/trainings/payloads/training-created-event.payload';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -51,6 +51,7 @@ export class TrainingsService extends BaseEntityService<
     private readonly trainingRepository: Repository<Training>,
     @InjectRepository(ClubSlots)
     private readonly clubSlotsRepository: Repository<ClubSlots>,
+    private readonly eventEmitter: EventEmitter2,
     private readonly transactionsService: TransactionsService,
     private readonly tariffsService: TariffsService,
     private readonly userService: UserService,
@@ -163,139 +164,6 @@ export class TrainingsService extends BaseEntityService<
     return { trainer, slot, tariff, club };
   }
 
-  private async sendMessagesAfterTrainingCreated(
-    client: UserEntity,
-    trainer: UserEntity,
-    date: Date,
-    slot: ClubSlots,
-    transaction: Transaction,
-    paymentURL: string,
-    club: Clubs,
-  ) {
-    switch (transaction.paidVia) {
-      case TransactionPaidVia.OnlineService:
-        await this.wazzupMessagingService.sendMessage(
-          client.chatType.name,
-          client.phone,
-          messageTemplates.singleTrainingBooking.viaOnlineService(
-            trainer.getNameWithSurname(),
-            club.studio.address,
-            transaction.cost,
-            dateToRecordString(new Date(date), slot.beginning),
-            paymentURL,
-          ),
-        );
-        break;
-      case TransactionPaidVia.CashBox:
-        await this.wazzupMessagingService.sendMessage(
-          client.chatType.name,
-          client.phone,
-          messageTemplates.singleTrainingBooking.viaCashBox(
-            trainer.getNameWithSurname(),
-            club.studio.address,
-            transaction.cost,
-            dateToRecordString(new Date(date), slot.beginning),
-          ),
-        );
-        break;
-    }
-
-    await this.wazzupMessagingService.sendNotificationToOwner(
-      notificationMessageTemplates['single-training-booking'](
-        trainer.name,
-        client.name,
-        ISODateToString(date, false),
-        slot.beginning,
-      ),
-    );
-
-    //TODO: edit add client name
-    await this.wazzupMessagingService.sendMessage(
-      trainer.chatType?.name ?? 'telegram',
-      trainer.phone,
-      messageTemplates['single-training-booking-for-trainer'](
-        transaction.cost,
-        dateToRecordString(date, slot.beginning),
-        club.studio.name,
-        club.studio.address,
-      ),
-    );
-  }
-
-  private async sendMessagesAfterSplitTrainingCreated(
-    client: UserEntity,
-    trainer: UserEntity,
-    date: Date,
-    slot: ClubSlots,
-    transaction: Transaction,
-    paymentURL: string,
-    club: Clubs,
-    clientType: 'creator' | 'invited',
-  ) {
-    switch (transaction.paidVia) {
-      case TransactionPaidVia.OnlineService:
-        if (clientType === 'creator') {
-          await this.wazzupMessagingService.sendMessage(
-            client.chatType.name,
-            client.phone,
-            messageTemplates.splitTrainingBooking.firstClient(
-              trainer.getNameWithSurname(),
-              club.studio.address,
-              transaction.cost,
-              dateToRecordString(new Date(date), slot.beginning),
-              paymentURL,
-            ),
-          );
-        } else {
-          await this.wazzupMessagingService.sendMessage(
-            client.chatType.name,
-            client.phone,
-            messageTemplates.splitTrainingBooking.secondClient(
-              trainer.getNameWithSurname(),
-              club.studio.address,
-              transaction.cost,
-              dateToRecordString(new Date(date), slot.beginning),
-              paymentURL,
-            ),
-          );
-        }
-        break;
-      // case TransactionPaidVia.CashBox:
-      //   await this.wazzupMessagingService.sendMessage(
-      //     client.chatType.name,
-      //     client.phone,
-      //     messageTemplates.singleTrainingBooking.viaCashBox(
-      //       trainer.getNameWithSurname(),
-      //       club.studio.address,
-      //       transaction.cost,
-      //       dateToRecordString(new Date(date), slot.beginning),
-      //     ),
-      //   );
-      //   break;
-    }
-
-    await this.wazzupMessagingService.sendNotificationToOwner(
-      notificationMessageTemplates['single-training-booking'](
-        trainer.name,
-        client.name,
-        ISODateToString(date, false),
-        slot.beginning,
-      ),
-    );
-
-    //TODO: edit add client name
-    await this.wazzupMessagingService.sendMessage(
-      trainer.chatType?.name ?? 'telegram',
-      trainer.phone,
-      messageTemplates['single-training-booking-for-trainer'](
-        transaction.cost,
-        dateToRecordString(date, slot.beginning),
-        club.studio.name,
-        club.studio.address,
-      ),
-    );
-  }
-
   async create(
     createTrainingDto: ICreateTraining,
     trainerId: number,
@@ -343,7 +211,7 @@ export class TrainingsService extends BaseEntityService<
 
     const trainingsIds: number[] = [];
     const existingTrainingsDates = [];
-
+    let firstClient: UserEntity | null;
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i];
       const trainerIds = client.trainers.map((trainer) => trainer.id);
@@ -411,8 +279,13 @@ export class TrainingsService extends BaseEntityService<
 
       trainingsIds.push(training.id);
 
+      this.eventEmitter.emit(
+        'training.created',
+        new TrainingCreatedEvent(training, slot),
+      );
+
       if (tariff.type.name === TrainingTypes.Split) {
-        await this.sendMessagesAfterSplitTrainingCreated(
+        await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
           client,
           trainer,
           training.date,
@@ -421,9 +294,11 @@ export class TrainingsService extends BaseEntityService<
           paymentURL,
           club,
           i === 0 ? 'creator' : 'invited',
+          firstClient,
         );
+        firstClient = i === 0 ? client : null;
       } else {
-        await this.sendMessagesAfterTrainingCreated(
+        await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
           client,
           trainer,
           training.date,
@@ -567,7 +442,7 @@ export class TrainingsService extends BaseEntityService<
       relations: {
         transaction: true,
         client: { chatType: true },
-        trainer: true,
+        trainer: { chatType: true },
         slot: true,
         club: true,
       },
@@ -612,7 +487,7 @@ export class TrainingsService extends BaseEntityService<
         ]);
 
         await this.wazzupMessagingService.sendMessage(
-          chatType as unknown as NormalizedChatType,
+          chatType as NormalizedChatType,
           training.client.phone,
           messageTemplates.notifications.canceled(
             dateToRecordString(training.date, training.slot.beginning),
@@ -630,7 +505,7 @@ export class TrainingsService extends BaseEntityService<
         ]);
 
         await this.wazzupMessagingService.sendMessage(
-          chatType as unknown as NormalizedChatType,
+          chatType as NormalizedChatType,
           training.client.phone,
           messageTemplates.notifications.canceledUnpaid(
             dateToRecordString(training.date, training.slot.beginning),
@@ -646,6 +521,15 @@ export class TrainingsService extends BaseEntityService<
           TransactionExceptions.AlreadyCanceled,
         );
     }
+
+    await this.wazzupMessagingService.sendNotificationToOwner(
+      notificationMessageTemplates['training-cancellation'](
+        training.trainer.getNameWithSurname(),
+        training.client.getNameWithSurname(),
+        ISODateToString(training.date, false),
+        training.slot.beginning,
+      ),
+    );
   }
 
   async cancelRepeatedTraining(id: number, userId: number) {
@@ -751,7 +635,7 @@ export class TrainingsService extends BaseEntityService<
     });
 
     await this.wazzupMessagingService.sendMessage(
-      training.client.chatType.name as unknown as NormalizedChatType,
+      training.client.chatType?.name?.toLowerCase() as NormalizedChatType,
       training.client.phone,
       messageTemplates.notifications.reschedulingTraining(
         dateToRecordString(newTraining.date, newTraining.slot.beginning),

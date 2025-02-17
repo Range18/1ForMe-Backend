@@ -12,14 +12,13 @@ import { TransactionsService } from '#src/core/transactions/transactions.service
 import { TariffsService } from '#src/core/tariffs/tariffs.service';
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
-import { messageTemplates } from '#src/core/wazzup-messaging/message-templates';
 import { StudioSlotsService } from '#src/core/studio-slots/studio-slots.service';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import { ClubsService } from '#src/core/clubs/clubs.service';
 import ms from 'ms';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
-import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -35,7 +34,6 @@ export class SubscriptionsService extends BaseEntityService<
   constructor(
     @InjectRepository(Subscription)
     private readonly subscriptionRepository: Repository<Subscription>,
-    private readonly trainingsService: TrainingsService,
     private readonly userService: UserService,
     private readonly transactionsService: TransactionsService,
     private readonly tariffsService: TariffsService,
@@ -43,6 +41,8 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly wazzupMessagingService: WazzupMessagingService,
     private readonly clubSlotsService: StudioSlotsService,
     private readonly clubsService: ClubsService,
+    private readonly trainingsService: TrainingsService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     super(
       subscriptionRepository,
@@ -167,7 +167,11 @@ export class SubscriptionsService extends BaseEntityService<
 
     const subscription = await this.findOne({
       where: { id: subId },
-      relations: { transaction: { tariff: true } },
+      relations: {
+        transaction: { tariff: true },
+        trainer: { chatType: true },
+        client: { chatType: true },
+      },
     });
 
     await this.trainingsService.createForSubscription(
@@ -199,20 +203,14 @@ export class SubscriptionsService extends BaseEntityService<
       return;
     }
 
-    await this.wazzupMessagingService.sendMessage(
-      client.chatType.name,
-      client.phone,
-      messageTemplates['subscription-booking'](
-        createSubscriptionDto.createTrainingDto.length,
-        transaction.cost,
-        paymentURL,
-        dateToRecordString(
-          createSubscriptionDto.createTrainingDto[0].date,
-          firstTrainingSlot.beginning,
-        ),
-        club.studio.name,
-        club.studio.address,
-      ),
+    if (subscription.expireAt) {
+      this.eventEmitter.emit('subscription.created', subscription);
+    }
+
+    await this.wazzupMessagingService.sendMessageAfterSubscriptionPurchased(
+      subscription,
+      paymentURL,
+      club,
     );
 
     return await this.findOne({

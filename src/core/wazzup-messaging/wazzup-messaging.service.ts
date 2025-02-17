@@ -25,6 +25,16 @@ import { WazzupMessagingSettings } from '#src/core/wazzup-messaging/entities/waz
 import { Repository } from 'typeorm';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { chatTypes } from '#src/core/chat-types/constants/chat-types.constant';
+import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
+import { Transaction } from '#src/core/transactions/entities/transaction.entity';
+import { Clubs } from '#src/core/clubs/entity/clubs.entity';
+import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
+import { messageTemplates } from '#src/core/wazzup-messaging/templates/message-templates';
+import { dateToRecordString } from '#src/common/utilities/format-utc-date.func';
+import { notificationMessageTemplates } from '#src/core/wazzup-messaging/templates/notification-message-templates';
+import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
+import { trainerMessagesTemplates } from '#src/core/wazzup-messaging/templates/trainer-messages-templates';
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import BootstrapExceptions = AllExceptions.BootstrapExceptions;
 
 @Injectable()
@@ -64,6 +74,41 @@ export class WazzupMessagingService
     } catch (err) {
       Logger.error(err);
     }
+  }
+
+  private async connectWebHooks(): Promise<void> {
+    await this.httpClient
+      .patch('webhooks', {
+        webhooksUri: `${backendServer.urlValue}/api/wazzup-messaging/webhooks`,
+        subscriptions: {
+          messagesAndStatuses: true,
+          contactsAndDealsCreation: true,
+          channelsUpdates: false,
+          templateStatus: false,
+        },
+      })
+      .catch((error: AxiosError) => {
+        console.log(error.response.data);
+      });
+  }
+
+  private async fetchChannelsAndCacheIt(): Promise<void> {
+    const channelsResponse = await this.httpClient
+      .get<{ channelId: string; transport: ChatType; state: string }[]>(
+        'channels',
+      )
+      .catch((error: AxiosError) => {
+        throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      });
+
+    channelsResponse.data.forEach((channel) => {
+      if (channel.state !== 'active') {
+        return void (this.messengersChannels[channel.transport] = undefined);
+      }
+      if (channel.transport === 'tgapi') channel.transport = 'telegram';
+
+      this.messengersChannels[channel.transport] = channel.channelId;
+    });
   }
 
   private async getWazzupMessagingSettingsAndCacheIt() {
@@ -153,39 +198,194 @@ export class WazzupMessagingService
       });
   }
 
-  private async fetchChannelsAndCacheIt(): Promise<void> {
-    const channelsResponse = await this.httpClient
-      .get<{ channelId: string; transport: ChatType; state: string }[]>(
-        'channels',
-      )
-      .catch((error: AxiosError) => {
-        throw new HttpException(error, HttpStatus.BAD_REQUEST);
-      });
+  async sendMessagesAfterPersonalTrainingCreated(
+    client: UserEntity,
+    trainer: UserEntity,
+    date: Date,
+    slot: ClubSlots,
+    transaction: Transaction,
+    paymentURL: string,
+    club: Clubs,
+  ) {
+    switch (transaction.paidVia) {
+      case TransactionPaidVia.OnlineService:
+        await this.sendMessage(
+          client.chatType.name,
+          client.phone,
+          messageTemplates.singleTrainingBooking.viaOnlineService(
+            trainer.getNameWithSurname(),
+            club.studio.address,
+            transaction.cost,
+            dateToRecordString(new Date(date), slot.beginning),
+            paymentURL,
+          ),
+        );
+        break;
+      case TransactionPaidVia.CashBox:
+        await this.sendMessage(
+          client.chatType.name,
+          client.phone,
+          messageTemplates.singleTrainingBooking.viaCashBox(
+            trainer.getNameWithSurname(),
+            club.studio.address,
+            transaction.cost,
+            dateToRecordString(new Date(date), slot.beginning),
+          ),
+        );
+        break;
+    }
 
-    channelsResponse.data.forEach((channel) => {
-      if (channel.state !== 'active') {
-        return void (this.messengersChannels[channel.transport] = undefined);
-      }
-      if (channel.transport === 'tgapi') channel.transport = 'telegram';
+    await this.sendNotificationToOwner(
+      notificationMessageTemplates['training-booking'](
+        trainer.name,
+        client.name,
+        ISODateToString(date, false),
+        slot.beginning,
+      ),
+    );
 
-      this.messengersChannels[channel.transport] = channel.channelId;
-    });
+    await this.sendMessage(
+      trainer.chatType?.name ?? 'telegram',
+      trainer.phone,
+      trainerMessagesTemplates['single-training-booking'](
+        client.getNameWithSurname(),
+        transaction.cost,
+        dateToRecordString(date, slot.beginning),
+        club.studio.name,
+        club.studio.address,
+      ),
+    );
   }
 
-  private async connectWebHooks(): Promise<void> {
-    await this.httpClient
-      .patch('webhooks', {
-        webhooksUri: `${backendServer.urlValue}/api/wazzup-messaging/webhooks`,
-        subscriptions: {
-          messagesAndStatuses: true,
-          contactsAndDealsCreation: true,
-          channelsUpdates: false,
-          templateStatus: false,
-        },
-      })
-      .catch((error: AxiosError) => {
-        console.log(error.response.data);
-      });
+  async sendMessagesAfterSplitTrainingCreated(
+    client: UserEntity,
+    trainer: UserEntity,
+    date: Date,
+    slot: ClubSlots,
+    transaction: Transaction,
+    paymentURL: string,
+    club: Clubs,
+    clientType: 'creator' | 'invited',
+    firstClient?: UserEntity,
+  ) {
+    switch (transaction.paidVia) {
+      case TransactionPaidVia.OnlineService:
+        if (clientType === 'creator') {
+          await this.sendMessage(
+            client.chatType.name,
+            client.phone,
+            messageTemplates.splitTrainingBooking.firstClient.viaOnlineService(
+              trainer.getNameWithSurname(),
+              club.studio.address,
+              transaction.cost,
+              dateToRecordString(new Date(date), slot.beginning),
+              paymentURL,
+            ),
+          );
+        } else {
+          await this.sendMessage(
+            client.chatType.name,
+            client.phone,
+            messageTemplates.splitTrainingBooking.secondClient.viaOnlineService(
+              firstClient.getNameWithSurname(),
+              club.studio.address,
+              transaction.cost,
+              dateToRecordString(new Date(date), slot.beginning),
+              paymentURL,
+            ),
+          );
+        }
+        break;
+      case TransactionPaidVia.CashBox:
+        if (clientType === 'creator') {
+          await this.sendMessage(
+            client.chatType.name,
+            client.phone,
+            messageTemplates.splitTrainingBooking.firstClient.viaCashBox(
+              trainer.getNameWithSurname(),
+              club.studio.address,
+              dateToRecordString(new Date(date), slot.beginning),
+            ),
+          );
+        } else {
+          await this.sendMessage(
+            client.chatType.name,
+            client.phone,
+            messageTemplates.splitTrainingBooking.secondClient.viaCashBox(
+              firstClient.getNameWithSurname(),
+              club.studio.address,
+              dateToRecordString(new Date(date), slot.beginning),
+            ),
+          );
+        }
+        break;
+    }
+
+    await this.sendNotificationToOwner(
+      notificationMessageTemplates['training-booking'](
+        trainer.name,
+        client.name,
+        ISODateToString(date, false),
+        slot.beginning,
+      ),
+    );
+
+    await this.sendMessage(
+      trainer.chatType?.name ?? 'telegram',
+      trainer.phone,
+      trainerMessagesTemplates['single-training-booking'](
+        client.getNameWithSurname(),
+        transaction.cost,
+        dateToRecordString(date, slot.beginning),
+        club.studio.name,
+        club.studio.address,
+      ),
+    );
+  }
+
+  async sendMessageAfterSubscriptionPurchased(
+    subscription: Subscription,
+    paymentURL: string,
+    club: Clubs,
+  ) {
+    if (subscription.transaction.paidVia === TransactionPaidVia.CashBox) {
+      await this.sendMessage(
+        subscription.client.chatType?.name ?? 'whatsapp',
+        subscription.client.phone,
+        messageTemplates.subscriptionBooking.viaCashBox(
+          subscription.trainer.getNameWithSurname(),
+        ),
+      );
+    } else {
+      await this.sendMessage(
+        subscription.client.chatType?.name ?? 'whatsapp',
+        subscription.client.phone,
+        messageTemplates.subscriptionBooking.viaOnlineService(
+          subscription.trainer.getNameWithSurname(),
+          paymentURL,
+        ),
+      );
+    }
+
+    await this.sendNotificationToOwner(
+      notificationMessageTemplates['subscription-purchased'](
+        subscription.trainer.getNameWithSurname(),
+        subscription.client.getNameWithSurname(),
+        subscription.transaction.tariff.name,
+      ),
+    );
+
+    await this.sendMessage(
+      subscription.trainer.chatType?.name ?? 'whatsapp',
+      subscription.trainer.phone,
+      trainerMessagesTemplates['subscription-booking'](
+        subscription.client.getNameWithSurname(),
+        subscription.transaction.tariff.trainingAmount,
+        subscription.transaction.cost,
+        club.studio.name,
+        club.studio.address,
+      ),
+    );
   }
 
   async createUser(user: UserEntity): Promise<void> {

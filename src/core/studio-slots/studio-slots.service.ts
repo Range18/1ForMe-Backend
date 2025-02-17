@@ -40,7 +40,6 @@ export class StudioSlotsService extends BaseEntityService<
     private readonly studiosService: StudiosService,
     private readonly clubsService: ClubsService,
     private readonly userService: UserService,
-    private readonly trainingService: TrainingsService,
     private readonly trainerSlotsService: SlotsService,
   ) {
     super(
@@ -251,7 +250,7 @@ export class StudioSlotsService extends BaseEntityService<
       ) &&
       isTimeLTE(addTimeToDate(trainingSlot.endingTime), trainerSlotEndingDate)
     ) {
-      const training = await this.trainingService.findOne(
+      const training = await this.trainingsService.findOne(
         {
           where: {
             date: date,

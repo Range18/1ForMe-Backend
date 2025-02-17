@@ -60,6 +60,10 @@ export namespace AllExceptions {
     NotFound = 'Сущность не найдена',
   }
 
+  export enum NotificationExceptions {
+    NotFound = 'Уведомленеие не найдено',
+  }
+
   export enum TrainingExceptions {
     NotFound = 'Тренировка не найдена',
     ClientsAmountError = 'Тариф подразумевает другое кол-во клиентов',
