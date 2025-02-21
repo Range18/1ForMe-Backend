@@ -34,5 +34,6 @@ import { ClubsModule } from '#src/core/clubs/clubs.module';
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],
+  exports: [SubscriptionsService],
 })
 export class SubscriptionsModule {}

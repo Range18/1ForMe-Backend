@@ -31,6 +31,15 @@ export class UserService extends BaseEntityService<
     );
   }
 
+  async addTrainer(client: UserEntity, trainerId: number) {
+    const trainerIds = client.trainers.map((trainer) => trainer.id);
+
+    if (!trainerIds.includes(trainerId)) {
+      client.trainers.push({ id: trainerId } as UserEntity);
+      await this.save(client);
+    }
+  }
+
   async updateTrainerWithChecks(userId: number, dto: UpdateTrainerDto) {
     await this.updateUserWithChecks(userId, dto);
 

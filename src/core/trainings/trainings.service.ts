@@ -210,16 +210,13 @@ export class TrainingsService extends BaseEntityService<
     );
 
     const trainingsIds: number[] = [];
-    const existingTrainingsDates = [];
+    let existingTrainingsDates: Date[] = [];
     let firstClient: UserEntity | null;
+
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i];
-      const trainerIds = client.trainers.map((trainer) => trainer.id);
 
-      if (!trainerIds.includes(trainer.id)) {
-        client.trainers.push({ id: trainerId } as UserEntity);
-        await this.userService.save(client);
-      }
+      await this.userService.addTrainer(client, trainerId);
       await this.wazzupMessagingService.createContact(client.id, {
         responsibleUserId: trainer.id,
       });
@@ -284,69 +281,47 @@ export class TrainingsService extends BaseEntityService<
         new TrainingCreatedEvent(training, slot),
       );
 
-      if (tariff.type.name === TrainingTypes.Split) {
-        await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
-          client,
-          trainer,
-          training.date,
-          slot,
-          transaction,
-          paymentURL,
-          club,
-          i === 0 ? 'creator' : 'invited',
-          firstClient,
-        );
-        firstClient = i === 0 ? client : null;
-      } else {
-        await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
-          client,
-          trainer,
-          training.date,
-          slot,
-          transaction,
-          paymentURL,
-          club,
-        );
+      try {
+        if (tariff.type.name === TrainingTypes.Split) {
+          await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
+            client,
+            trainer,
+            new Date(training.date),
+            slot,
+            transaction,
+            paymentURL,
+            club,
+            i === 0 ? 'creator' : 'invited',
+            firstClient,
+          );
+          firstClient = i === 0 ? client : null;
+        } else {
+          await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
+            client,
+            trainer,
+            new Date(training.date),
+            slot,
+            transaction,
+            paymentURL,
+            club,
+          );
+        }
+      } catch (error) {
+        await this.removeOne(training);
+        throw error;
       }
 
       if (createTrainingDto.isRepeated) {
-        const dateRange = getDateRange(new Date(createTrainingDto.date), 90);
-
-        for (let i = 7; i < dateRange.length; i += 7) {
-          const existingTraining = await this.findOne(
-            {
-              where: {
-                slot: { id: slot.id },
-                date: dateRange[i]
-                  .toISOString()
-                  .split('T')[0] as unknown as Date,
-                club: { id: createTrainingDto.club },
-                isCanceled: false,
-              },
-              relations: { client: true },
-            },
-            false,
-          );
-
-          if (
-            existingTraining &&
-            !clientIds.includes(existingTraining.client.id)
-          ) {
-            existingTrainingsDates.push(existingTraining.date);
-          } else {
-            const training = await this.save({
-              slot: slot,
-              date: dateRange[i].toISOString().split('T')[0],
-              client: { id: client.id },
-              trainer: { id: trainerId },
-              club: { id: createTrainingDto.club },
-              tariff: tariff,
-              isRepeated: createTrainingDto.isRepeated,
-            });
-
-            trainingsIds.push(training.id);
-          }
-        }
+        existingTrainingsDates = await this.createRepeatedTrainings(
+          new Date(createTrainingDto.date),
+          slot.id,
+          club.id,
+          client.id,
+          trainerId,
+          tariff.id,
+          clientIds,
+          trainingsIds,
+        );
       }
     }
 
@@ -363,6 +338,52 @@ export class TrainingsService extends BaseEntityService<
       }),
       existingTrainingsDates,
     );
+  }
+
+  async createRepeatedTrainings(
+    startDate: Date,
+    slotId: number,
+    clubId: number,
+    clientId: number,
+    trainerId: number,
+    tariffId: number,
+    clientIds: number[],
+    trainingsIds: number[],
+  ) {
+    const dateRange = getDateRange(startDate, 90);
+    const existingTrainingsDates: Date[] = [];
+
+    for (let i = 7; i < dateRange.length; i += 7) {
+      const existingTraining = await this.findOne(
+        {
+          where: {
+            slot: { id: slotId },
+            date: dateRange[i].toISOString().split('T')[0] as unknown as Date,
+            club: { id: clubId },
+            isCanceled: false,
+          },
+          relations: { client: true },
+        },
+        false,
+      );
+
+      if (existingTraining && !clientIds.includes(existingTraining.client.id)) {
+        existingTrainingsDates.push(existingTraining.date);
+      } else {
+        const training = await this.save({
+          slot: { id: slotId },
+          date: dateRange[i].toISOString().split('T')[0],
+          client: { id: clientId },
+          trainer: { id: trainerId },
+          club: { id: clubId },
+          tariff: { id: tariffId },
+          isRepeated: true,
+        });
+
+        trainingsIds.push(training.id);
+      }
+    }
+    return existingTrainingsDates;
   }
 
   async createWithUnknownClients(
@@ -490,7 +511,10 @@ export class TrainingsService extends BaseEntityService<
           chatType as NormalizedChatType,
           training.client.phone,
           messageTemplates.notifications.canceled(
-            dateToRecordString(training.date, training.slot.beginning),
+            dateToRecordString(
+              new Date(training.date),
+              training.slot.beginning,
+            ),
           ),
         );
         break;
@@ -508,7 +532,10 @@ export class TrainingsService extends BaseEntityService<
           chatType as NormalizedChatType,
           training.client.phone,
           messageTemplates.notifications.canceledUnpaid(
-            dateToRecordString(training.date, training.slot.beginning),
+            dateToRecordString(
+              new Date(training.date),
+              training.slot.beginning,
+            ),
           ),
         );
         break;
@@ -526,7 +553,7 @@ export class TrainingsService extends BaseEntityService<
       notificationMessageTemplates['training-cancellation'](
         training.trainer.getNameWithSurname(),
         training.client.getNameWithSurname(),
-        ISODateToString(training.date, false),
+        ISODateToString(new Date(training.date), false),
         training.slot.beginning,
       ),
     );
@@ -638,7 +665,10 @@ export class TrainingsService extends BaseEntityService<
       training.client.chatType?.name?.toLowerCase() as NormalizedChatType,
       training.client.phone,
       messageTemplates.notifications.reschedulingTraining(
-        dateToRecordString(newTraining.date, newTraining.slot.beginning),
+        dateToRecordString(
+          new Date(newTraining.date),
+          newTraining.slot.beginning,
+        ),
       ),
     );
 

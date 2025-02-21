@@ -125,27 +125,6 @@ export class WazzupMessagingService
     }
   }
 
-  async sendNotificationToOwner(message: string) {
-    if (!this.wazzupMessagingSettings) return;
-
-    for (const wazzupMessagingSetting of this.wazzupMessagingSettings) {
-      if (
-        wazzupMessagingSetting.messagingService.name.toLowerCase() ===
-        chatTypes.telegram
-      ) {
-        await this.sendTelegramMessage(
-          wazzupMessagingSetting.notificationPhone,
-          message,
-        );
-      } else {
-        await this.sendWhatsAppMessage(
-          wazzupMessagingSetting.notificationPhone,
-          message,
-        );
-      }
-    }
-  }
-
   async sendMessage(
     chatType: NormalizedChatType,
     userPhone: string,
@@ -198,6 +177,27 @@ export class WazzupMessagingService
       });
   }
 
+  async sendNotificationToOwner(message: string) {
+    if (!this.wazzupMessagingSettings) return;
+
+    for (const wazzupMessagingSetting of this.wazzupMessagingSettings) {
+      if (
+        wazzupMessagingSetting.messagingService.name.toLowerCase() ===
+        chatTypes.telegram
+      ) {
+        await this.sendTelegramMessage(
+          wazzupMessagingSetting.notificationPhone,
+          message,
+        );
+      } else {
+        await this.sendWhatsAppMessage(
+          wazzupMessagingSetting.notificationPhone,
+          message,
+        );
+      }
+    }
+  }
+
   async sendMessagesAfterPersonalTrainingCreated(
     client: UserEntity,
     trainer: UserEntity,
@@ -210,7 +210,7 @@ export class WazzupMessagingService
     switch (transaction.paidVia) {
       case TransactionPaidVia.OnlineService:
         await this.sendMessage(
-          client.chatType.name,
+          client.chatType?.name,
           client.phone,
           messageTemplates.singleTrainingBooking.viaOnlineService(
             trainer.getNameWithSurname(),
@@ -220,6 +220,13 @@ export class WazzupMessagingService
             paymentURL,
           ),
         );
+
+        if (
+          client.chatType &&
+          client.chatType.name.toLowerCase() === chatTypes.whatsapp
+        ) {
+          await this.sendWhatsAppMessage(client.phone, paymentURL);
+        }
         break;
       case TransactionPaidVia.CashBox:
         await this.sendMessage(
@@ -247,7 +254,7 @@ export class WazzupMessagingService
     await this.sendMessage(
       trainer.chatType?.name ?? 'telegram',
       trainer.phone,
-      trainerMessagesTemplates['single-training-booking'](
+      trainerMessagesTemplates['training-booking'](
         client.getNameWithSurname(),
         transaction.cost,
         dateToRecordString(date, slot.beginning),
@@ -272,7 +279,7 @@ export class WazzupMessagingService
       case TransactionPaidVia.OnlineService:
         if (clientType === 'creator') {
           await this.sendMessage(
-            client.chatType.name,
+            client.chatType?.name,
             client.phone,
             messageTemplates.splitTrainingBooking.firstClient.viaOnlineService(
               trainer.getNameWithSurname(),
@@ -284,7 +291,7 @@ export class WazzupMessagingService
           );
         } else {
           await this.sendMessage(
-            client.chatType.name,
+            client.chatType?.name,
             client.phone,
             messageTemplates.splitTrainingBooking.secondClient.viaOnlineService(
               firstClient.getNameWithSurname(),
@@ -294,6 +301,13 @@ export class WazzupMessagingService
               paymentURL,
             ),
           );
+        }
+
+        if (
+          client.chatType &&
+          client.chatType.name.toLowerCase() === chatTypes.whatsapp
+        ) {
+          await this.sendWhatsAppMessage(client.phone, paymentURL);
         }
         break;
       case TransactionPaidVia.CashBox:
@@ -333,7 +347,7 @@ export class WazzupMessagingService
     await this.sendMessage(
       trainer.chatType?.name ?? 'telegram',
       trainer.phone,
-      trainerMessagesTemplates['single-training-booking'](
+      trainerMessagesTemplates['training-booking'](
         client.getNameWithSurname(),
         transaction.cost,
         dateToRecordString(date, slot.beginning),
@@ -365,6 +379,13 @@ export class WazzupMessagingService
           paymentURL,
         ),
       );
+
+      if (
+        subscription.client.chatType &&
+        subscription.client.chatType.name.toLowerCase() === chatTypes.whatsapp
+      ) {
+        await this.sendWhatsAppMessage(subscription.client.phone, paymentURL);
+      }
     }
 
     await this.sendNotificationToOwner(

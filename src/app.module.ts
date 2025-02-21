@@ -26,6 +26,7 @@ import { ChatTypesModule } from '#src/core/chat-types/chat-types.module';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationsModule } from '#src/core/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     ChatTypesModule,
     TinkoffPaymentsModule,
     WazzupMessagingModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
