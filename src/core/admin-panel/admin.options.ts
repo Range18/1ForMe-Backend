@@ -17,6 +17,7 @@ import { Subscription } from '#src/core/subscriptions/entities/subscription.enti
 import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
+import { Notification } from '../notifications/entities/notification.entity';
 
 export const adminOptions = {
   adminJsOptions: {
@@ -40,6 +41,7 @@ export const adminOptions = {
       Slot,
       ClubSlots,
       ChatTypes,
+      Notification,
     ],
   },
   auth: {
