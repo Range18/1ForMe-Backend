@@ -67,6 +67,7 @@ export class Transaction extends BaseEntity {
 
   @OneToOne(() => Training, (training) => training.transaction, {
     nullable: true,
+    onDelete: 'SET NULL',
   })
   training?: Training;
 }
