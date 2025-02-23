@@ -84,15 +84,24 @@ export class TrainingsService extends BaseEntityService<
     slotId: number,
     date: Date,
     clubId: number,
+    trainerId: number,
   ) {
     const existingTraining = await this.findOne(
       {
-        where: {
-          slot: { id: slotId },
-          date: date,
-          club: { id: clubId },
-          isCanceled: false,
-        },
+        where: [
+          {
+            slot: { id: slotId },
+            date: date,
+            club: { id: clubId },
+            isCanceled: false,
+          },
+          {
+            slot: { id: slotId },
+            date: date,
+            isCanceled: false,
+            trainer: { id: trainerId },
+          },
+        ],
       },
       false,
     );
@@ -207,6 +216,7 @@ export class TrainingsService extends BaseEntityService<
       slot.id,
       createTrainingDto.date,
       createTrainingDto.club,
+      trainerId,
     );
 
     const trainingsIds: number[] = [];
@@ -357,12 +367,20 @@ export class TrainingsService extends BaseEntityService<
     for (let i = 7; i < dateRange.length; i += 7) {
       const existingTraining = await this.findOne(
         {
-          where: {
-            slot: { id: slotId },
-            date: dateRange[i].toISOString().split('T')[0] as unknown as Date,
-            club: { id: clubId },
-            isCanceled: false,
-          },
+          where: [
+            {
+              slot: { id: slotId },
+              date: dateRange[i].toISOString().split('T')[0] as unknown as Date,
+              club: { id: clubId },
+              isCanceled: false,
+            },
+            {
+              slot: { id: slotId },
+              date: dateRange[i].toISOString().split('T')[0] as unknown as Date,
+              trainer: { id: trainerId },
+              isCanceled: false,
+            },
+          ],
           relations: { client: true },
         },
         false,
