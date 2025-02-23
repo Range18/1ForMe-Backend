@@ -4,6 +4,7 @@ import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rd
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { GetTrainerRdo } from '#src/core/users/rdo/get-trainer.rdo';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 
 class GetTrainerRdoForSub {
   readonly id: number;
@@ -41,6 +42,8 @@ export class GetSubscriptionRdo {
 
   costForOne: number;
 
+  tariff: GetTariffRdo;
+
   nextTraining: GetTrainingRdo;
 
   finishedTrainingsCount: number;
@@ -61,7 +64,9 @@ export class GetSubscriptionRdo {
     this.trainer = subscription.trainer
       ? new GetUserRdo(subscription.trainer)
       : undefined;
-
+    this.tariff = subscription.transaction?.tariff
+      ? new GetTariffRdo(subscription.transaction.tariff)
+      : undefined;
     this.expireAt = subscription.expireAt;
 
     if (subscription.trainings && subscription.trainings.length > 0) {

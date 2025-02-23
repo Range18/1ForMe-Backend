@@ -58,6 +58,7 @@ export class Transaction extends BaseEntity {
 
   @ManyToOne(() => Tariff, (tariff) => tariff.transactions, {
     nullable: true,
+    eager: true,
   })
   @JoinColumn({ name: 'tariff' })
   tariff: Tariff;

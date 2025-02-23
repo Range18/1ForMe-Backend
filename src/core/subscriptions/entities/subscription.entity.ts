@@ -40,6 +40,7 @@ export class Subscription extends BaseEntity {
   @OneToOne(() => Transaction, (transaction) => transaction.subscription, {
     nullable: false,
     onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinColumn({ name: 'transaction' })
   transaction: Transaction;

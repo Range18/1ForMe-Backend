@@ -35,6 +35,7 @@ export class Training extends BaseEntity {
   @ManyToOne(() => Subscription, (subs) => subs.trainings, {
     nullable: true,
     onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinColumn({ name: 'subscription' })
   subscription?: Subscription;
@@ -69,6 +70,7 @@ export class Training extends BaseEntity {
 
   @ManyToOne(() => Tariff, {
     nullable: true,
+    eager: true,
   })
   @JoinColumn({ name: 'tariffId' })
   tariff?: Tariff;

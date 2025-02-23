@@ -7,6 +7,7 @@ import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rd
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
 import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes.func';
+import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
 
 export class GetTrainingRdo {
   @ApiProperty()
@@ -35,6 +36,8 @@ export class GetTrainingRdo {
 
   subscription?: GetSubscriptionRdo;
 
+  tariff?: GetTariffRdo;
+
   isRepeated: boolean;
 
   @ApiProperty()
@@ -59,6 +62,11 @@ export class GetTrainingRdo {
       ? new GetSubscriptionRdo(training.subscription)
       : undefined;
     this.isRepeated = training.isRepeated;
+    this.tariff = training.tariff
+      ? new GetTariffRdo(training.tariff)
+      : this.subscription?.transaction?.tariff
+      ? new GetTariffRdo(training.subscription.transaction.tariff)
+      : undefined;
 
     const [stHours, stMinutes] = parseHoursMinutes(training.slot.beginning);
     const [endHours, endMinutes] = parseHoursMinutes(training.slot.end);

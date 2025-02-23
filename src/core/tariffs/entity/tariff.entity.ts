@@ -45,6 +45,7 @@ export class Tariff extends BaseEntity {
   @ManyToOne(() => Sport, (sport) => sport.tariffs, {
     nullable: true,
     onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinColumn({ name: 'sport' })
   sport: Sport;
@@ -52,11 +53,15 @@ export class Tariff extends BaseEntity {
   @ManyToOne(() => Category, (category) => category.tariffs, {
     nullable: true,
     onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinColumn({ name: 'category' })
   category?: Category;
 
-  @ManyToOne(() => TrainingType, (type) => type.tariffs, { nullable: true })
+  @ManyToOne(() => TrainingType, (type) => type.tariffs, {
+    nullable: true,
+    eager: true,
+  })
   @JoinColumn({ name: 'type' })
   type?: TrainingType;
 
