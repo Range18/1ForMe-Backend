@@ -113,6 +113,7 @@ export class SubscriptionsController {
         transaction: { tariff: { type: true, sport: true } },
         trainings: { club: true, slot: true },
       },
+      order: { expireAt: 'DESC' },
     });
 
     return subscriptions.map(
