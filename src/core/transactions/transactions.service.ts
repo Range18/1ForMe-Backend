@@ -253,11 +253,6 @@ export class TransactionsService extends BaseEntityService<
 
     let newTransaction: Transaction;
     try {
-      expiredTransaction.training = null;
-      expiredTransaction.subscription = null;
-      expiredTransaction.status = TransactionStatus.Expired;
-      await queryRunner.manager.save(expiredTransaction);
-
       const { id } = await queryRunner.manager.save(Transaction, {
         client: expiredTransaction.client,
         training: expiredTransaction.training,
@@ -266,7 +261,13 @@ export class TransactionsService extends BaseEntityService<
         cost: expiredTransaction.cost,
         paidVia: expiredTransaction.paidVia,
         trainer: expiredTransaction.trainer,
+        createdDate: new Date(),
       });
+
+      expiredTransaction.training = null;
+      expiredTransaction.subscription = null;
+      expiredTransaction.status = TransactionStatus.Expired;
+      await queryRunner.manager.save(expiredTransaction);
 
       newTransaction = await queryRunner.manager.findOne(Transaction, {
         where: { id: id },

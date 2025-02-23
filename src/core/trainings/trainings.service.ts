@@ -251,7 +251,7 @@ export class TrainingsService extends BaseEntityService<
           },
         })
         .catch(async () => {
-          await this.transactionsService.removeOne(transaction);
+          // await this.transactionsService.removeOne(transaction);
           return null;
         });
 
@@ -334,6 +334,7 @@ export class TrainingsService extends BaseEntityService<
           transaction: { tariff: { type: true } },
           club: { city: true },
           slot: true,
+          tariff: true,
         },
       }),
       existingTrainingsDates,
