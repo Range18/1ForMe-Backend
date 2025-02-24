@@ -256,7 +256,6 @@ export class StudioSlotsService extends BaseEntityService<
             date: date,
             isCanceled: false,
             slot: { id: trainingSlot.id },
-            club: { id: trainingSlot.id },
             trainer: { id: trainerSlot.trainer.id },
           },
         },
@@ -264,6 +263,7 @@ export class StudioSlotsService extends BaseEntityService<
       );
       return !training;
     }
+    return false;
   }
 
   private async getAvailableTrainers(
