@@ -102,11 +102,18 @@ export class TrainingsService extends BaseEntityService<
             trainer: { id: trainerId },
           },
         ],
+        relations: { trainer: true },
       },
       false,
     );
 
-    if (existingTraining) {
+    if (existingTraining && existingTraining.trainer.id === trainerId) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainerExceptions',
+        TrainerExceptions.AlreadyWorking,
+      );
+    } else if (existingTraining) {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
         'TrainingExceptions',

@@ -33,6 +33,7 @@ export namespace AllExceptions {
     NotFound = 'Тренер не найден',
     NotAttached = 'Тренер не привязан к клиенту',
     AttachedAlready = 'Тренер уже привязан к клиенту',
+    AlreadyWorking = 'Тренер уже работает в это время',
   }
 
   export enum RolesExceptions {
