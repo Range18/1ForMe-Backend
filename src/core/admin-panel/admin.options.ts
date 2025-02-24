@@ -18,6 +18,7 @@ import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 import { Notification } from '../notifications/entities/notification.entity';
+import { GiftCard } from '#src/core/gift-cards/entities/gift-card.entity';
 
 export const adminOptions = {
   adminJsOptions: {
@@ -42,6 +43,7 @@ export const adminOptions = {
       ClubSlots,
       ChatTypes,
       Notification,
+      GiftCard,
     ],
   },
   auth: {

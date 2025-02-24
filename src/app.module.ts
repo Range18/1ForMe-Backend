@@ -27,6 +27,7 @@ import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-paymen
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationsModule } from '#src/core/notifications/notifications.module';
+import { GiftCardsModule } from '#src/core/gift-cards/gift-cards.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { NotificationsModule } from '#src/core/notifications/notifications.modul
     TinkoffPaymentsModule,
     WazzupMessagingModule,
     NotificationsModule,
+    GiftCardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

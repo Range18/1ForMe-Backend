@@ -11,6 +11,7 @@ import {
   ApiException,
   CustomExceptions,
 } from '#src/common/exception-handler/api-exception';
+import { plainToInstance } from 'class-transformer';
 
 type ExtractTypeOrNever<T, K> = T extends undefined ? never : K;
 
@@ -27,6 +28,7 @@ export interface IBaseEntityService<
   find(options: FindOptions<Entity>, throwError: boolean): Promise<Entity[]>;
 
   save(entities: Entity[]): Promise<Entity[]>;
+
   save(entity: Entity): Promise<Entity>;
 
   updateOne(
@@ -46,6 +48,7 @@ export interface IBaseEntityService<
   ): Promise<void>;
 
   formatToDto(entities: Entity[]): EntityDto[];
+
   formatToDto(entity: Entity): EntityDto;
 }
 
@@ -175,10 +178,6 @@ export abstract class BaseEntityService<
   formatToDto(entities: Entity[]): EntityDto[];
   formatToDto(entity: Entity): EntityDto;
   formatToDto(entity: Entity | Entity[]): EntityDto | EntityDto[] {
-    if (Array.isArray(entity)) {
-      return entity.map((entity) => new this.entityDto(entity));
-    } else {
-      return new this.entityDto(entity);
-    }
+    return plainToInstance(this.entityDto, entity);
   }
 }

@@ -61,6 +61,10 @@ export namespace AllExceptions {
     NotFound = 'Сущность не найдена',
   }
 
+  export enum GiftCardExceptions {
+    NotFound = 'Сертификат не найден',
+  }
+
   export enum NotificationExceptions {
     NotFound = 'Уведомленеие не найдено',
   }
