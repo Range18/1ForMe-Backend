@@ -4,13 +4,10 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 import { GetStudioRdo } from '#src/core/studios/rdo/get-studio.rdo';
 
 export class GetTariffRdo {
-  @ApiProperty()
   readonly id: number;
 
-  @ApiProperty()
   readonly name: string;
 
-  @ApiProperty()
   readonly cost: number;
 
   readonly duration: string;
