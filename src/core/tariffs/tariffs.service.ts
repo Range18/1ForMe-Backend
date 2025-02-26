@@ -54,11 +54,14 @@ export class TariffsService extends BaseEntityService<
       );
     }
 
-    const studiosIds = trainer.studios.map((studio) => studio.id);
+    const studioIdsOrClubId = query.clubId
+      ? []
+      : trainer.studios.map((studio) => studio.id);
 
     const tariffs = await this.find({
       where: {
-        studio: { id: In(studiosIds) },
+        studio: query.clubId ? undefined : { id: In(studioIdsOrClubId) },
+        clubs: query.clubId ? { id: query.clubId } : undefined,
         category: { id: trainer.category.id },
         isForSubscription: query.isForSubscription,
         isPublic: query.isPublic,

@@ -2,6 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -10,6 +12,7 @@ import { BaseEntity } from '#src/common/base.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { City } from '#src/core/city/entity/cities.entity';
 import { Training } from '#src/core/trainings/entities/training.entity';
+import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 
 @Entity('clubs')
 export class Clubs extends BaseEntity {
@@ -40,4 +43,15 @@ export class Clubs extends BaseEntity {
     nullable: true,
   })
   trainings?: Training[];
+
+  @ManyToMany(() => Tariff, (tariff) => tariff.clubs, {
+    nullable: true,
+    eager: true,
+  })
+  @JoinTable({
+    name: 'clubs_tariffs',
+    joinColumn: { name: 'clubId' },
+    inverseJoinColumn: { name: 'tariffId' },
+  })
+  tariffs?: Tariff[];
 }

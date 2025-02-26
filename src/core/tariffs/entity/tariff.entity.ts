@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -12,6 +13,7 @@ import { Sport } from '#src/core/sports/entity/sports.entity';
 import { Category } from '#src/core/categories/entity/categories.entity';
 import { Studio } from '#src/core/studios/entities/studio.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
+import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 
 @Entity('tariffs')
 export class Tariff extends BaseEntity {
@@ -40,7 +42,7 @@ export class Tariff extends BaseEntity {
   transactions?: Transaction[];
 
   @Column({ nullable: true })
-  duration: string;
+  duration?: string;
 
   @ManyToOne(() => Sport, (sport) => sport.tariffs, {
     nullable: true,
@@ -64,6 +66,11 @@ export class Tariff extends BaseEntity {
   })
   @JoinColumn({ name: 'type' })
   type?: TrainingType;
+
+  @ManyToMany(() => Clubs, (club) => club.tariffs, {
+    nullable: true,
+  })
+  clubs?: Clubs[];
 
   //Only for groups, pairs
   @Column({ nullable: true })

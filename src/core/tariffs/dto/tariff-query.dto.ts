@@ -1,7 +1,11 @@
-import { IsOptional } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class TariffQueryDto {
+  @IsNumber()
+  @IsOptional()
+  clubId?: number;
+
   @Transform(({ value }) => value == 'true')
   @IsOptional()
   isForSubscription?: boolean;
