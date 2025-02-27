@@ -58,35 +58,35 @@ export class NotifyClosestTrainingService {
     );
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_4PM)
-  async notifyUnpaidTrainings() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const unpaidTrainings = await this.trainingsService.find({
-      where: {
-        date: tomorrow.toISOString().split('T')[0] as unknown as Date,
-        isCanceled: false,
-        transaction: { status: TransactionStatus.Unpaid },
-      },
-      relations: {
-        transaction: { tariff: true },
-        client: { chatType: true },
-        trainer: { chatType: true },
-        tariff: { type: true },
-        club: { studio: true },
-        slot: true,
-        subscription: { transaction: true },
-      },
-    });
-    if (!unpaidTrainings || unpaidTrainings.length === 0) return;
-
-    await Promise.all(
-      unpaidTrainings.map(
-        async (training) => await this.cancelUnpaidTraining(training),
-      ),
-    );
-  }
+  // @Cron(CronExpression.EVERY_DAY_AT_4PM)
+  // async notifyUnpaidTrainings() {
+  //   const tomorrow = new Date();
+  //   tomorrow.setDate(tomorrow.getDate() + 1);
+  //
+  //   const unpaidTrainings = await this.trainingsService.find({
+  //     where: {
+  //       date: tomorrow.toISOString().split('T')[0] as unknown as Date,
+  //       isCanceled: false,
+  //       transaction: { status: TransactionStatus.Unpaid },
+  //     },
+  //     relations: {
+  //       transaction: { tariff: true },
+  //       client: { chatType: true },
+  //       trainer: { chatType: true },
+  //       tariff: { type: true },
+  //       club: { studio: true },
+  //       slot: true,
+  //       subscription: { transaction: true },
+  //     },
+  //   });
+  //   if (!unpaidTrainings || unpaidTrainings.length === 0) return;
+  //
+  //   await Promise.all(
+  //     unpaidTrainings.map(
+  //       async (training) => await this.cancelUnpaidTraining(training),
+  //     ),
+  //   );
+  // }
 
   private async cancelUnpaidTraining(training: Training) {
     const chatType = training.client?.chatType?.name
