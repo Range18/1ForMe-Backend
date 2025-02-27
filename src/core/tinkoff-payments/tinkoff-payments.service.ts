@@ -23,6 +23,7 @@ import { PaymentStatus } from '#src/core/tinkoff-payments/enums/payment-status.e
 import { TinkoffPaymentEntity } from '#src/core/tinkoff-payments/entities/tinkoff-payment.entity';
 import { CreatePaymentOptions } from '#src/core/tinkoff-payments/types/create-payment-options.interface';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
+import ms from 'ms';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -91,6 +92,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
       tinkoffConfig.notificationURL,
       undefined,
       paymentReceipt,
+      new Date(Date.now() + ms('90d')),
     );
 
     const paymentInitResponse = await this.httpClient.post<PaymentInitRdo>(

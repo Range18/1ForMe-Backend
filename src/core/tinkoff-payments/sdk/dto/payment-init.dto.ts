@@ -37,6 +37,7 @@ export class PaymentInitDto {
     notificationURL?: string,
     data?: Record<string, string>,
     receipt?: ReceiptFFD105Dto,
+    RedirectDueDate?: Date,
   ) {
     this.TerminalKey = terminalKey;
     this.Amount = amount;
@@ -48,5 +49,6 @@ export class PaymentInitDto {
     this.NotificationURL = notificationURL;
     this.DATA = data;
     this.Receipt = receipt;
+    this.RedirectDueDate = RedirectDueDate;
   }
 }
