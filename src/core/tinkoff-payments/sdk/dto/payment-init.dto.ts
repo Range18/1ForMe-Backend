@@ -24,7 +24,7 @@ export class PaymentInitDto {
 
   Receipt?: ReceiptFFD105Dto;
 
-  RedirectDueDate?: Date;
+  RedirectDueDate?: string;
 
   constructor(
     terminalKey: string,
@@ -37,7 +37,7 @@ export class PaymentInitDto {
     notificationURL?: string,
     data?: Record<string, string>,
     receipt?: ReceiptFFD105Dto,
-    RedirectDueDate?: Date,
+    RedirectDueDate?: string,
   ) {
     this.TerminalKey = terminalKey;
     this.Amount = amount;
