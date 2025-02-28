@@ -12,6 +12,7 @@ import { TransactionsService } from '#src/core/transactions/transactions.service
 import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payments.service';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { GiftCardsService } from '../gift-cards/gift-cards.service';
+import { frontendServer } from '#src/common/configs/config';
 import GiftExceptions = AllExceptions.GiftExceptions;
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
@@ -86,6 +87,15 @@ export class GiftsService extends BaseEntityService<
       paidVia: TransactionPaidVia.OnlineService,
     });
 
+    const gift = await this.save({
+      sender,
+      recipient,
+      promoCode: code,
+      message: dto.message,
+      transaction,
+      sendAt: dto.sendAt,
+    });
+
     const paymentURL: string | null = await this.tinkoffPaymentsService
       .createPayment({
         transactionId: transaction.id,
@@ -99,6 +109,7 @@ export class GiftsService extends BaseEntityService<
           name: tariff.name,
           description: `Заказ №${transaction.id}`,
         },
+        successURL: `${frontendServer.url}/creategift/success/${gift.id}`,
       })
       .catch(async () => {
         // await this.transactionsService.removeOne(transaction);
@@ -113,15 +124,6 @@ export class GiftsService extends BaseEntityService<
       );
     }
 
-    const gift = await this.save({
-      sender,
-      recipient,
-      promoCode: code,
-      message: dto.message,
-      transaction,
-      sendAt: dto.sendAt,
-    });
-    console.log(gift);
     const giftRdo = this.formatToDto(gift);
     giftRdo.paymentUrl = paymentURL;
 

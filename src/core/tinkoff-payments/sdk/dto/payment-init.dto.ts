@@ -26,6 +26,8 @@ export class PaymentInitDto {
 
   RedirectDueDate?: string;
 
+  SuccessURL?: string;
+
   constructor(
     terminalKey: string,
     amount: number,
@@ -38,6 +40,7 @@ export class PaymentInitDto {
     data?: Record<string, string>,
     receipt?: ReceiptFFD105Dto,
     RedirectDueDate?: string,
+    SuccessURL?: string,
   ) {
     this.TerminalKey = terminalKey;
     this.Amount = amount;
@@ -50,5 +53,6 @@ export class PaymentInitDto {
     this.DATA = data;
     this.Receipt = receipt;
     this.RedirectDueDate = RedirectDueDate;
+    this.SuccessURL = SuccessURL;
   }
 }

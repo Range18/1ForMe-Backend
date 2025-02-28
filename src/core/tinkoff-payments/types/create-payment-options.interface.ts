@@ -10,4 +10,5 @@ export interface CreatePaymentOptions {
     name: string;
     description: string;
   };
+  successURL?: string;
 }

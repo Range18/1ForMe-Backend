@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { BlockList } from 'node:net';
 import axios from 'axios';
 import { PaymentInitDto } from '#src/core/tinkoff-payments/sdk/dto/payment-init.dto';
@@ -25,6 +25,7 @@ import { CreatePaymentOptions } from '#src/core/tinkoff-payments/types/create-pa
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import ms from 'ms';
 import { formatDateWithGmt } from '#src/common/utilities/format-date-with-gmt.func';
+import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -43,6 +44,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
     @InjectRepository(TinkoffPaymentEntity)
     private readonly tinkoffPaymentsRepository: Repository<TinkoffPaymentEntity>,
     private readonly transactionsService: TransactionsService,
+    private readonly wazzupMessagingService: WazzupMessagingService,
   ) {
     super(
       tinkoffPaymentsRepository,
@@ -94,6 +96,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
       undefined,
       paymentReceipt,
       formatDateWithGmt(new Date(Date.now() + ms('90d'))),
+      createPaymentOptions.successURL,
     );
 
     const paymentInitResponse = await this.httpClient.post<PaymentInitRdo>(
@@ -189,10 +192,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
     ip: string,
     notificationDto: PaymentNotificationDto,
   ): Promise<'OK'> {
-    console.log(ip);
-    console.log(notificationDto);
     if (!this.ipWhitelist.check(ip.replace('::ffff:', ''))) {
-      console.log(2, ip);
       throw new ApiException(
         HttpStatus.FORBIDDEN,
         'PaymentExceptions',
@@ -226,6 +226,21 @@ export class TinkoffPaymentsService extends BaseEntityService<
         paidVia: TransactionPaidVia.OnlineService,
       },
     );
+
+    const transaction = await this.transactionsService.findOne({
+      where: { id: tinkoffPayment.transactionId },
+    });
+
+    // Check if transaction of gift
+    if (
+      !transaction.training &&
+      !transaction.subscription &&
+      !transaction.trainer
+    ) {
+      await this.wazzupMessagingService
+        .sendGiftMessage(transaction.id)
+        .catch(Logger.error);
+    }
 
     return 'OK';
   }
