@@ -8,4 +8,5 @@ export interface ICreateTraining {
   tariff: number;
   isRepeated?: boolean;
   payVia?: TransactionPaidVia;
+  promoCode?: string;
 }

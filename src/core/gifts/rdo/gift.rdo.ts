@@ -1,6 +1,7 @@
 import { GetUserRdo } from '#src/core/users/rdo/get-user.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { Gift } from '../entities/gift.entity';
+import { GiftCardRdo } from '#src/core/gift-cards/rdo/gift-card.rdo';
 
 export class GiftRdo {
   readonly id: string;
@@ -21,6 +22,8 @@ export class GiftRdo {
   message?: string;
 
   sendAt?: Date;
+
+  giftCard: GiftCardRdo;
 
   constructor(gift: Gift, paymentUrl?: string) {
     Object.assign(this, gift);

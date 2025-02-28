@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsString,
   Validate,
 } from 'class-validator';
 import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
@@ -39,4 +40,8 @@ export class CreateTrainingViaClientDto implements ICreateTraining {
   @IsBoolean()
   @IsOptional()
   isRepeated?: boolean;
+
+  @IsString()
+  @IsOptional()
+  promoCode?: string;
 }

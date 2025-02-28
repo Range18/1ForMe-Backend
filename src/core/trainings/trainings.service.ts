@@ -32,6 +32,7 @@ import { notificationMessageTemplates } from '#src/core/wazzup-messaging/templat
 import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TrainingCreatedEvent } from '#src/core/trainings/payloads/training-created-event.payload';
+import { GiftsService } from '#src/core/gifts/gifts.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -40,6 +41,8 @@ import TrainingExceptions = AllExceptions.TrainingExceptions;
 import PermissionExceptions = AllExceptions.PermissionExceptions;
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 import TransactionExceptions = AllExceptions.TransactionExceptions;
+import TariffExceptions = AllExceptions.TariffExceptions;
+import GiftExceptions = AllExceptions.GiftExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -59,6 +62,7 @@ export class TrainingsService extends BaseEntityService<
     private readonly wazzupMessagingService: WazzupMessagingService,
     private readonly clubsService: ClubsService,
     private readonly clientsService: ClientsService,
+    private readonly giftsService: GiftsService,
   ) {
     super(
       trainingRepository,
@@ -358,6 +362,153 @@ export class TrainingsService extends BaseEntityService<
     );
   }
 
+  async createWithPromoCode(
+    createTrainingDto: ICreateTraining,
+    trainerId: number,
+    clientIds: number[],
+  ) {
+    if (
+      createTrainingDto.payVia === TransactionPaidVia.CashBox &&
+      createTrainingDto.isRepeated
+    ) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainingExceptions',
+        TrainingExceptions.RepeatedAndPaidViaCashBox,
+      );
+    }
+
+    const { trainer, slot, tariff, club } =
+      await this.getAllEntitiesForTrainingCreation(
+        trainerId,
+        createTrainingDto,
+      );
+
+    const clients = await this.getClients(clientIds);
+    if (!clients && clients.length == 0) {
+      throw new ApiException(
+        HttpStatus.NOT_FOUND,
+        'UserExceptions',
+        UserExceptions.UserNotFound,
+      );
+    }
+
+    if (tariff.clientsAmount && clients.length !== tariff.clientsAmount) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'TrainingExceptions',
+        TrainingExceptions.ClientsAmountError,
+      );
+    }
+
+    // Gift check section
+    const gift = await this.giftsService.findOne({
+      where: { promoCode: createTrainingDto.promoCode },
+    });
+
+    if (!gift.isActive) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'GiftExceptions',
+        GiftExceptions.NotActive,
+      );
+    }
+
+    if (tariff.id !== gift.transaction.tariff.id) {
+      throw new ApiException(
+        HttpStatus.CONFLICT,
+        'TariffExceptions',
+        TariffExceptions.WrongTariff,
+      );
+    }
+
+    await this.checkIfTrainingExists(
+      slot.id,
+      createTrainingDto.date,
+      createTrainingDto.club,
+      trainerId,
+    );
+
+    const trainingsIds: number[] = [];
+    const existingTrainingsDates: Date[] = [];
+    let firstClient: UserEntity | null;
+
+    for (let i = 0; i < clients.length; i++) {
+      const client = clients[i];
+
+      await this.userService.addTrainer(client, trainerId);
+      await this.wazzupMessagingService.createContact(client.id, {
+        responsibleUserId: trainer.id,
+      });
+
+      await this.transactionsService.updateOne(gift.transaction, {
+        trainer: { id: trainerId },
+      });
+      const transaction = gift.transaction;
+
+      const training = await this.save({
+        slot: slot,
+        date: createTrainingDto.date,
+        client: { id: client.id },
+        trainer: { id: trainerId },
+        club: { id: createTrainingDto.club },
+        transaction: transaction,
+        isRepeated: createTrainingDto.isRepeated,
+        tariff: tariff,
+      });
+
+      trainingsIds.push(training.id);
+
+      this.eventEmitter.emit(
+        'training.created',
+        new TrainingCreatedEvent(training, slot),
+      );
+
+      try {
+        if (tariff.type.name === TrainingTypes.Split) {
+          await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreatedWithPromoCode(
+            client,
+            trainer,
+            new Date(training.date),
+            slot,
+            transaction,
+            club,
+            i === 0 ? 'creator' : 'invited',
+            firstClient,
+          );
+          firstClient = i === 0 ? client : null;
+        } else {
+          await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreatedWithPromoCode(
+            client,
+            trainer,
+            new Date(training.date),
+            slot,
+            transaction,
+            club,
+          );
+        }
+      } catch (error) {
+        await this.removeOne(training);
+        throw error;
+      }
+    }
+
+    return new GetCreatedTrainingsRdo(
+      await this.find({
+        where: { id: In(trainingsIds) },
+        relations: {
+          client: { avatar: true },
+          trainer: { avatar: true },
+          transaction: { tariff: { type: true } },
+          club: { city: true },
+          slot: true,
+          tariff: true,
+        },
+      }),
+      existingTrainingsDates,
+    );
+  }
+
   async createRepeatedTrainings(
     startDate: Date,
     slotId: number,
@@ -420,6 +571,15 @@ export class TrainingsService extends BaseEntityService<
         async (client) => (await this.clientsService.createClient(client)).id,
       ),
     );
+
+    if (createTrainingViaClientDto.promoCode) {
+      return await this.createWithPromoCode(
+        createTrainingViaClientDto,
+        createTrainingViaClientDto.trainerId,
+        clients,
+      );
+    }
+
     return await this.create(
       createTrainingViaClientDto,
       createTrainingViaClientDto.trainerId,

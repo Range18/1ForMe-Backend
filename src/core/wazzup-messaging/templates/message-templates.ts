@@ -33,6 +33,19 @@ export const messageTemplates = {
         `Если возникли вопросы, напишите нам!`
       );
     },
+    viaPromoCode: (
+      trainerName: string,
+      studioAddress: string,
+      date: string,
+    ) => {
+      return (
+        `Вы забронировали тренировку в студии пилатеса 1forme к тренеру ${trainerName} по адресу ${studioAddress}, ${date}.` +
+        '\n' +
+        `Отменить или перенести тренировку возможно не менее чем за 12 часов.` +
+        '\n' +
+        `Если возникли вопросы, напишите нам!`
+      );
+    },
   },
   splitTrainingBooking: {
     firstClient: {
@@ -66,6 +79,19 @@ export const messageTemplates = {
           `Если возникли вопросы, напишите нам!`
         );
       },
+      viaPromoCode: (
+        trainerName: string,
+        studioAddress: string,
+        date: string,
+      ) => {
+        return (
+          `Вы забронировали тренировку в студии пилатеса 1forme к тренеру ${trainerName} по адресу ${studioAddress}, ${date}.` +
+          '\n' +
+          `Отменить или перенести тренировку возможно не менее чем за 12 часов.` +
+          '\n' +
+          `Если возникли вопросы, напишите нам!`
+        );
+      },
     },
     secondClient: {
       viaOnlineService: (
@@ -86,6 +112,19 @@ export const messageTemplates = {
         );
       },
       viaCashBox: (
+        firstClientName: string,
+        studioAddress: string,
+        date: string,
+      ) => {
+        return (
+          `${firstClientName} приглашает вас на сплит или тренировку вдвоём в студии пилатеса 1forme по адресу ${studioAddress}, ${date}.` +
+          '\n' +
+          `Отменить или перенести тренировку возможно не менее чем за 12 часов.` +
+          '\n' +
+          `Если возникли вопросы, напишите нам!`
+        );
+      },
+      viaPromoCode: (
         firstClientName: string,
         studioAddress: string,
         date: string,

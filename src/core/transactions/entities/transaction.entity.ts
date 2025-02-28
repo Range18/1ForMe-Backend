@@ -61,7 +61,7 @@ export class Transaction extends BaseEntity {
     eager: true,
   })
   @JoinColumn({ name: 'tariff' })
-  tariff: Tariff;
+  tariff?: Tariff;
 
   @Column({ nullable: true, type: 'date' })
   createdDate: Date;

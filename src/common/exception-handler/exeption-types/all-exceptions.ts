@@ -14,6 +14,7 @@ export namespace AllExceptions {
 
   export enum TariffExceptions {
     NotFound = 'Тариф не найден',
+    WrongTariff = 'Тариф из промокода не соответствует выбранному тарифу',
   }
 
   export enum SessionExceptions {
@@ -67,6 +68,7 @@ export namespace AllExceptions {
 
   export enum GiftExceptions {
     NotFound = 'Промокод не найден',
+    NotActive = 'Промокод не действителен',
   }
 
   export enum NotificationExceptions {

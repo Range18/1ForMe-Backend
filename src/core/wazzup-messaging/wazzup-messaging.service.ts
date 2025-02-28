@@ -198,6 +198,100 @@ export class WazzupMessagingService
     }
   }
 
+  async sendMessagesAfterPersonalTrainingCreatedWithPromoCode(
+    client: UserEntity,
+    trainer: UserEntity,
+    date: Date,
+    slot: ClubSlots,
+    transaction: Transaction,
+    club: Clubs,
+  ) {
+    await this.sendMessage(
+      client.chatType?.name,
+      client.phone,
+      messageTemplates.singleTrainingBooking.viaPromoCode(
+        trainer.getNameWithSurname(),
+        club.studio.address,
+        dateToRecordString(new Date(date), slot.beginning),
+      ),
+    );
+
+    await this.sendNotificationToOwner(
+      notificationMessageTemplates['training-booking'](
+        trainer.name,
+        client.name,
+        ISODateToString(date, false),
+        slot.beginning,
+      ),
+    );
+
+    await this.sendMessage(
+      trainer.chatType?.name ?? 'telegram',
+      trainer.phone,
+      trainerMessagesTemplates['training-booking'](
+        client.getNameWithSurname(),
+        transaction.cost,
+        dateToRecordString(date, slot.beginning),
+        club.studio.name,
+        club.studio.address,
+      ),
+    );
+  }
+
+  async sendMessagesAfterSplitTrainingCreatedWithPromoCode(
+    client: UserEntity,
+    trainer: UserEntity,
+    date: Date,
+    slot: ClubSlots,
+    transaction: Transaction,
+    club: Clubs,
+    clientType: 'creator' | 'invited',
+    firstClient?: UserEntity,
+  ) {
+    if (clientType === 'creator') {
+      await this.sendMessage(
+        client.chatType?.name,
+        client.phone,
+        messageTemplates.splitTrainingBooking.firstClient.viaPromoCode(
+          trainer.getNameWithSurname(),
+          club.studio.address,
+          dateToRecordString(new Date(date), slot.beginning),
+        ),
+      );
+    } else {
+      await this.sendMessage(
+        client.chatType?.name,
+        client.phone,
+        messageTemplates.splitTrainingBooking.secondClient.viaPromoCode(
+          firstClient.getNameWithSurname(),
+          club.studio.address,
+          dateToRecordString(new Date(date), slot.beginning),
+        ),
+      );
+    }
+
+    await this.sendNotificationToOwner(
+      notificationMessageTemplates['training-booking'](
+        trainer.name,
+        client.name,
+        ISODateToString(date, false),
+        slot.beginning,
+      ),
+    );
+
+    await this.sendMessage(
+      trainer.chatType?.name ?? 'telegram',
+      trainer.phone,
+      trainerMessagesTemplates['training-booking'](
+        client.getNameWithSurname(),
+        transaction.cost,
+        dateToRecordString(date, slot.beginning),
+        club.studio.name,
+        club.studio.address,
+      ),
+    );
+  }
+
   async sendMessagesAfterPersonalTrainingCreated(
     client: UserEntity,
     trainer: UserEntity,

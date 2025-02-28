@@ -17,6 +17,7 @@ import { ClubSlots } from '#src/core/studio-slots/entities/club-slot.entity';
 import { ClubsModule } from '#src/core/clubs/clubs.module';
 import { ClientModule } from '#src/core/clients/clients.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { GiftsModule } from '#src/core/gifts/gifts.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     TinkoffPaymentsModule,
     WazzupMessagingModule,
     ClubsModule,
+    GiftsModule,
   ],
   controllers: [TrainingsController],
   providers: [TrainingsService],

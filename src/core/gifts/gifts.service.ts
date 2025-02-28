@@ -110,6 +110,7 @@ export class GiftsService extends BaseEntityService<
       message: dto.message,
       transaction,
       sendAt: dto.sendAt,
+      giftCard: { id: dto.giftCardId },
     });
 
     const paymentURL: string | null = await this.tinkoffPaymentsService
@@ -153,7 +154,7 @@ export class GiftsService extends BaseEntityService<
       relations: { recipient: { chatType: true } },
     });
 
-    console.log(gift);
+    await this.updateOne(gift, { isActive: true });
 
     await this.wazzupMessagingService
       .sendMessage(
@@ -162,5 +163,14 @@ export class GiftsService extends BaseEntityService<
         giftMessageTemplates.giftPaid(gift.promoCode),
       )
       .catch(Logger.error);
+
+    if (gift.message)
+      await this.wazzupMessagingService
+        .sendMessage(
+          gift.recipient.chatType.name,
+          gift.recipient.phone,
+          gift.message,
+        )
+        .catch(Logger.error);
   }
 }
