@@ -1,5 +1,4 @@
 import { GetTariffRdo } from '#src/core/tariffs/rdo/get-tariff.rdo';
-import { plainToInstance, Transform } from 'class-transformer';
 
 export class GiftCardRdo {
   id: string;
@@ -8,6 +7,7 @@ export class GiftCardRdo {
 
   position: number;
 
-  @Transform(({ value }) => plainToInstance(GetTariffRdo, value))
+  //TODO: Fix 502
+  // @Transform(({ value }) => plainToInstance(GetTariffRdo, value))
   tariff: GetTariffRdo;
 }

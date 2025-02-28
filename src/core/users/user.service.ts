@@ -9,6 +9,8 @@ import { Studio } from '#src/core/studios/entities/studio.entity';
 import { Sport } from '#src/core/sports/entity/sports.entity';
 import { UpdateTrainerDto } from '#src/core/users/dto/update-trainer.dto';
 import { UpdateUserDto } from '#src/core/users/dto/update-user.dto';
+import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
+import { CreateUserForGiftDto } from '#src/core/users/dto/create-user-for-gift.dto';
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
 
@@ -29,6 +31,20 @@ export class UserService extends BaseEntityService<
         UserExceptions.UserNotFound,
       ),
     );
+  }
+
+  async findOrCreate(dto: CreateClientDto | CreateUserForGiftDto) {
+    let user = await this.findOne({ where: { phone: dto.phone } }, false);
+    user ??= await this.save({
+      name: dto.name,
+      phone: dto.phone,
+      userNameInMessenger: dto.userNameInMessenger,
+      chatType: { id: dto.chatType },
+      //TODO
+      role: { id: 2 },
+      password: Math.random().toString(36).slice(-8),
+    });
+    return user;
   }
 
   async addTrainer(client: UserEntity, trainerId: number) {

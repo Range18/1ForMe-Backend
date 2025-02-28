@@ -43,11 +43,11 @@ export class Transaction extends BaseEntity {
   subscription?: Subscription;
 
   @ManyToOne(() => UserEntity, (trainer) => trainer.transactionsFromClients, {
-    nullable: false,
+    nullable: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'trainer' })
-  trainer: UserEntity;
+  trainer?: UserEntity;
 
   @ManyToOne(() => UserEntity, (client) => client.transactions, {
     nullable: false,

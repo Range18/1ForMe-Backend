@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { GiftCardRdo } from '#src/core/gift-cards/rdo/gift-card.rdo';
 
 @ApiTags('Gift cards')
-@Controller('gift-cards')
+@Controller('api/gift-cards')
 export class GiftCardsController {
   constructor(private readonly giftCardsService: GiftCardsService) {}
 

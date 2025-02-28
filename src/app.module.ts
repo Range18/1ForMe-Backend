@@ -28,6 +28,7 @@ import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messagi
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationsModule } from '#src/core/notifications/notifications.module';
 import { GiftCardsModule } from '#src/core/gift-cards/gift-cards.module';
+import { GiftsModule } from '#src/core/gifts/gifts.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { GiftCardsModule } from '#src/core/gift-cards/gift-cards.module';
     WazzupMessagingModule,
     NotificationsModule,
     GiftCardsModule,
+    GiftsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

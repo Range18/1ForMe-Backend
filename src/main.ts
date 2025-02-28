@@ -37,6 +37,9 @@ async function bootstrap() {
   app.enable('trust proxy');
   app.enableShutdownHooks();
 
+  //TODO: uncomment and refactor code
+  // app.setGlobalPrefix('/api', { exclude: ['/swagger'] });
+
   const config = new DocumentBuilder()
     .setTitle('1ForMe')
     .setVersion('0.0.1')
