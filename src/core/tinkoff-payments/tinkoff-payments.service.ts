@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { BlockList } from 'node:net';
 import axios from 'axios';
 import { PaymentInitDto } from '#src/core/tinkoff-payments/sdk/dto/payment-init.dto';
@@ -25,7 +25,7 @@ import { CreatePaymentOptions } from '#src/core/tinkoff-payments/types/create-pa
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import ms from 'ms';
 import { formatDateWithGmt } from '#src/common/utilities/format-date-with-gmt.func';
-import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -44,7 +44,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
     @InjectRepository(TinkoffPaymentEntity)
     private readonly tinkoffPaymentsRepository: Repository<TinkoffPaymentEntity>,
     private readonly transactionsService: TransactionsService,
-    private readonly wazzupMessagingService: WazzupMessagingService,
+    private readonly eventEmitter2: EventEmitter2,
   ) {
     super(
       tinkoffPaymentsRepository,
@@ -231,15 +231,13 @@ export class TinkoffPaymentsService extends BaseEntityService<
       where: { id: tinkoffPayment.transactionId },
     });
 
-    // Check if transaction of gift
+    // Check if gift transaction
     if (
       !transaction.training &&
       !transaction.subscription &&
       !transaction.trainer
     ) {
-      await this.wazzupMessagingService
-        .sendGiftMessage(transaction.id)
-        .catch(Logger.error);
+      this.eventEmitter2.emit('gift.transaction.paid', transaction.id);
     }
 
     return 'OK';

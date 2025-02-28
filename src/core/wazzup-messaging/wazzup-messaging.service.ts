@@ -35,8 +35,6 @@ import { notificationMessageTemplates } from '#src/core/wazzup-messaging/templat
 import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
 import { trainerMessagesTemplates } from '#src/core/wazzup-messaging/templates/trainer-messages-templates';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
-import { GiftsService } from '#src/core/gifts/gifts.service';
-import { giftMessageTemplates } from '#src/core/wazzup-messaging/templates/gift-message-templates';
 import BootstrapExceptions = AllExceptions.BootstrapExceptions;
 
 @Injectable()
@@ -58,7 +56,6 @@ export class WazzupMessagingService
     private readonly userService: UserService,
     @InjectRepository(WazzupMessagingSettings)
     private readonly messagingSettingsRepository: Repository<WazzupMessagingSettings>,
-    private readonly giftsService: GiftsService,
   ) {}
 
   onApplicationBootstrap(): void {
@@ -511,18 +508,5 @@ export class WazzupMessagingService
         messages[0].contact.username ?? user.userNameInMessenger,
       chatId: messages[0].chatId ?? user.chatId,
     });
-  }
-
-  async sendGiftMessage(transactionId: number) {
-    const gift = await this.giftsService.findOne({
-      where: { transaction: { id: transactionId } },
-      relations: { recipient: { chatType: true } },
-    });
-
-    await this.sendMessage(
-      gift.recipient.chatType.name,
-      gift.recipient.phone,
-      giftMessageTemplates.giftPaid(gift.promoCode),
-    );
   }
 }

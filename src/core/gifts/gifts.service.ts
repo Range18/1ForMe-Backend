@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Gift } from './entities/gift.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +13,9 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { GiftCardsService } from '../gift-cards/gift-cards.service';
 import { frontendServer } from '#src/common/configs/config';
+import { OnEvent } from '@nestjs/event-emitter';
+import { giftMessageTemplates } from '#src/core/wazzup-messaging/templates/gift-message-templates';
+import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import GiftExceptions = AllExceptions.GiftExceptions;
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
@@ -28,6 +31,7 @@ export class GiftsService extends BaseEntityService<
     private readonly transactionsService: TransactionsService,
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly giftCardsService: GiftCardsService,
+    private wazzupMessagingService: WazzupMessagingService,
   ) {
     super(
       giftsRepository,
@@ -71,6 +75,18 @@ export class GiftsService extends BaseEntityService<
     const sender = await this.usersService.findOrCreate(dto.sender);
     const recipient = await this.usersService.findOrCreate(dto.recipient);
 
+    await this.usersService.updateOne(recipient, {
+      name: dto.recipient.name,
+      chatType: { id: dto.recipient.chatType },
+      userNameInMessenger: dto.recipient.userNameInMessenger,
+    });
+
+    await this.usersService.updateOne(sender, {
+      name: dto.sender.name,
+      chatType: { id: dto.sender.chatType },
+      userNameInMessenger: dto.sender.userNameInMessenger,
+    });
+
     const giftCard = await this.giftCardsService.findOne({
       where: { id: dto.giftCardId },
     });
@@ -79,7 +95,7 @@ export class GiftsService extends BaseEntityService<
     const code = await this.generateUniquePromoCode();
 
     const transaction = await this.transactionsService.save({
-      client: { id: sender.id },
+      client: { id: recipient.id },
       trainer: null,
       tariff: { id: tariff.id },
       cost: tariff.cost,
@@ -128,5 +144,23 @@ export class GiftsService extends BaseEntityService<
     giftRdo.paymentUrl = paymentURL;
 
     return giftRdo;
+  }
+
+  @OnEvent('gift.transaction.paid')
+  async setMessageTimeToSend(transactionId: number) {
+    const gift = await this.findOne({
+      where: { transaction: { id: transactionId } },
+      relations: { recipient: { chatType: true } },
+    });
+
+    console.log(gift);
+
+    await this.wazzupMessagingService
+      .sendMessage(
+        gift.recipient.chatType.name,
+        gift.recipient.phone,
+        giftMessageTemplates.giftPaid(gift.promoCode),
+      )
+      .catch(Logger.error);
   }
 }

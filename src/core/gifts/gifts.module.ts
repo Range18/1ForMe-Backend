@@ -7,6 +7,7 @@ import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-paymen
 import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { UserModule } from '#src/core/users/user.module';
 import { GiftCardsModule } from '#src/core/gift-cards/gift-cards.module';
+import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { GiftCardsModule } from '#src/core/gift-cards/gift-cards.module';
     TransactionsModule,
     TinkoffPaymentsModule,
     GiftCardsModule,
+    WazzupMessagingModule,
   ],
   controllers: [GiftsController],
   providers: [GiftsService],
