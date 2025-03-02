@@ -41,7 +41,6 @@ import TrainingExceptions = AllExceptions.TrainingExceptions;
 import PermissionExceptions = AllExceptions.PermissionExceptions;
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 import TransactionExceptions = AllExceptions.TransactionExceptions;
-import TariffExceptions = AllExceptions.TariffExceptions;
 import GiftExceptions = AllExceptions.GiftExceptions;
 
 @Injectable()
@@ -414,14 +413,6 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    if (tariff.id !== gift.transaction.tariff.id) {
-      throw new ApiException(
-        HttpStatus.CONFLICT,
-        'TariffExceptions',
-        TariffExceptions.WrongTariff,
-      );
-    }
-
     await this.checkIfTrainingExists(
       slot.id,
       createTrainingDto.date,
@@ -444,6 +435,7 @@ export class TrainingsService extends BaseEntityService<
       await this.transactionsService.updateOne(gift.transaction, {
         trainer: { id: trainerId },
       });
+      await this.giftsService.updateOne(gift, { isActive: false });
       const transaction = gift.transaction;
 
       const training = await this.save({

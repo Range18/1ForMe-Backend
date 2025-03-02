@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Notification } from '#src/core/notifications/entities/notification.entity';
 import { Repository } from 'typeorm';
@@ -7,9 +7,7 @@ import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { NotificationTypes } from '#src/core/notifications/types/notification-types.enum';
-import { TrainingsService } from '#src/core/trainings/trainings.service';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
-import { SubscriptionsService } from '#src/core/subscriptions/subscriptions.service';
 import { parseHoursMinutes } from '#src/common/utilities/parse-hours-minutes.func';
 import { NotificationRelatedEntities } from '#src/core/notifications/types/notification-related-entities.enum';
 import ms from 'ms';
@@ -18,7 +16,13 @@ import { Training } from '#src/core/trainings/entities/training.entity';
 import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TrainingCreatedEvent } from '#src/core/trainings/payloads/training-created-event.payload';
+import { Gift } from '#src/core/gifts/entities/gift.entity';
+import { GiftsService } from '#src/core/gifts/gifts.service';
+import { giftMessageTemplates } from '#src/core/wazzup-messaging/templates/gift-message-templates';
+import lt from 'long-timeout';
+import console from 'node:console';
 import NotificationExceptions = AllExceptions.NotificationExceptions;
+import GiftExceptions = AllExceptions.GiftExceptions;
 
 @Injectable()
 export class NotificationsService
@@ -30,8 +34,7 @@ export class NotificationsService
     private readonly notificationRepository: Repository<Notification>,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly wazzupMessagingService: WazzupMessagingService,
-    private readonly subscriptionsService: SubscriptionsService,
-    private readonly trainingsService: TrainingsService,
+    private readonly giftsService: GiftsService,
   ) {
     super(
       notificationRepository,
@@ -93,7 +96,108 @@ export class NotificationsService
     }
   }
 
+  @OnEvent('gift.set-message-timeout')
+  async setNotificationsForGift(gift: Gift): Promise<void> {
+    if (gift.sendAt) {
+      const notification = await this.save({
+        relatedEntity: NotificationRelatedEntities.Gift,
+        relatedEntityId: gift.id,
+        notificationType: NotificationTypes.Gift,
+        time: new Date(gift.sendAt),
+      });
+
+      await this.setTimeoutForGiftNotification(gift, notification);
+    } else {
+      await this.wazzupMessagingService
+        .sendMessage(
+          gift.recipient?.chatType?.name ?? 'whatsapp',
+          gift.recipient.phone,
+          giftMessageTemplates.giftPaid(gift.promoCode),
+        )
+        .catch(Logger.error);
+
+      if (gift.message)
+        await this.wazzupMessagingService
+          .sendMessage(
+            gift.recipient?.chatType?.name ?? 'whatsapp',
+            gift.recipient.phone,
+            gift.message,
+          )
+          .catch(Logger.error);
+    }
+  }
+
+  async setTimeoutForGiftNotification(
+    gift: Gift,
+    notification: Notification,
+  ): Promise<void> {
+    const defaultMessageTimeout = lt.setTimeout(
+      () =>
+        this.wazzupMessagingService
+          .sendMessage(
+            gift.recipient.chatType.name ?? 'whatsapp',
+            gift.recipient.phone,
+            giftMessageTemplates.giftPaid(gift.promoCode),
+          )
+          .catch(Logger.error),
+      new Date(notification.time).getTime() - Date.now() - ms('5h'),
+    );
+
+    console.log(notification.time);
+    console.log(new Date(notification.time).getTime() - Date.now() - ms('5h'));
+
+    const customMessageTimeout = lt.setTimeout(() => {
+      this.wazzupMessagingService
+        .sendMessage(
+          gift.recipient.chatType.name ?? 'whatsapp',
+          gift.recipient.phone,
+          gift.message,
+        )
+        .catch(Logger.error);
+      console.log('custom ');
+    }, new Date(notification.time).getTime() - Date.now() - ms('5h'));
+    this.schedulerRegistry.addTimeout(
+      `Gift Default Notification #${notification.id}`,
+      defaultMessageTimeout,
+    );
+
+    this.schedulerRegistry.addTimeout(
+      `Gift Custom Notification #${notification.id}`,
+      customMessageTimeout,
+    );
+  }
+
   async onModuleInit(): Promise<void> {
+    const notifications = await this.find({}, false);
+
+    console.log(notifications.length);
+
+    for (const notification of notifications) {
+      if (notification.notificationType != NotificationTypes.Gift) continue;
+      if (new Date(notification.time).getTime() - Date.now() - ms('5h') < 0)
+        continue;
+      console.log(
+        new Date(notification.time).getTime() - Date.now() - ms('5h'),
+      );
+
+      const gift = await this.giftsService.findOne(
+        {
+          where: { id: notification.relatedEntityId },
+          relations: { recipient: { chatType: true } },
+        },
+        false,
+      );
+      if (!gift) {
+        Logger.error(GiftExceptions.NotFound, notification.relatedEntityId);
+        continue;
+      }
+      try {
+        await this.setTimeoutForGiftNotification(gift, notification);
+      } catch (err) {
+        Logger.error(err);
+      }
+    }
+
     // const notifications = await this.find(
     //   {
     //     where: { time: MoreThanOrEqual(new Date()) },

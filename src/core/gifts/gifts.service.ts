@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Gift } from './entities/gift.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,9 +13,7 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { GiftCardsService } from '../gift-cards/gift-cards.service';
 import { frontendServer } from '#src/common/configs/config';
-import { OnEvent } from '@nestjs/event-emitter';
-import { giftMessageTemplates } from '#src/core/wazzup-messaging/templates/gift-message-templates';
-import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import GiftExceptions = AllExceptions.GiftExceptions;
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
@@ -31,7 +29,7 @@ export class GiftsService extends BaseEntityService<
     private readonly transactionsService: TransactionsService,
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly giftCardsService: GiftCardsService,
-    private wazzupMessagingService: WazzupMessagingService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     super(
       giftsRepository,
@@ -156,21 +154,6 @@ export class GiftsService extends BaseEntityService<
 
     await this.updateOne(gift, { isActive: true });
 
-    await this.wazzupMessagingService
-      .sendMessage(
-        gift.recipient.chatType.name,
-        gift.recipient.phone,
-        giftMessageTemplates.giftPaid(gift.promoCode),
-      )
-      .catch(Logger.error);
-
-    if (gift.message)
-      await this.wazzupMessagingService
-        .sendMessage(
-          gift.recipient.chatType.name,
-          gift.recipient.phone,
-          gift.message,
-        )
-        .catch(Logger.error);
+    this.eventEmitter.emit('gift.set-message-timeout', gift);
   }
 }

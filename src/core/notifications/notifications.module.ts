@@ -9,6 +9,7 @@ import { NotifyClosestTrainingService } from '#src/core/notifications/notify-clo
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { TransactionsModule } from '#src/core/transactions/transactions.module';
 import { UserModule } from '#src/core/users/user.module';
+import { GiftsModule } from '#src/core/gifts/gifts.module';
 
 // import { NotifyDisloyalClientsService } from '#src/core/notifications/notify-disloyal-clients.service';
 
@@ -21,6 +22,7 @@ import { UserModule } from '#src/core/users/user.module';
     TinkoffPaymentsModule,
     TransactionsModule,
     UserModule,
+    GiftsModule,
   ],
   providers: [
     NotificationsService,
@@ -29,4 +31,5 @@ import { UserModule } from '#src/core/users/user.module';
   ],
   exports: [NotificationsService],
 })
-export class NotificationsModule {}
+export class NotificationsModule {
+}
