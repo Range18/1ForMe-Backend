@@ -2,6 +2,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Post,
   Res,
@@ -33,6 +34,7 @@ export class AssetsController {
     return new GetFileRdo(await this.assetsService.upload(file, user.id));
   }
 
+  @Header('Cache-Control', 'public, max-age=604800, immutable')
   @Get('assets/:id/file')
   async GetImageStream(
     @Res({ passthrough: true }) res: Response,
