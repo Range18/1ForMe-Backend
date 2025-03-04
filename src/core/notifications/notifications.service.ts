@@ -21,6 +21,7 @@ import { GiftsService } from '#src/core/gifts/gifts.service';
 import { giftMessageTemplates } from '#src/core/wazzup-messaging/templates/gift-message-templates';
 import lt from 'long-timeout';
 import console from 'node:console';
+import { notificationMessageTemplates } from '#src/core/wazzup-messaging/templates/notification-message-templates';
 import NotificationExceptions = AllExceptions.NotificationExceptions;
 import GiftExceptions = AllExceptions.GiftExceptions;
 
@@ -94,6 +95,16 @@ export class NotificationsService
         time: new Date(new Date(subscription.expireAt).getTime() - ms('3d')),
       });
     }
+  }
+
+  @OnEvent('gift.send-message-to-owners')
+  async sendMessagesToOwnersAboutGift(gift: Gift): Promise<void> {
+    await this.wazzupMessagingService.sendNotificationToOwner(
+      notificationMessageTemplates['gift-purchase'](
+        gift.transaction.cost,
+        gift.sender.name,
+      ),
+    );
   }
 
   @OnEvent('gift.set-message-timeout')

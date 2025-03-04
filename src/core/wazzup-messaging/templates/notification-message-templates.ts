@@ -29,4 +29,7 @@ export const notificationMessageTemplates = {
   ) => {
     return `${trainerName}, отмена абонемента по тарифу ${tariffName} , клиент ${clientName}`;
   },
+  'gift-purchase': (cost: number, clientName: string) => {
+    return `${clientName}, приобрёл сертификат на сумму ${cost}`;
+  },
 };

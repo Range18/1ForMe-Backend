@@ -155,5 +155,6 @@ export class GiftsService extends BaseEntityService<
     await this.updateOne(gift, { isActive: true });
 
     this.eventEmitter.emit('gift.set-message-timeout', gift);
+    this.eventEmitter.emit('gift.send-message-to-owners', gift);
   }
 }
