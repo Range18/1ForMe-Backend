@@ -262,22 +262,9 @@ export class TrainingsController {
     @User() user: UserRequest,
   ): Promise<GetTrainingRdo> {
     const training = await this.trainingsService.updateOneWithMsg(
-      {
-        where: { id, trainer: { id: user.id } },
-        relations: {
-          trainer: true,
-          club: { city: true },
-          transaction: { tariff: { sport: true, type: true } },
-          subscription: { transaction: { tariff: { sport: true } } },
-          slot: true,
-          client: { chatType: true },
-        },
-      },
-      {
-        club: { id: updateTrainingDto.club },
-        slot: { id: updateTrainingDto.slot },
-        date: updateTrainingDto.date,
-      },
+      id,
+      user.id,
+      updateTrainingDto,
     );
 
     return new GetTrainingRdo(training);

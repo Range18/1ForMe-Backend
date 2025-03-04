@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, FindOneOptions, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { BaseEntityService } from '#src/common/base-entity.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
@@ -33,6 +33,7 @@ import { ISODateToString } from '#src/common/utilities/iso-date-to-string.func';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TrainingCreatedEvent } from '#src/core/trainings/payloads/training-created-event.payload';
 import { GiftsService } from '#src/core/gifts/gifts.service';
+import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -814,29 +815,45 @@ export class TrainingsService extends BaseEntityService<
   }
 
   async updateOneWithMsg(
-    optionsOrEntity: FindOneOptions<Training>,
-    toUpdate: DeepPartial<Training>,
-    throwError = true,
+    id: number,
+    trainerId: number,
+    dto: UpdateTrainingDto,
   ) {
-    const training = await this.findOne(optionsOrEntity);
+    const training = await this.findOne({
+      where: { id: id },
+      relations: {
+        trainer: true,
+        club: { city: true },
+        transaction: { tariff: { sport: true, type: true } },
+        subscription: { transaction: { tariff: { sport: true } } },
+        slot: true,
+        client: { chatType: true },
+      },
+    });
 
-    if (
-      training.date == toUpdate.date &&
-      training.slot.id == toUpdate.slot.id &&
-      training.club.id == toUpdate.club?.id
-    ) {
-      throw new ApiException(
-        HttpStatus.CONFLICT,
-        'TrainingExceptions',
-        TrainingExceptions.TrainingAlreadyExists,
-      );
-    }
+    await this.checkIfTrainingExists(
+      dto.slot ?? training.slot.id,
+      dto.date ?? training.date,
+      dto.club ?? training.club.id,
+      trainerId,
+    );
 
-    await super.updateOne(training, toUpdate, throwError);
+    await super.updateOne(
+      training,
+      { slot: { id: dto.slot }, club: { id: dto.club }, date: dto.date },
+      true,
+    );
 
     const newTraining = await this.findOne({
       where: { id: training.id },
-      relations: { slot: true },
+      relations: {
+        trainer: true,
+        club: { city: true },
+        transaction: { tariff: { sport: true, type: true } },
+        subscription: { transaction: { tariff: { sport: true } } },
+        slot: true,
+        client: { chatType: true },
+      },
     });
 
     await this.wazzupMessagingService.sendMessage(
