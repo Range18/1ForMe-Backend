@@ -12,7 +12,6 @@ import { ChatTypesService } from '#src/core/chat-types/chat-types.service';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { WazzupWebhooksDto } from '#src/core/wazzup-messaging/dto/wazzup-webhooks.dto';
 import { type Response } from 'express';
-import console from 'node:console';
 
 @Controller('api/wazzup-messaging')
 export class WazzupMessagingController {
@@ -29,6 +28,6 @@ export class WazzupMessagingController {
     @Res({ passthrough: true }) res: Response,
     @Body() body: WazzupWebhooksDto,
   ) {
-    console.log(body);
+    // console.log(body);
   }
 }

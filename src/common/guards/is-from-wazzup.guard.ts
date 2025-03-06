@@ -3,7 +3,6 @@ import { Request } from 'express';
 import { ApiException } from '#src/common/exception-handler/api-exception';
 import { AllExceptions } from '#src/common/exception-handler/exeption-types/all-exceptions';
 import { wazzupConfig } from '#src/common/configs/wazzup.config';
-import console from 'node:console';
 import AuthExceptions = AllExceptions.AuthExceptions;
 
 export class IsFromWazzupGuardClass implements CanActivate {

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TrainingsService } from '#src/core/trainings/trainings.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import console from 'node:console';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 import { messageTemplates } from '#src/core/wazzup-messaging/templates/message-templates';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';

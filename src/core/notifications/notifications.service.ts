@@ -20,7 +20,6 @@ import { Gift } from '#src/core/gifts/entities/gift.entity';
 import { GiftsService } from '#src/core/gifts/gifts.service';
 import { giftMessageTemplates } from '#src/core/wazzup-messaging/templates/gift-message-templates';
 import lt from 'long-timeout';
-import console from 'node:console';
 import { notificationMessageTemplates } from '#src/core/wazzup-messaging/templates/notification-message-templates';
 import NotificationExceptions = AllExceptions.NotificationExceptions;
 import GiftExceptions = AllExceptions.GiftExceptions;
@@ -154,9 +153,6 @@ export class NotificationsService
       new Date(notification.time).getTime() - Date.now() - ms('5h'),
     );
 
-    console.log(notification.time);
-    console.log(new Date(notification.time).getTime() - Date.now() - ms('5h'));
-
     const customMessageTimeout = lt.setTimeout(() => {
       this.wazzupMessagingService
         .sendMessage(
@@ -165,7 +161,6 @@ export class NotificationsService
           gift.message,
         )
         .catch(Logger.error);
-      console.log('custom ');
     }, new Date(notification.time).getTime() - Date.now() - ms('5h'));
     this.schedulerRegistry.addTimeout(
       `Gift Default Notification #${notification.id}`,
@@ -181,15 +176,10 @@ export class NotificationsService
   async onModuleInit(): Promise<void> {
     const notifications = await this.find({}, false);
 
-    console.log(notifications.length);
-
     for (const notification of notifications) {
       if (notification.notificationType != NotificationTypes.Gift) continue;
       if (new Date(notification.time).getTime() - Date.now() - ms('5h') < 0)
         continue;
-      console.log(
-        new Date(notification.time).getTime() - Date.now() - ms('5h'),
-      );
 
       const gift = await this.giftsService.findOne(
         {

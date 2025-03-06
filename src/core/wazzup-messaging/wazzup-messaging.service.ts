@@ -16,7 +16,6 @@ import {
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import { WazzupContactRdo } from '#src/core/wazzup-messaging/rdo/wazzup-contact.rdo';
 import { backendServer } from '#src/common/configs/config';
-import console from 'node:console';
 import { WazzupMessageDto } from '#src/core/wazzup-messaging/dto/wazzup-message.dto';
 import { UserService } from '#src/core/users/user.service';
 import { WazzupWebhooksDto } from '#src/core/wazzup-messaging/dto/wazzup-webhooks.dto';

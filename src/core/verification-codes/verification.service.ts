@@ -9,7 +9,6 @@ import { UserService } from '#src/core/users/user.service';
 import { UserEntity } from '#src/core/users/entity/user.entity';
 import axios from 'axios';
 import { smsServiceConfig } from '#src/common/configs/sms.config';
-import * as console from 'console';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import AuthExceptions = AllExceptions.AuthExceptions;
 

@@ -11,7 +11,6 @@ import { GetAnalyticsRdo } from '#src/core/transactions/rdo/get-analytics.rdo';
 import { GetTransactionRdo } from '#src/core/transactions/rdo/get-transaction.rdo';
 import { UserService } from '#src/core/users/user.service';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
-import console from 'node:console';
 import TrainerExceptions = AllExceptions.TrainerExceptions;
 import TransactionExceptions = AllExceptions.TransactionExceptions;
 
@@ -188,9 +187,7 @@ export class TransactionsService extends BaseEntityService<
       );
     }
 
-    const rawResults = await query.getRawMany();
-    console.log(rawResults);
-    return rawResults;
+    return await query.getRawMany();
   }
 
   async getTransactionsPerDay(
