@@ -34,6 +34,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TrainingCreatedEvent } from '#src/core/trainings/payloads/training-created-event.payload';
 import { GiftsService } from '#src/core/gifts/gifts.service';
 import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
+import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -75,13 +76,16 @@ export class TrainingsService extends BaseEntityService<
   }
 
   private async getClients(clientIds: number[]) {
-    return await this.userService.find({
+    const clients = await this.userService.find({
       where: { id: In(clientIds) },
       relations: {
         trainers: true,
         chatType: true,
       },
     });
+
+    const clientMap = new Map(clients.map((client) => [client.id, client]));
+    return clientIds.map((id) => clientMap.get(id)).filter(Boolean);
   }
 
   private async checkIfTrainingExists(
@@ -232,7 +236,8 @@ export class TrainingsService extends BaseEntityService<
 
     const trainingsIds: number[] = [];
     let existingTrainingsDates: Date[] = [];
-    let firstClient: UserEntity | null;
+    let firstClient: UserEntity | undefined;
+    let relatedTransaction: Transaction | undefined;
 
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i];
@@ -246,42 +251,52 @@ export class TrainingsService extends BaseEntityService<
         client: { id: client.id },
         trainer: { id: trainerId },
         tariff: tariff,
-        cost: tariff.clientsAmount
-          ? tariff.cost / tariff.clientsAmount
-          : tariff.cost,
+        cost: createTrainingDto.isPaymentForTwo
+          ? !firstClient
+            ? tariff.cost
+            : 0
+          : tariff.cost / tariff.clientsAmount,
         createdDate: new Date(),
         status:
           createTrainingDto.payVia === TransactionPaidVia.CashBox
             ? TransactionStatus.Paid
             : TransactionStatus.Unpaid,
         paidVia: createTrainingDto.payVia,
+        relatedTransaction: relatedTransaction,
       });
 
-      const paymentURL: string | null = await this.tinkoffPaymentsService
-        .createPayment({
-          transactionId: transaction.id,
-          amount: transaction.cost,
-          quantity: 1,
-          user: {
-            id: client.id,
-            phone: client.phone,
-          },
-          metadata: {
-            name: tariff.name,
-            description: `Заказ №${transaction.id}`,
-          },
-        })
-        .catch(async () => {
-          // await this.transactionsService.removeOne(transaction);
-          return null;
-        });
+      relatedTransaction ??= transaction;
 
-      if (!paymentURL) {
-        throw new ApiException(
-          HttpStatus.BAD_REQUEST,
-          'PaymentExceptions',
-          PaymentExceptions.FailedToCreatePayment,
-        );
+      let paymentURL: string | undefined;
+      if (!createTrainingDto.isPaymentForTwo || !firstClient) {
+        paymentURL = await this.tinkoffPaymentsService
+          .createPayment({
+            transactionId: transaction.id,
+            amount: transaction.cost,
+            quantity: 1,
+            user: {
+              id: client.id,
+              phone: client.phone,
+            },
+            metadata: {
+              name: tariff.name,
+              description: `Заказ №${transaction.id}`,
+            },
+          })
+          .catch(async () => {
+            // await this.transactionsService.removeOne(transaction);
+            return null;
+          });
+
+        if (!paymentURL) {
+          throw new ApiException(
+            HttpStatus.BAD_REQUEST,
+            'PaymentExceptions',
+            PaymentExceptions.FailedToCreatePayment,
+          );
+        }
+
+        firstClient ??= client;
       }
 
       const training = await this.save({
@@ -313,9 +328,9 @@ export class TrainingsService extends BaseEntityService<
             paymentURL,
             club,
             i === 0 ? 'creator' : 'invited',
+            createTrainingDto.isPaymentForTwo,
             firstClient,
           );
-          firstClient = i === 0 ? client : null;
         } else {
           await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
             client,
@@ -367,17 +382,6 @@ export class TrainingsService extends BaseEntityService<
     trainerId: number,
     clientIds: number[],
   ) {
-    if (
-      createTrainingDto.payVia === TransactionPaidVia.CashBox &&
-      createTrainingDto.isRepeated
-    ) {
-      throw new ApiException(
-        HttpStatus.BAD_REQUEST,
-        'TrainingExceptions',
-        TrainingExceptions.RepeatedAndPaidViaCashBox,
-      );
-    }
-
     const { trainer, slot, tariff, club } =
       await this.getAllEntitiesForTrainingCreation(
         trainerId,
@@ -677,55 +681,66 @@ export class TrainingsService extends BaseEntityService<
       ? training.client.chatType.name.toLowerCase()
       : 'whatsapp';
 
-    switch (training.transaction.status) {
-      case TransactionStatus.Paid:
-        await Promise.all([
-          this.tinkoffPaymentsService.cancelOrRefundPayment(
-            training.transaction.id,
-          ),
-          this.updateOne(training, { isCanceled: true }),
-        ]);
-
-        await this.wazzupMessagingService.sendMessage(
-          chatType as NormalizedChatType,
-          training.client.phone,
-          messageTemplates.notifications.canceled(
-            dateToRecordString(
-              new Date(training.date),
-              training.slot.beginning,
+    if (training.transaction) {
+      switch (training.transaction.status) {
+        case TransactionStatus.Paid:
+          await Promise.all([
+            this.tinkoffPaymentsService.cancelOrRefundPayment(
+              training.transaction.id,
             ),
-          ),
-        );
-        break;
+            this.updateOne(training, { isCanceled: true }),
+          ]);
 
-      case TransactionStatus.Unpaid:
-      case TransactionStatus.Expired:
-        await Promise.all([
-          this.transactionsService.updateOne(training.transaction, {
-            status: TransactionStatus.Canceled,
-          }),
-          this.updateOne(training, { isCanceled: true }),
-        ]);
-
-        await this.wazzupMessagingService.sendMessage(
-          chatType as NormalizedChatType,
-          training.client.phone,
-          messageTemplates.notifications.canceledUnpaid(
-            dateToRecordString(
-              new Date(training.date),
-              training.slot.beginning,
+          await this.wazzupMessagingService.sendMessage(
+            chatType as NormalizedChatType,
+            training.client.phone,
+            messageTemplates.notifications.canceled(
+              dateToRecordString(
+                new Date(training.date),
+                training.slot.beginning,
+              ),
             ),
-          ),
-        );
-        break;
+          );
+          break;
 
-      default:
-        await this.updateOne(training, { isCanceled: true });
-        throw new ApiException(
-          HttpStatus.BAD_REQUEST,
-          'TransactionExceptions',
-          TransactionExceptions.AlreadyCanceled,
-        );
+        case TransactionStatus.Unpaid:
+        case TransactionStatus.Expired:
+          await Promise.all([
+            this.transactionsService.updateOne(training.transaction, {
+              status: TransactionStatus.Canceled,
+            }),
+            this.updateOne(training, { isCanceled: true }),
+          ]);
+
+          await this.wazzupMessagingService.sendMessage(
+            chatType as NormalizedChatType,
+            training.client.phone,
+            messageTemplates.notifications.canceledUnpaid(
+              dateToRecordString(
+                new Date(training.date),
+                training.slot.beginning,
+              ),
+            ),
+          );
+          break;
+
+        default:
+          await this.updateOne(training, { isCanceled: true });
+          throw new ApiException(
+            HttpStatus.BAD_REQUEST,
+            'TransactionExceptions',
+            TransactionExceptions.AlreadyCanceled,
+          );
+      }
+    } else {
+      await this.updateOne(training, { isCanceled: true });
+      await this.wazzupMessagingService.sendMessage(
+        chatType as NormalizedChatType,
+        training.client.phone,
+        messageTemplates.notifications.canceled(
+          dateToRecordString(new Date(training.date), training.slot.beginning),
+        ),
+      );
     }
 
     await this.wazzupMessagingService.sendNotificationToOwner(

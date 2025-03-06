@@ -219,6 +219,11 @@ export class TinkoffPaymentsService extends BaseEntityService<
       where: { paymentId: notificationDto.PaymentId.toString() },
     });
 
+    const transaction = await this.transactionsService.findOne({
+      where: { id: tinkoffPayment.transactionId },
+      relations: { relatedTransaction: true },
+    });
+
     await this.transactionsService.updateOne(
       { where: { id: tinkoffPayment.transactionId } },
       {
@@ -227,9 +232,15 @@ export class TinkoffPaymentsService extends BaseEntityService<
       },
     );
 
-    const transaction = await this.transactionsService.findOne({
-      where: { id: tinkoffPayment.transactionId },
-    });
+    if (transaction.relatedTransaction) {
+      await this.transactionsService.updateOne(
+        { where: { id: transaction.relatedTransaction.id } },
+        {
+          status: TransactionStatus.Paid,
+          paidVia: TransactionPaidVia.OnlineService,
+        },
+      );
+    }
 
     // Check if gift transaction
     if (

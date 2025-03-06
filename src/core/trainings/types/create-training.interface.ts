@@ -9,4 +9,5 @@ export interface ICreateTraining {
   isRepeated?: boolean;
   payVia?: TransactionPaidVia;
   promoCode?: string;
+  isPaymentForTwo?: boolean;
 }

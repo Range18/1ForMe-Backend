@@ -156,6 +156,7 @@ export class WazzupMessagingService
       })
       .catch((err: AxiosError) => {
         console.log(err?.response?.data);
+        Logger.warn(message);
         throw new ServiceUnavailableException(err?.response?.data);
       });
   }
@@ -173,6 +174,7 @@ export class WazzupMessagingService
       })
       .catch(async (err: AxiosError) => {
         console.log(err?.response?.data);
+        Logger.warn(message);
         throw new ServiceUnavailableException(err?.response?.data);
       });
   }
@@ -367,6 +369,7 @@ export class WazzupMessagingService
     paymentURL: string,
     club: Clubs,
     clientType: 'creator' | 'invited',
+    isPaymentForTwo: boolean,
     firstClient?: UserEntity,
   ) {
     switch (transaction.paidVia) {
@@ -381,6 +384,16 @@ export class WazzupMessagingService
               transaction.cost,
               dateToRecordString(new Date(date), slot.beginning),
               paymentURL,
+            ),
+          );
+        } else if (isPaymentForTwo) {
+          await this.sendMessage(
+            client.chatType?.name,
+            client.phone,
+            messageTemplates.splitTrainingBooking.secondClient.viaCashBox(
+              firstClient.getNameWithSurname(),
+              club.studio.address,
+              dateToRecordString(new Date(date), slot.beginning),
             ),
           );
         } else {
@@ -399,7 +412,8 @@ export class WazzupMessagingService
 
         if (
           client.chatType &&
-          client.chatType.name.toLowerCase() === chatTypes.whatsapp
+          client.chatType.name.toLowerCase() === chatTypes.whatsapp &&
+          paymentURL
         ) {
           await this.sendWhatsAppMessage(client.phone, paymentURL);
         }
@@ -429,15 +443,6 @@ export class WazzupMessagingService
         break;
     }
 
-    await this.sendNotificationToOwner(
-      notificationMessageTemplates['training-booking'](
-        trainer.name,
-        client.name,
-        ISODateToString(date, false),
-        slot.beginning,
-      ),
-    );
-
     await this.sendMessage(
       trainer.chatType?.name ?? 'telegram',
       trainer.phone,
@@ -447,6 +452,12 @@ export class WazzupMessagingService
         dateToRecordString(date, slot.beginning),
         club.studio.name,
         club.studio.address,
+      ),
+      notificationMessageTemplates['training-booking'](
+        trainer.name,
+        client.name,
+        ISODateToString(date, false),
+        slot.beginning,
       ),
     );
   }

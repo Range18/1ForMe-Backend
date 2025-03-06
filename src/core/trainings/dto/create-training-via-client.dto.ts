@@ -44,4 +44,8 @@ export class CreateTrainingViaClientDto implements ICreateTraining {
   @IsString()
   @IsOptional()
   promoCode?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isPaymentForTwo?: boolean = false;
 }

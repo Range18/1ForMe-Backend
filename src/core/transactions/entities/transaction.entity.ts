@@ -71,4 +71,11 @@ export class Transaction extends BaseEntity {
     onDelete: 'SET NULL',
   })
   training?: Training;
+
+  @OneToOne(() => Transaction, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn()
+  relatedTransaction?: Transaction;
 }
