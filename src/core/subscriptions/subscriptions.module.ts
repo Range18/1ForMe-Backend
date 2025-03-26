@@ -14,6 +14,7 @@ import { TariffsModule } from '#src/core/tariffs/tariffs.module';
 import { TinkoffPaymentsModule } from '#src/core/tinkoff-payments/tinkoff-payments.module';
 import { WazzupMessagingModule } from '#src/core/wazzup-messaging/wazzup-messaging.module';
 import { StudioSlotsModule } from '#src/core/studio-slots/studio-slots.module';
+import { GiftCardsModule } from '#src/core/gift-cards/gift-cards.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StudioSlotsModule } from '#src/core/studio-slots/studio-slots.module';
     TinkoffPaymentsModule,
     WazzupMessagingModule,
     StudioSlotsModule,
+    GiftCardsModule,
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],

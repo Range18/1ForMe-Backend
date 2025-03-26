@@ -21,6 +21,6 @@ export class GiftCard extends BaseEntity {
   })
   tariff: Tariff;
 
-  @Column({ type: 'enum', nullable: false, default: GiftCardType.Training })
+  @Column({ type: 'int', nullable: false, default: GiftCardType.Training })
   type: GiftCardType;
 }
