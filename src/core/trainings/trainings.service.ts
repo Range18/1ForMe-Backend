@@ -35,6 +35,7 @@ import { TrainingCreatedEvent } from '#src/core/trainings/payloads/training-crea
 import { GiftsService } from '#src/core/gifts/gifts.service';
 import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
+import { TrainingTypeIds } from '#src/core/training-type/types/training-type-ids.enum';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -343,7 +344,7 @@ export class TrainingsService extends BaseEntityService<
           );
         }
       } catch (error) {
-        await this.removeOne(training);
+        // await this.removeOne(training);
         throw error;
       }
 
@@ -485,7 +486,7 @@ export class TrainingsService extends BaseEntityService<
           );
         }
       } catch (error) {
-        await this.removeOne(training);
+        // await this.removeOne(training);
         throw error;
       }
     }
@@ -839,10 +840,14 @@ export class TrainingsService extends BaseEntityService<
       relations: {
         trainer: true,
         club: { city: true },
-        transaction: { tariff: { sport: true, type: true } },
+        transaction: {
+          tariff: { sport: true, type: true },
+          relatedTransaction: { training: true },
+        },
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
         client: { chatType: true },
+        tariff: { type: true },
       },
     });
 
@@ -852,6 +857,22 @@ export class TrainingsService extends BaseEntityService<
       dto.club ?? training.club.id,
       trainerId,
     );
+
+    //TODO: Log Error
+    if (
+      training.tariff.type.id === TrainingTypeIds.Split &&
+      training.transaction.relatedTransaction
+    ) {
+      await this.updateOne(
+        { where: { id: training.transaction.relatedTransaction.training.id } },
+        {
+          slot: { id: dto.slot },
+          club: { id: dto.club },
+          date: dto.date,
+        },
+        true,
+      );
+    }
 
     await super.updateOne(
       training,
