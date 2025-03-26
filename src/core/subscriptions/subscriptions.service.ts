@@ -21,8 +21,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Roles } from '#src/core/roles/types/roles.enum';
 import { CreateSubscriptionViaCardDto } from '#src/core/subscriptions/dto/create-subscription-via-card.dto';
 import { GiftCardsService } from '#src/core/gift-cards/gift-cards.service';
-import { CategoriesService } from '#src/core/categories/categories.service';
-import { TrainingTypeService } from '#src/core/training-type/training-type.service';
 import { GiftCardType } from '#src/core/gift-cards/types/gift-card-type.enum';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
@@ -49,8 +47,6 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly trainingsService: TrainingsService,
     private readonly eventEmitter: EventEmitter2,
     private readonly giftCardService: GiftCardsService,
-    private readonly trainerCategoryService: CategoriesService,
-    private readonly trainingTypeService: TrainingTypeService,
   ) {
     super(
       subscriptionRepository,
@@ -228,14 +224,7 @@ export class SubscriptionsService extends BaseEntityService<
 
     const giftCard = await this.giftCardService.findOne({
       where: { id: dto.giftCardId, type: GiftCardType.Subscription },
-    });
-
-    const trainerCategory = await this.trainerCategoryService.findOne({
-      where: { id: dto.trainerCategoryId },
-    });
-
-    const trainingType = await this.trainingTypeService.findOne({
-      where: { id: dto.trainingTypeId },
+      relations: { tariff: { type: true, category: true } },
     });
 
     const transaction = await this.transactionsService.save({
@@ -272,8 +261,8 @@ export class SubscriptionsService extends BaseEntityService<
     const { id } = await this.save({
       client: client,
       transaction: transaction,
-      category: trainerCategory,
-      trainingType: trainingType,
+      category: giftCard.tariff.category,
+      trainingType: giftCard.tariff.type,
       isRenewable: dto.isRenewable,
       expireAt: giftCard.tariff.subExpireAt
         ? new Date(Date.now() + giftCard.tariff.subExpireAt * ms('24h'))

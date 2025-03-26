@@ -27,14 +27,6 @@ export class CreateSubscriptionViaCardDto {
   @IsNotEmpty()
   giftCardId: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  trainingTypeId: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  trainerCategoryId: number;
-
   @IsBoolean()
   @IsNotEmpty()
   isRenewable: boolean;

@@ -29,6 +29,27 @@ export class Tariff extends BaseEntity {
   @Column({ nullable: false, default: false })
   isPublic: boolean;
 
+  //Only for groups, pairs trainings or subscriptions
+  @Column({ nullable: true })
+  clientsAmount?: number;
+
+  //Only for subscriptions
+  @Column({ nullable: true })
+  subExpireAt?: number;
+
+  //Only for subscriptions
+  @Column({ nullable: true })
+  trainingAmount?: number;
+
+  @Column({ nullable: true })
+  strikethroughTrainingPrice?: number;
+
+  @Column({ nullable: false, default: false })
+  isForSubscription: boolean;
+
+  @Column({ nullable: true })
+  duration?: string;
+
   @ManyToOne(() => Studio, (studio) => studio.tariffs, {
     nullable: true,
     onDelete: 'CASCADE',
@@ -40,9 +61,6 @@ export class Tariff extends BaseEntity {
     nullable: true,
   })
   transactions?: Transaction[];
-
-  @Column({ nullable: true })
-  duration?: string;
 
   @ManyToOne(() => Sport, (sport) => sport.tariffs, {
     nullable: true,
@@ -71,18 +89,4 @@ export class Tariff extends BaseEntity {
     nullable: true,
   })
   clubs?: Clubs[];
-
-  //Only for groups, pairs
-  @Column({ nullable: true })
-  clientsAmount?: number;
-
-  //only for subs
-  @Column({ nullable: true })
-  subExpireAt?: number;
-
-  @Column({ nullable: true })
-  trainingAmount?: number;
-
-  @Column({ nullable: false, default: false })
-  isForSubscription: boolean;
 }

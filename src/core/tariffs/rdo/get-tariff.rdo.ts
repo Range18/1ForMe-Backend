@@ -12,6 +12,8 @@ export class GetTariffRdo {
 
   readonly duration: string;
 
+  strikethroughTrainingPrice?: number;
+
   @ApiProperty({ nullable: true, type: () => GetStudioRdo })
   studio?: GetStudioRdo;
 
@@ -39,6 +41,7 @@ export class GetTariffRdo {
     this.sport = tariff.sport ? tariff.sport : undefined;
     this.trainerCategory = tariff.category ? tariff.category.name : undefined;
     this.subExpireAt = tariff.subExpireAt;
+    this.strikethroughTrainingPrice = tariff.strikethroughTrainingPrice;
     this.trainingAmount = tariff.trainingAmount;
     this.clientsAmount = tariff.clientsAmount;
     this.type = tariff.type ? tariff.type.name : undefined;
