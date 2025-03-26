@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { BaseEntity } from '#src/common/base.entity';
+import { GiftCardType } from '#src/core/gift-cards/types/gift-card-type.enum';
 
 @Entity('gift_cards')
 export class GiftCard extends BaseEntity {
@@ -19,4 +20,7 @@ export class GiftCard extends BaseEntity {
     onDelete: 'CASCADE',
   })
   tariff: Tariff;
+
+  @Column({ type: 'enum', nullable: false, default: GiftCardType.Training })
+  type: GiftCardType;
 }

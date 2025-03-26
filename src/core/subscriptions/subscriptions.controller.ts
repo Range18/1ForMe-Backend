@@ -19,19 +19,12 @@ import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { User } from '#src/common/decorators/User.decorator';
 import { type UserRequest } from '#src/common/types/user-request.type';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
-import { CreateSubscriptionViaClientDto } from '#src/core/subscriptions/dto/create-subscription-via-client.dto';
-import { AuthService } from '#src/core/auth/auth.service';
-import { UserService } from '#src/core/users/user.service';
-import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
+import { CreateSubscriptionViaCardDto } from '#src/core/subscriptions/dto/create-subscription-via-card.dto';
 
 @ApiTags('Subscriptions')
 @Controller('api/subscriptions')
 export class SubscriptionsController {
-  constructor(
-    private readonly subscriptionsService: SubscriptionsService,
-    private readonly authService: AuthService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
   @ApiBody({ type: CreateSubscriptionDto })
   @ApiCreatedResponse({ type: GetSubscriptionRdo })
@@ -46,38 +39,47 @@ export class SubscriptionsController {
     );
   }
 
-  @ApiBody({ type: CreateSubscriptionDto })
-  @ApiCreatedResponse({ type: GetSubscriptionRdo })
-  @Post('clientForm')
-  async createViaClient(
-    @Body() createSubscriptionDto: CreateSubscriptionViaClientDto,
+  @Post('card')
+  async createViaCard(
+    @Body() createSubscriptionDto: CreateSubscriptionViaCardDto,
   ) {
-    let client = await this.userService.findOne(
-      {
-        where: { phone: createSubscriptionDto.createClient.phone },
-      },
-      false,
-    );
-
-    if (!client) {
-      const { phone } = await this.authService.register(
-        createSubscriptionDto.createClient,
-      );
-
-      client = await this.userService.findOne({ where: { phone } });
-    }
-
     return new GetSubscriptionRdo(
-      await this.subscriptionsService.create(
-        {
-          client: client.id,
-          ...createSubscriptionDto,
-          payVia: TransactionPaidVia.OnlineService,
-        },
-        createSubscriptionDto.trainerId,
-      ),
+      await this.subscriptionsService.createViaCard(createSubscriptionDto),
     );
   }
+
+  // @ApiBody({ type: CreateSubscriptionDto })
+  // @ApiCreatedResponse({ type: GetSubscriptionRdo })
+  // @Post('clientForm')
+  // async createViaClient(
+  //   @Body() createSubscriptionDto: CreateSubscriptionViaClientDto,
+  // ) {
+  //   let client = await this.userService.findOne(
+  //     {
+  //       where: { phone: createSubscriptionDto.createClient.phone },
+  //     },
+  //     false,
+  //   );
+  //
+  //   if (!client) {
+  //     const { phone } = await this.authService.register(
+  //       createSubscriptionDto.createClient,
+  //     );
+  //
+  //     client = await this.userService.findOne({ where: { phone } });
+  //   }
+  //
+  //   return new GetSubscriptionRdo(
+  //     await this.subscriptionsService.create(
+  //       {
+  //         client: client.id,
+  //         ...createSubscriptionDto,
+  //         payVia: TransactionPaidVia.OnlineService,
+  //       },
+  //       createSubscriptionDto.trainerId,
+  //     ),
+  //   );
+  // }
 
   @Get()
   async findAll() {

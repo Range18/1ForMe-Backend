@@ -464,7 +464,6 @@ export class WazzupMessagingService
   async sendMessageAfterSubscriptionPurchased(
     subscription: Subscription,
     paymentURL: string,
-    club: Clubs,
   ) {
     if (subscription.transaction.paidVia === TransactionPaidVia.CashBox) {
       await this.sendMessage(
@@ -507,8 +506,6 @@ export class WazzupMessagingService
         subscription.client.getNameWithSurname(),
         subscription.transaction.tariff.trainingAmount,
         subscription.transaction.cost,
-        club.studio.name,
-        club.studio.address,
       ),
     );
   }

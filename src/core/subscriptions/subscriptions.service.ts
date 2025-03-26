@@ -14,11 +14,16 @@ import { TinkoffPaymentsService } from '#src/core/tinkoff-payments/tinkoff-payme
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
 import { StudioSlotsService } from '#src/core/studio-slots/studio-slots.service';
 import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription.rdo';
-import { ClubsService } from '#src/core/clubs/clubs.service';
 import ms from 'ms';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Roles } from '#src/core/roles/types/roles.enum';
+import { CreateSubscriptionViaCardDto } from '#src/core/subscriptions/dto/create-subscription-via-card.dto';
+import { GiftCardsService } from '#src/core/gift-cards/gift-cards.service';
+import { CategoriesService } from '#src/core/categories/categories.service';
+import { TrainingTypeService } from '#src/core/training-type/training-type.service';
+import { GiftCardType } from '#src/core/gift-cards/types/gift-card-type.enum';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -29,7 +34,8 @@ import TrainerExceptions = AllExceptions.TrainerExceptions;
 @Injectable()
 export class SubscriptionsService extends BaseEntityService<
   Subscription,
-  'EntityExceptions'
+  'SubscriptionExceptions',
+  GetSubscriptionRdo
 > {
   constructor(
     @InjectRepository(Subscription)
@@ -40,17 +46,20 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly tinkoffPaymentsService: TinkoffPaymentsService,
     private readonly wazzupMessagingService: WazzupMessagingService,
     private readonly clubSlotsService: StudioSlotsService,
-    private readonly clubsService: ClubsService,
     private readonly trainingsService: TrainingsService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly giftCardService: GiftCardsService,
+    private readonly trainerCategoryService: CategoriesService,
+    private readonly trainingTypeService: TrainingTypeService,
   ) {
     super(
       subscriptionRepository,
-      new ApiException<'EntityExceptions'>(
+      new ApiException<'SubscriptionExceptions'>(
         HttpStatus.NOT_FOUND,
-        'EntityExceptions',
-        EntityExceptions.NotFound,
+        'SubscriptionExceptions',
+        SubscriptionExceptions.NotFound,
       ),
+      GetSubscriptionRdo,
     );
   }
 
@@ -92,20 +101,7 @@ export class SubscriptionsService extends BaseEntityService<
       );
     }
 
-    const club = await this.clubsService.findOne({
-      where: { id: createSubscriptionDto.createTrainingDto[0].club },
-      relations: { studio: true },
-    });
-
-    if (!club) {
-      throw new ApiException(
-        HttpStatus.NOT_FOUND,
-        'EntityExceptions',
-        EntityExceptions.NotFound,
-      );
-    }
-
-    return { client, tariff, club };
+    return { client, tariff };
   }
 
   async create(
@@ -125,7 +121,7 @@ export class SubscriptionsService extends BaseEntityService<
       );
     }
 
-    const { client, tariff, club } = await this.getNecessaryEntities(
+    const { client, tariff } = await this.getNecessaryEntities(
       createSubscriptionDto,
     );
 
@@ -203,14 +199,11 @@ export class SubscriptionsService extends BaseEntityService<
       return;
     }
 
-    if (subscription.expireAt) {
-      this.eventEmitter.emit('subscription.created', subscription);
-    }
+    this.eventEmitter.emit('subscription.created', subscription);
 
     await this.wazzupMessagingService.sendMessageAfterSubscriptionPurchased(
       subscription,
       paymentURL,
-      club,
     );
 
     return await this.findOne({
@@ -222,6 +215,89 @@ export class SubscriptionsService extends BaseEntityService<
         trainings: { club: true, slot: true },
       },
     });
+  }
+
+  async createViaCard(dto: CreateSubscriptionViaCardDto) {
+    const client = await this.userService.findOrCreate({
+      name: dto.name,
+      phone: dto.phone,
+      role: Roles.Client,
+      chatType: dto.chatTypeId,
+      userNameInMessenger: dto.username,
+    });
+
+    const giftCard = await this.giftCardService.findOne({
+      where: { id: dto.giftCardId, type: GiftCardType.Subscription },
+    });
+
+    const trainerCategory = await this.trainerCategoryService.findOne({
+      where: { id: dto.trainerCategoryId },
+    });
+
+    const trainingType = await this.trainingTypeService.findOne({
+      where: { id: dto.trainingTypeId },
+    });
+
+    const transaction = await this.transactionsService.save({
+      client: client,
+      cost: giftCard.tariff.cost,
+      tariff: { id: giftCard.tariff.id },
+      createdDate: new Date(),
+      paidVia: TransactionPaidVia.OnlineService,
+    });
+
+    const paymentURL = await this.tinkoffPaymentsService
+      .createPayment({
+        transactionId: transaction.id,
+        amount: transaction.cost,
+        quantity: 1,
+        user: {
+          id: client.id,
+          phone: client.phone,
+        },
+        metadata: {
+          name: giftCard.tariff.name,
+          description: `Заказ №${transaction.id}`,
+        },
+      })
+      .catch(async () => {
+        await this.transactionsService.removeOne(transaction);
+      });
+
+    if (!paymentURL) {
+      Logger.log('Payment url creation error in subscription service');
+      return;
+    }
+
+    const { id } = await this.save({
+      client: client,
+      transaction: transaction,
+      category: trainerCategory,
+      trainingType: trainingType,
+      isRenewable: dto.isRenewable,
+      expireAt: giftCard.tariff.subExpireAt
+        ? new Date(Date.now() + giftCard.tariff.subExpireAt * ms('24h'))
+        : undefined,
+    });
+
+    const subscription = await this.findOne({
+      where: { id: id },
+      relations: {
+        transaction: { tariff: { sport: true, type: true } },
+        trainings: { club: true, slot: true },
+        trainer: { chatType: true },
+        client: { chatType: true },
+      },
+    });
+
+    this.eventEmitter.emit('subscription.created', subscription);
+
+    await this.wazzupMessagingService.sendMessageAfterSubscriptionPurchased(
+      subscription,
+      paymentURL,
+    );
+
+    return subscription;
   }
 
   async cancelSubscription(id: number, userId: number): Promise<void> {

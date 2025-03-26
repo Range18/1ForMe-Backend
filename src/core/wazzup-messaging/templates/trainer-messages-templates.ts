@@ -15,11 +15,9 @@ export const trainerMessagesTemplates = {
     clientName: string,
     trainingsCount: number,
     subscriptionCost: number,
-    studioName: string,
-    studioAddress: string,
   ) => {
     return (
-      `${clientName} приобрёл(a) у вас абонемент на ${trainingsCount} тренировок в студию пилатеса ${studioName} по адресу ${studioAddress}, стоимость абонемента ${subscriptionCost} руб.` +
+      `${clientName} приобрёл(a) у вас абонемент на ${trainingsCount} тренировок, стоимость абонемента ${subscriptionCost} руб.` +
       '\n'
     );
   },
