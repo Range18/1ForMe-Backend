@@ -20,8 +20,7 @@ import { TransactionStatus } from '#src/core/transactions/types/transaction-stat
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Roles } from '#src/core/roles/types/roles.enum';
 import { CreateSubscriptionViaCardDto } from '#src/core/subscriptions/dto/create-subscription-via-card.dto';
-import { GiftCardsService } from '#src/core/gift-cards/gift-cards.service';
-import { GiftCardType } from '#src/core/gift-cards/types/gift-card-type.enum';
+import { SubscriptionCardsService } from '#src/core/subscription-cards/subscription-cards.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -46,7 +45,7 @@ export class SubscriptionsService extends BaseEntityService<
     private readonly clubSlotsService: StudioSlotsService,
     private readonly trainingsService: TrainingsService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly giftCardService: GiftCardsService,
+    private readonly subscriptionCardsService: SubscriptionCardsService,
   ) {
     super(
       subscriptionRepository,
@@ -222,8 +221,8 @@ export class SubscriptionsService extends BaseEntityService<
       userNameInMessenger: dto.username,
     });
 
-    const giftCard = await this.giftCardService.findOne({
-      where: { id: dto.giftCardId, type: GiftCardType.Subscription },
+    const giftCard = await this.subscriptionCardsService.findOne({
+      where: { id: dto.giftCardId },
       relations: { tariff: { type: true, category: true } },
     });
 

@@ -29,6 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationsModule } from '#src/core/notifications/notifications.module';
 import { GiftCardsModule } from '#src/core/gift-cards/gift-cards.module';
 import { GiftsModule } from '#src/core/gifts/gifts.module';
+import { SubscriptionCardsModule } from '#src/core/subscription-cards/subscription-cards.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { GiftsModule } from '#src/core/gifts/gifts.module';
     NotificationsModule,
     GiftCardsModule,
     GiftsModule,
+    SubscriptionCardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

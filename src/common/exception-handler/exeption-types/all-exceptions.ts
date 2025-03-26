@@ -66,6 +66,10 @@ export namespace AllExceptions {
     NotFound = 'Сертификат не найден',
   }
 
+  export enum SubscriptionCardExceptions {
+    NotFound = 'Карточка покупки абонемента не найдена',
+  }
+
   export enum GiftExceptions {
     NotFound = 'Промокод не найден',
     NotActive = 'Промокод не действителен',
