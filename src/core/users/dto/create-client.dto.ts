@@ -1,5 +1,4 @@
 import {
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -7,7 +6,6 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { Roles } from '#src/core/roles/types/roles.enum';
 import { IUser } from '#src/core/users/types/user.interface';
 
 export class CreateClientDto implements IUser {
@@ -29,11 +27,6 @@ export class CreateClientDto implements IUser {
   @IsString()
   @IsNotEmpty()
   phone: string;
-
-  @IsEnum(Roles)
-  @IsString()
-  @IsNotEmpty()
-  role: Roles;
 
   @IsNumber()
   @IsNotEmpty()

@@ -12,6 +12,7 @@ import { CreateClientViaTrainerDto } from '#src/core/users/dto/create-client-via
 import { CommentsService } from '#src/core/comments/comments.service';
 import { CreateClientDto } from '#src/core/users/dto/create-client.dto';
 import { WazzupMessagingService } from '#src/core/wazzup-messaging/wazzup-messaging.service';
+import { Roles } from '#src/core/roles/types/roles.enum';
 import AuthExceptions = AllExceptions.AuthExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 
@@ -61,9 +62,14 @@ export class AuthService {
       // password: await bcrypt.hash(createUserDto.password, passwordSaltRounds),
       password: createUserDto.password ?? Math.random().toString(36).slice(-8),
       phone: createUserDto.phone,
-      role: await this.rolesService.findOne({
-        where: { name: createUserDto.role },
-      }),
+      role:
+        createUserDto instanceof CreateUserDto
+          ? await this.rolesService.findOne({
+              where: { name: createUserDto.role },
+            })
+          : await this.rolesService.findOne({
+              where: { name: Roles.Client },
+            }),
       birthday: createUserDto['birthday'],
       trainers: [{ id: createUserDto['trainer'] }],
       userNameInMessenger: createUserDto.userNameInMessenger,

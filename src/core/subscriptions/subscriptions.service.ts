@@ -18,7 +18,6 @@ import ms from 'ms';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Roles } from '#src/core/roles/types/roles.enum';
 import { CreateSubscriptionViaCardDto } from '#src/core/subscriptions/dto/create-subscription-via-card.dto';
 import { SubscriptionCardsService } from '#src/core/subscription-cards/subscription-cards.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
@@ -216,7 +215,6 @@ export class SubscriptionsService extends BaseEntityService<
     const client = await this.userService.findOrCreate({
       name: dto.name,
       phone: dto.phone,
-      role: Roles.Client,
       chatType: dto.chatTypeId,
       userNameInMessenger: dto.username,
     });
