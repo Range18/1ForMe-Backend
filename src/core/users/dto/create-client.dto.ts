@@ -23,7 +23,9 @@ export class CreateClientDto implements IUser {
   @IsOptional()
   password?: string;
 
-  @Matches('^7\\d{10}$')
+  @Matches(new RegExp('^\\+7\\d{10}$'), {
+    message: 'Некорректный номер телефона',
+  })
   @IsString()
   @IsNotEmpty()
   phone: string;
@@ -37,7 +39,9 @@ export class CreateClientDto implements IUser {
   @IsNotEmpty()
   chatType: number;
 
-  @Matches('^@[a-zA-Z0-9_]+$')
+  @Matches(new RegExp('^@[a-zA-Z0-9_]+$'), {
+    message: 'Некорректный никнейм в телеграме. Формат @username',
+  })
   @MinLength(6)
   @IsString()
   @IsNotEmpty()

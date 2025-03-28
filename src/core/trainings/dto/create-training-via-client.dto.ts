@@ -7,9 +7,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Validate,
+  ValidateNested,
 } from 'class-validator';
 import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
+import { Type } from 'class-transformer';
 
 export class CreateTrainingViaClientDto implements ICreateTraining {
   @IsNumber()
@@ -32,9 +33,10 @@ export class CreateTrainingViaClientDto implements ICreateTraining {
   @IsNotEmpty()
   readonly trainerId: number;
 
-  @Validate(CreateClientDto, { each: true })
+  @ValidateNested({ each: true })
+  @Type(() => CreateClientDto)
   @IsArray()
-  @IsOptional()
+  @IsNotEmpty()
   readonly clients: CreateClientDto[];
 
   @IsBoolean()
