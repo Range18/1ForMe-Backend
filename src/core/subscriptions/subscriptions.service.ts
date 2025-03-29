@@ -20,6 +20,7 @@ import { TransactionStatus } from '#src/core/transactions/types/transaction-stat
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateSubscriptionViaCardDto } from '#src/core/subscriptions/dto/create-subscription-via-card.dto';
 import { SubscriptionCardsService } from '#src/core/subscription-cards/subscription-cards.service';
+import { frontendServer } from '#src/common/configs/config';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -183,6 +184,7 @@ export class SubscriptionsService extends BaseEntityService<
           name: tariff.name,
           description: `Заказ №${transaction.id}`,
         },
+        successURL: `${frontendServer.url}/subscription/success/${subId}`,
       })
       .catch(async () => {
         await this.transactionsService.removeOne(transaction);
