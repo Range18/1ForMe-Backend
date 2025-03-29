@@ -1,7 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { SubscriptionCardsService } from './subscription-cards.service';
 import { ApiTags } from '@nestjs/swagger';
 import { SubscriptionCardRdo } from '#src/core/subscription-cards/rdo/subscription-card.rdo';
+import { SubscriptionCardQueryDto } from '#src/core/subscription-cards/dto/subscription-card-query.dto';
 
 @ApiTags('Subscription cards')
 @Controller('api/subscription-cards')
@@ -11,9 +12,18 @@ export class SubscriptionCardsController {
   ) {}
 
   @Get()
-  async findAll(): Promise<SubscriptionCardRdo[]> {
+  async findAll(
+    @Query() query: SubscriptionCardQueryDto,
+  ): Promise<SubscriptionCardRdo[]> {
     return this.subscriptionCardsService.formatToDto(
-      await this.subscriptionCardsService.find({}),
+      await this.subscriptionCardsService.find({
+        where: {
+          tariff: {
+            category: { id: query.TrainerCategoryId },
+            type: { id: query.trainingTypeId },
+          },
+        },
+      }),
     );
   }
 
