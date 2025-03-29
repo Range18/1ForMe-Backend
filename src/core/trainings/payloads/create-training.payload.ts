@@ -4,6 +4,7 @@ import { Tariff } from '#src/core/tariffs/entity/tariff.entity';
 import { Clubs } from '#src/core/clubs/entity/clubs.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { ICreateTraining } from '#src/core/trainings/types/create-training.interface';
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 
 export class CreateTrainingPayload {
   dto: ICreateTraining;
@@ -28,6 +29,8 @@ export class CreateTrainingPayload {
 
   invitingClient?: UserEntity;
 
+  subscription?: Subscription;
+
   constructor(
     dto: ICreateTraining,
     client: UserEntity,
@@ -40,6 +43,7 @@ export class CreateTrainingPayload {
     paymentURL?: string,
     transaction?: Transaction,
     invitingClient?: UserEntity,
+    subscription?: Subscription,
   ) {
     this.dto = dto;
     this.client = client;
@@ -52,5 +56,6 @@ export class CreateTrainingPayload {
     this.paymentURL = paymentURL;
     this.transaction = transaction;
     this.invitingClient = invitingClient;
+    this.subscription = subscription;
   }
 }

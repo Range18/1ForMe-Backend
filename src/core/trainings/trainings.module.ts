@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TrainingsService } from './trainings.service';
 import { TrainingsController } from './trainings.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -18,7 +18,7 @@ import { ClubsModule } from '#src/core/clubs/clubs.module';
 import { ClientModule } from '#src/core/clients/clients.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GiftsModule } from '#src/core/gifts/gifts.module';
-import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.module';
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
 
 @Module({
   imports: [
@@ -28,6 +28,7 @@ import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.modul
       Sport,
       Tariff,
       ClubSlots,
+      Subscription,
     ]),
     EventEmitterModule.forRoot(),
     ClientModule,
@@ -40,7 +41,6 @@ import { SubscriptionsModule } from '#src/core/subscriptions/subscriptions.modul
     WazzupMessagingModule,
     ClubsModule,
     GiftsModule,
-    forwardRef(() => SubscriptionsModule),
   ],
   controllers: [TrainingsController],
   providers: [TrainingsService],

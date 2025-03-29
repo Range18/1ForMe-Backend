@@ -1,3 +1,6 @@
+import { Subscription } from '#src/core/subscriptions/entities/subscription.entity';
+import ms from 'ms';
+
 export const messageTemplates = {
   singleTrainingBooking: {
     viaCashBox: (
@@ -44,6 +47,27 @@ export const messageTemplates = {
         `Отменить или перенести тренировку возможно не менее чем за 12 часов.` +
         '\n' +
         `Если возникли вопросы, напишите нам!`
+      );
+    },
+    viaSubscription: (
+      subscription: Subscription,
+      studioAddress: string,
+      date: string,
+    ) => {
+      const subscriptionDue = subscription.expireAt
+        ? (
+            (new Date(subscription.expireAt).getTime() - Date.now()) /
+            ms('1d')
+          ).toFixed()
+        : undefined;
+      return (
+        `Здравствуйте,` +
+        '\n' +
+        `Спасибо за бронирование! Ваша тренировка состоится ${date} по адресу: ${studioAddress} . У вас осталось ${subscription.trainings.length} тренировки из ${subscription.transaction.tariff.trainingAmount}, и до окончания абонемента ${subscriptionDue} дней.` +
+        '\n' +
+        `Если у вас есть вопросы или нужно изменить время, пожалуйста, свяжитесь с нами.` +
+        '\n' +
+        `Ждем вас!`
       );
     },
   },

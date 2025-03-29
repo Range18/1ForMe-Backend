@@ -13,6 +13,7 @@ import { Training } from '#src/core/trainings/entities/training.entity';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { Category } from '#src/core/categories/entity/categories.entity';
 import { TrainingType } from '#src/core/training-type/entity/training-type.entity';
+import { SubscriptionCreatedFrom } from '#src/core/subscriptions/types/subscription-created-from.enum';
 
 @Entity()
 export class Subscription extends BaseEntity {
@@ -59,6 +60,13 @@ export class Subscription extends BaseEntity {
 
   @Column({ nullable: false, default: false })
   isRenewable: boolean;
+
+  @Column({
+    type: 'int',
+    nullable: false,
+    default: SubscriptionCreatedFrom.Trainer,
+  })
+  createdFrom: SubscriptionCreatedFrom;
 
   @Column({ type: 'date', nullable: true })
   expireAt?: Date;

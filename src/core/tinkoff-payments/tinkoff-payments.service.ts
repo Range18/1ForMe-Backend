@@ -26,6 +26,7 @@ import { TransactionPaidVia } from '#src/core/transactions/types/transaction-pai
 import ms from 'ms';
 import { formatDateWithGmt } from '#src/common/utilities/format-date-with-gmt.func';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SubscriptionCreatedFrom } from '#src/core/subscriptions/types/subscription-created-from.enum';
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 
 @Injectable()
@@ -221,7 +222,7 @@ export class TinkoffPaymentsService extends BaseEntityService<
 
     const transaction = await this.transactionsService.findOne({
       where: { id: tinkoffPayment.transactionId },
-      relations: { relatedTransaction: true },
+      relations: { relatedTransaction: true, subscription: true },
     });
 
     await this.transactionsService.updateOne(
@@ -249,6 +250,19 @@ export class TinkoffPaymentsService extends BaseEntityService<
       !transaction.trainer
     ) {
       this.eventEmitter2.emit('gift.transaction.paid', transaction.id);
+    }
+
+    // Check if subscription created via card transaction
+    if (
+      !transaction.training &&
+      !transaction.trainer &&
+      transaction.subscription &&
+      transaction.subscription.createdFrom === SubscriptionCreatedFrom.Card
+    ) {
+      this.eventEmitter2.emit(
+        'subscriptionCreatedViaCard.transaction.paid',
+        transaction.id,
+      );
     }
 
     return 'OK';

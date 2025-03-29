@@ -1,4 +1,4 @@
-import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
@@ -37,7 +37,7 @@ import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { TrainingTypeIds } from '#src/core/training-type/types/training-type-ids.enum';
 import { CreateTrainingPayload } from '#src/core/trainings/payloads/create-training.payload';
-import { SubscriptionsService } from '#src/core/subscriptions/subscriptions.service';
+import { SubscriptionCreatedFrom } from '#src/core/subscriptions/types/subscription-created-from.enum';
 // import { SubscriptionsService } from '#src/core/subscriptions/subscriptions.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
@@ -63,6 +63,8 @@ export class TrainingsService extends BaseEntityService<
     private readonly trainingRepository: Repository<Training>,
     @InjectRepository(ClubSlots)
     private readonly clubSlotsRepository: Repository<ClubSlots>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepository: Repository<Subscription>,
     private readonly eventEmitter: EventEmitter2,
     private readonly transactionsService: TransactionsService,
     private readonly tariffsService: TariffsService,
@@ -72,8 +74,6 @@ export class TrainingsService extends BaseEntityService<
     private readonly clubsService: ClubsService,
     private readonly clientsService: ClientsService,
     private readonly giftsService: GiftsService,
-    @Inject(forwardRef(() => SubscriptionsService))
-    private readonly subscriptionsService: SubscriptionsService,
   ) {
     super(
       trainingRepository,
@@ -201,40 +201,50 @@ export class TrainingsService extends BaseEntityService<
   private async createTraining(
     payload: CreateTrainingPayload,
     trainingsIds: number[],
+    isCreateFromSubscription: boolean,
   ) {
     let existingTrainingDates: Date[] = [];
     const dto = payload.dto;
 
-    try {
-      if (payload.tariff.type.name === TrainingTypes.Split) {
-        await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
-          payload.client,
-          payload.trainer,
-          new Date(dto.date),
-          payload.slot,
-          payload.transaction,
-          payload.paymentURL,
-          payload.club,
-          payload.clientOrder === 0 ? 'creator' : 'invited',
-          dto.isPaymentForTwo,
-          payload.invitingClient,
-        );
-      } else {
-        await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
-          payload.client,
-          payload.trainer,
-          new Date(dto.date),
-          payload.slot,
-          payload.transaction,
-          payload.paymentURL,
-          payload.club,
+    if (!isCreateFromSubscription) {
+      try {
+        if (payload.tariff.type.name === TrainingTypes.Split) {
+          await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
+            payload.client,
+            payload.trainer,
+            new Date(dto.date),
+            payload.slot,
+            payload.transaction,
+            payload.paymentURL,
+            payload.club,
+            payload.clientOrder === 0 ? 'creator' : 'invited',
+            dto.isPaymentForTwo,
+            payload.invitingClient,
+          );
+        } else {
+          await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
+            payload.client,
+            payload.trainer,
+            new Date(dto.date),
+            payload.slot,
+            payload.transaction,
+            payload.paymentURL,
+            payload.club,
+          );
+        }
+      } catch (error) {
+        throw new ApiException(
+          HttpStatus.BAD_REQUEST,
+          'MessageExceptions',
+          MessageExceptions.ErrorOnSend,
         );
       }
-    } catch (error) {
-      throw new ApiException(
-        HttpStatus.BAD_REQUEST,
-        'MessageExceptions',
-        MessageExceptions.ErrorOnSend,
+    } else {
+      await this.wazzupMessagingService.sendMessageAfterTrainingViaSubscriptionCreated(
+        payload.subscription,
+        payload.dto.date,
+        payload.slot,
+        payload.club,
       );
     }
 
@@ -247,6 +257,7 @@ export class TrainingsService extends BaseEntityService<
       transaction: payload.transaction,
       isRepeated: dto.isRepeated,
       tariff: payload.tariff,
+      subscription: isCreateFromSubscription ? payload.subscription : undefined,
     });
 
     trainingsIds.push(training.id);
@@ -324,29 +335,28 @@ export class TrainingsService extends BaseEntityService<
     const trainingsIds: number[] = [];
 
     for (let i = 0; i < clients.length; i++) {
+      let transaction: Transaction | undefined;
+      let paymentURL: string | undefined;
+
       const client = clients[i];
       await this.userService.addTrainer(client, trainerId);
       await this.wazzupMessagingService.createContact(client.id, {
         responsibleUserId: trainer.id,
       });
 
-      const subscription = await this.subscriptionsService.findOne(
-        {
-          where: { client },
-          relations: {
-            trainingType: true,
-            trainings: true,
-            category: true,
-            transaction: true,
-          },
+      const subscription = await this.subscriptionRepository.findOne({
+        where: { client, createdFrom: SubscriptionCreatedFrom.Card },
+        relations: {
+          trainingType: true,
+          trainings: true,
+          category: true,
+          transaction: { tariff: { category: true, type: true } },
         },
-        false,
-      );
+      });
 
       if (
         subscription &&
         subscription.transaction.status === TransactionStatus.Paid
-        //TODO: add subscription type check
       ) {
         if (subscription.trainingType?.id !== tariff.type?.id) {
           throw new ApiException(
@@ -360,17 +370,34 @@ export class TrainingsService extends BaseEntityService<
           throw new ApiException(
             HttpStatus.BAD_REQUEST,
             'SubscriptionExceptions',
-            SubscriptionExceptions.WrongTrainingType,
+            SubscriptionExceptions.WrongTrainerCategory,
           );
         }
-      }
 
-      let transaction: Transaction | undefined;
-      let paymentURL: string | undefined;
-      if (
-        !subscription ||
-        subscription.transaction.status !== TransactionStatus.Paid
-      ) {
+        if (
+          subscription.trainings &&
+          subscription.trainings.length >=
+            subscription.transaction.tariff.trainingAmount
+        ) {
+          throw new ApiException(
+            HttpStatus.BAD_REQUEST,
+            'SubscriptionExceptions',
+            SubscriptionExceptions.TrainingsAreOver,
+          );
+        }
+
+        transaction = await this.transactionsService.save({
+          client: { id: client.id },
+          trainer: { id: trainerId },
+          tariff: tariff,
+          cost:
+            subscription.transaction.cost /
+            subscription.transaction.tariff.trainingAmount,
+          createdDate: new Date(),
+          status: TransactionStatus.Paid,
+          paidVia: TransactionPaidVia.Subscription,
+        });
+      } else {
         transaction = await this.transactionsService.save({
           client: { id: client.id },
           trainer: { id: trainerId },
@@ -440,11 +467,15 @@ export class TrainingsService extends BaseEntityService<
       const { training, existingTrainingDates } = await this.createTraining(
         trainingPayload,
         trainingsIds,
+        subscription &&
+          subscription.transaction.status === TransactionStatus.Paid,
       );
 
-      subscription.trainings ??= [];
-      subscription.trainings.push(training);
-      await this.subscriptionsService.save(subscription);
+      if (subscription) {
+        subscription.trainings ??= [];
+        subscription.trainings.push(training);
+        await this.subscriptionRepository.save(subscription);
+      }
 
       existingTrainingsDates ??= existingTrainingDates;
     }
@@ -929,7 +960,7 @@ export class TrainingsService extends BaseEntityService<
         club: { city: true },
         transaction: {
           tariff: { sport: true, type: true },
-          relatedTransaction: { training: true },
+          relatedTransaction: { training: true, subscription: true },
         },
         subscription: { transaction: { tariff: { sport: true } } },
         slot: true,
@@ -948,7 +979,8 @@ export class TrainingsService extends BaseEntityService<
     //TODO: Log Error
     if (
       training.tariff.type.id === TrainingTypeIds.Split &&
-      training.transaction.relatedTransaction
+      training.transaction.relatedTransaction &&
+      training.transaction.relatedTransaction.training
     ) {
       await this.updateOne(
         { where: { id: training.transaction.relatedTransaction.training.id } },

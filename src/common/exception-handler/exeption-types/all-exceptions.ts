@@ -96,6 +96,7 @@ export namespace AllExceptions {
     CancelingForbidden = 'Нельзя вернуть деньги за абонемент, тренировки по которому частично или полностью использованы.',
     WrongTrainingType = 'Неверный тип тренеровки для оплаты абонементом',
     WrongTrainerCategory = 'Неверная квалификация тренера для оплаты абонементом',
+    TrainingsAreOver = 'Тренировки закончились',
   }
 
   export enum StorageExceptions {

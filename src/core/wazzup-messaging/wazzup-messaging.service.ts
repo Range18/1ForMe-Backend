@@ -544,6 +544,23 @@ export class WazzupMessagingService
     );
   }
 
+  async sendMessageAfterTrainingViaSubscriptionCreated(
+    subscription: Subscription,
+    date: Date,
+    slot: ClubSlots,
+    club: Clubs,
+  ) {
+    await this.sendMessage(
+      subscription.client.chatType?.name ?? 'whatsapp',
+      subscription.client.phone,
+      messageTemplates.singleTrainingBooking.viaSubscription(
+        subscription,
+        club.studio.address,
+        dateToRecordString(new Date(date), slot.beginning),
+      ),
+    );
+  }
+
   async createUser(user: UserEntity): Promise<void> {
     await this.httpClient
       .post('/users', [

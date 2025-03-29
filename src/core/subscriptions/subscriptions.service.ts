@@ -17,10 +17,11 @@ import { GetSubscriptionRdo } from '#src/core/subscriptions/rdo/get-subscription
 import ms from 'ms';
 import { TransactionPaidVia } from '#src/core/transactions/types/transaction-paid-via.enum';
 import { TransactionStatus } from '#src/core/transactions/types/transaction-status.enum';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { CreateSubscriptionViaCardDto } from '#src/core/subscriptions/dto/create-subscription-via-card.dto';
 import { SubscriptionCardsService } from '#src/core/subscription-cards/subscription-cards.service';
 import { frontendServer } from '#src/common/configs/config';
+import { SubscriptionCreatedFrom } from '#src/core/subscriptions/types/subscription-created-from.enum';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import ClubSlotsExceptions = AllExceptions.ClubSlotsExceptions;
@@ -145,19 +146,17 @@ export class SubscriptionsService extends BaseEntityService<
       paidVia: createSubscriptionDto.payVia,
     });
 
-    const subId = (
-      await this.save({
-        client: client,
-        trainer: { id: trainerId },
-        transaction: transaction,
-        expireAt: tariff.subExpireAt
-          ? new Date(Date.now() + tariff.subExpireAt * ms('24h'))
-          : undefined,
-      })
-    ).id;
+    const { id } = await this.save({
+      client: client,
+      trainer: { id: trainerId },
+      transaction: transaction,
+      expireAt: tariff.subExpireAt
+        ? new Date(Date.now() + tariff.subExpireAt * ms('24h'))
+        : undefined,
+    });
 
     const subscription = await this.findOne({
-      where: { id: subId },
+      where: { id },
       relations: {
         transaction: { tariff: true },
         trainer: { chatType: true },
@@ -184,7 +183,6 @@ export class SubscriptionsService extends BaseEntityService<
           name: tariff.name,
           description: `Заказ №${transaction.id}`,
         },
-        successURL: `${frontendServer.url}/subscription/success/${subId}`,
       })
       .catch(async () => {
         await this.transactionsService.removeOne(transaction);
@@ -203,7 +201,7 @@ export class SubscriptionsService extends BaseEntityService<
     );
 
     return await this.findOne({
-      where: { id: subId },
+      where: { id },
       relations: {
         client: true,
         trainer: true,
@@ -211,6 +209,25 @@ export class SubscriptionsService extends BaseEntityService<
         trainings: { club: true, slot: true },
       },
     });
+  }
+
+  @OnEvent('subscriptionCreatedViaCard.transaction.paid')
+  private async sendMessageAfterSubscriptionViaCardPaid(transactionId: number) {
+    const transaction = await this.transactionsService.findOne({
+      where: { id: transactionId },
+      relations: {
+        subscription: {
+          transaction: { tariff: { sport: true, type: true } },
+          trainings: { club: true, slot: true },
+          trainer: { chatType: true },
+          client: { chatType: true },
+        },
+      },
+    });
+
+    await this.wazzupMessagingService.sendMessageAfterSubscriptionViaClientCardPurchased(
+      transaction.subscription,
+    );
   }
 
   async createViaCard(dto: CreateSubscriptionViaCardDto) {
@@ -234,6 +251,18 @@ export class SubscriptionsService extends BaseEntityService<
       paidVia: TransactionPaidVia.OnlineService,
     });
 
+    const { id } = await this.save({
+      client: client,
+      transaction: transaction,
+      category: giftCard.tariff.category,
+      trainingType: giftCard.tariff.type,
+      isRenewable: dto.isRenewable,
+      expireAt: giftCard.tariff.subExpireAt
+        ? new Date(Date.now() + giftCard.tariff.subExpireAt * ms('24h'))
+        : undefined,
+      createdFrom: SubscriptionCreatedFrom.Card,
+    });
+
     const paymentURL = await this.tinkoffPaymentsService
       .createPayment({
         transactionId: transaction.id,
@@ -247,6 +276,7 @@ export class SubscriptionsService extends BaseEntityService<
           name: giftCard.tariff.name,
           description: `Заказ №${transaction.id}`,
         },
+        successURL: `${frontendServer.url}/subscription/success/${id}`,
       })
       .catch(async () => {
         await this.transactionsService.removeOne(transaction);
@@ -256,17 +286,6 @@ export class SubscriptionsService extends BaseEntityService<
       Logger.log('Payment url creation error in subscription service');
       return;
     }
-
-    const { id } = await this.save({
-      client: client,
-      transaction: transaction,
-      category: giftCard.tariff.category,
-      trainingType: giftCard.tariff.type,
-      isRenewable: dto.isRenewable,
-      expireAt: giftCard.tariff.subExpireAt
-        ? new Date(Date.now() + giftCard.tariff.subExpireAt * ms('24h'))
-        : undefined,
-    });
 
     const subscription = await this.findOne({
       where: { id: id },
@@ -279,10 +298,6 @@ export class SubscriptionsService extends BaseEntityService<
     });
 
     this.eventEmitter.emit('subscription.created', subscription);
-
-    await this.wazzupMessagingService.sendMessageAfterSubscriptionViaClientCardPurchased(
-      subscription,
-    );
 
     return { subscription, paymentURL };
   }
