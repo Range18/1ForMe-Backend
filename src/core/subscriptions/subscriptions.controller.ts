@@ -43,9 +43,11 @@ export class SubscriptionsController {
   async createViaCard(
     @Body() createSubscriptionDto: CreateSubscriptionViaCardDto,
   ) {
-    return new GetSubscriptionRdo(
-      await this.subscriptionsService.createViaCard(createSubscriptionDto),
-    );
+    const { subscription, paymentURL } =
+      await this.subscriptionsService.createViaCard(createSubscriptionDto);
+    const rdo = new GetSubscriptionRdo(subscription);
+    rdo.paymentURL = paymentURL;
+    return rdo;
   }
 
   // @ApiBody({ type: CreateSubscriptionDto })

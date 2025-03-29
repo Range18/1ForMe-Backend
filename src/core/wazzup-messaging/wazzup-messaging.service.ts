@@ -470,7 +470,7 @@ export class WazzupMessagingService
         subscription.client.chatType?.name ?? 'whatsapp',
         subscription.client.phone,
         messageTemplates.subscriptionBooking.viaCashBox(
-          subscription.trainer.getNameWithSurname(),
+          subscription.trainer?.getNameWithSurname(),
         ),
       );
     } else {
@@ -478,8 +478,8 @@ export class WazzupMessagingService
         subscription.client.chatType?.name ?? 'whatsapp',
         subscription.client.phone,
         messageTemplates.subscriptionBooking.viaOnlineService(
-          subscription.trainer.getNameWithSurname(),
           paymentURL,
+          subscription.trainer?.getNameWithSurname(),
         ),
       );
 
@@ -493,19 +493,53 @@ export class WazzupMessagingService
 
     await this.sendNotificationToOwner(
       notificationMessageTemplates['subscription-purchased'](
-        subscription.trainer.getNameWithSurname(),
         subscription.client.getNameWithSurname(),
         subscription.transaction.tariff.name,
+        subscription.trainer?.getNameWithSurname(),
       ),
     );
 
-    await this.sendMessage(
-      subscription.trainer.chatType?.name ?? 'whatsapp',
-      subscription.trainer.phone,
-      trainerMessagesTemplates['subscription-booking'](
+    if (subscription.trainer) {
+      await this.sendMessage(
+        subscription.trainer.chatType?.name ?? 'whatsapp',
+        subscription.trainer.phone,
+        trainerMessagesTemplates['subscription-booking'](
+          subscription.client.getNameWithSurname(),
+          subscription.transaction.tariff.trainingAmount,
+          subscription.transaction.cost,
+        ),
+      );
+    }
+  }
+
+  async sendMessageAfterSubscriptionViaClientCardPurchased(
+    subscription: Subscription,
+  ) {
+    if (subscription.transaction.paidVia === TransactionPaidVia.CashBox) {
+      await this.sendMessage(
+        subscription.client.chatType?.name ?? 'whatsapp',
+        subscription.client.phone,
+        messageTemplates.subscriptionBooking.viaClientCard(
+          subscription.transaction.tariff.trainingAmount,
+          subscription.transaction.tariff.subExpireAt,
+        ),
+      );
+    } else {
+      await this.sendMessage(
+        subscription.client.chatType?.name ?? 'whatsapp',
+        subscription.client.phone,
+        messageTemplates.subscriptionBooking.viaClientCard(
+          subscription.transaction.tariff.trainingAmount,
+          subscription.transaction.tariff.subExpireAt,
+        ),
+      );
+    }
+
+    await this.sendNotificationToOwner(
+      notificationMessageTemplates['subscription-purchased'](
         subscription.client.getNameWithSurname(),
-        subscription.transaction.tariff.trainingAmount,
-        subscription.transaction.cost,
+        subscription.transaction.tariff.name,
+        subscription.trainer?.getNameWithSurname(),
       ),
     );
   }

@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ApiException } from '#src/common/exception-handler/api-exception';
@@ -36,6 +36,9 @@ import { GiftsService } from '#src/core/gifts/gifts.service';
 import { UpdateTrainingDto } from '#src/core/trainings/dto/update-training.dto';
 import { Transaction } from '#src/core/transactions/entities/transaction.entity';
 import { TrainingTypeIds } from '#src/core/training-type/types/training-type-ids.enum';
+import { CreateTrainingPayload } from '#src/core/trainings/payloads/create-training.payload';
+import { SubscriptionsService } from '#src/core/subscriptions/subscriptions.service';
+// import { SubscriptionsService } from '#src/core/subscriptions/subscriptions.service';
 import EntityExceptions = AllExceptions.EntityExceptions;
 import UserExceptions = AllExceptions.UserExceptions;
 import TrainerExceptions = AllExceptions.TrainerExceptions;
@@ -45,6 +48,10 @@ import PermissionExceptions = AllExceptions.PermissionExceptions;
 import PaymentExceptions = AllExceptions.PaymentExceptions;
 import TransactionExceptions = AllExceptions.TransactionExceptions;
 import GiftExceptions = AllExceptions.GiftExceptions;
+import SubscriptionExceptions = AllExceptions.SubscriptionExceptions;
+import MessageExceptions = AllExceptions.MessageExceptions;
+
+// import SubscriptionExceptions = AllExceptions.SubscriptionExceptions;
 
 @Injectable()
 export class TrainingsService extends BaseEntityService<
@@ -65,6 +72,8 @@ export class TrainingsService extends BaseEntityService<
     private readonly clubsService: ClubsService,
     private readonly clientsService: ClientsService,
     private readonly giftsService: GiftsService,
+    @Inject(forwardRef(() => SubscriptionsService))
+    private readonly subscriptionsService: SubscriptionsService,
   ) {
     super(
       trainingRepository,
@@ -150,7 +159,7 @@ export class TrainingsService extends BaseEntityService<
 
     const tariff = await this.tariffsService.findOne({
       where: { id: createTrainingDto.tariff },
-      relations: { type: true },
+      relations: { type: true, category: true },
     });
 
     if (!tariff) {
@@ -189,7 +198,81 @@ export class TrainingsService extends BaseEntityService<
     return { trainer, slot, tariff, club };
   }
 
-  async create(
+  private async createTraining(
+    payload: CreateTrainingPayload,
+    trainingsIds: number[],
+  ) {
+    let existingTrainingDates: Date[] = [];
+    const dto = payload.dto;
+
+    try {
+      if (payload.tariff.type.name === TrainingTypes.Split) {
+        await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
+          payload.client,
+          payload.trainer,
+          new Date(dto.date),
+          payload.slot,
+          payload.transaction,
+          payload.paymentURL,
+          payload.club,
+          payload.clientOrder === 0 ? 'creator' : 'invited',
+          dto.isPaymentForTwo,
+          payload.invitingClient,
+        );
+      } else {
+        await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
+          payload.client,
+          payload.trainer,
+          new Date(dto.date),
+          payload.slot,
+          payload.transaction,
+          payload.paymentURL,
+          payload.club,
+        );
+      }
+    } catch (error) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'MessageExceptions',
+        MessageExceptions.ErrorOnSend,
+      );
+    }
+
+    const training = await this.save({
+      slot: payload.slot,
+      date: dto.date,
+      client: { id: payload.client.id },
+      trainer: { id: payload.trainer.id },
+      club: { id: dto.club },
+      transaction: payload.transaction,
+      isRepeated: dto.isRepeated,
+      tariff: payload.tariff,
+    });
+
+    trainingsIds.push(training.id);
+
+    this.eventEmitter.emit(
+      'training.created',
+      new TrainingCreatedEvent(training, payload.slot),
+    );
+
+    if (dto.isRepeated) {
+      existingTrainingDates = await this.createRepeatedTrainings(
+        new Date(dto.date),
+        payload.slot.id,
+        payload.club.id,
+        payload.client.id,
+        payload.trainer.id,
+        payload.tariff.id,
+        payload.clientIds,
+        trainingsIds,
+      );
+    }
+
+    return { training, existingTrainingDates };
+  }
+
+  async purchaseTraining(
     createTrainingDto: ICreateTraining,
     trainerId: number,
     clientIds: number[],
@@ -212,7 +295,7 @@ export class TrainingsService extends BaseEntityService<
       );
 
     const clients = await this.getClients(clientIds);
-    if (!clients && clients.length == 0) {
+    if (!clients || clients.length == 0) {
       throw new ApiException(
         HttpStatus.NOT_FOUND,
         'UserExceptions',
@@ -235,131 +318,135 @@ export class TrainingsService extends BaseEntityService<
       trainerId,
     );
 
+    let relatedTransaction: Transaction | null = null;
+    let invitingClient: UserEntity | undefined;
+    let existingTrainingsDates: Date[] | null = null;
     const trainingsIds: number[] = [];
-    let existingTrainingsDates: Date[] = [];
-    let firstClient: UserEntity | undefined;
-    let relatedTransaction: Transaction | undefined;
 
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i];
-
       await this.userService.addTrainer(client, trainerId);
       await this.wazzupMessagingService.createContact(client.id, {
         responsibleUserId: trainer.id,
       });
 
-      const transaction = await this.transactionsService.save({
-        client: { id: client.id },
-        trainer: { id: trainerId },
-        tariff: tariff,
-        cost: createTrainingDto.isPaymentForTwo
-          ? !firstClient
-            ? tariff.cost
-            : 0
-          : tariff.cost / tariff.clientsAmount,
-        createdDate: new Date(),
-        status:
-          createTrainingDto.payVia === TransactionPaidVia.CashBox
-            ? TransactionStatus.Paid
-            : TransactionStatus.Unpaid,
-        paidVia: createTrainingDto.payVia,
-        relatedTransaction: relatedTransaction,
-      });
-
-      relatedTransaction ??= transaction;
-
-      let paymentURL: string | undefined;
-      if (!createTrainingDto.isPaymentForTwo || !firstClient) {
-        paymentURL = await this.tinkoffPaymentsService
-          .createPayment({
-            transactionId: transaction.id,
-            amount: transaction.cost,
-            quantity: 1,
-            user: {
-              id: client.id,
-              phone: client.phone,
-            },
-            metadata: {
-              name: tariff.name,
-              description: `Заказ №${transaction.id}`,
-            },
-          })
-          .catch(async () => {
-            // await this.transactionsService.removeOne(transaction);
-            return null;
-          });
-
-        if (!paymentURL) {
-          throw new ApiException(
-            HttpStatus.BAD_REQUEST,
-            'PaymentExceptions',
-            PaymentExceptions.FailedToCreatePayment,
-          );
-        }
-
-        firstClient ??= client;
-      }
-
-      const training = await this.save({
-        slot: slot,
-        date: createTrainingDto.date,
-        client: { id: client.id },
-        trainer: { id: trainerId },
-        club: { id: createTrainingDto.club },
-        transaction: transaction,
-        isRepeated: createTrainingDto.isRepeated,
-        tariff: tariff,
-      });
-
-      trainingsIds.push(training.id);
-
-      this.eventEmitter.emit(
-        'training.created',
-        new TrainingCreatedEvent(training, slot),
+      const subscription = await this.subscriptionsService.findOne(
+        {
+          where: { client },
+          relations: {
+            trainingType: true,
+            trainings: true,
+            category: true,
+            transaction: true,
+          },
+        },
+        false,
       );
 
-      try {
-        if (tariff.type.name === TrainingTypes.Split) {
-          await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
-            client,
-            trainer,
-            new Date(training.date),
-            slot,
-            transaction,
-            paymentURL,
-            club,
-            i === 0 ? 'creator' : 'invited',
-            createTrainingDto.isPaymentForTwo,
-            firstClient,
-          );
-        } else {
-          await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
-            client,
-            trainer,
-            new Date(training.date),
-            slot,
-            transaction,
-            paymentURL,
-            club,
+      if (
+        subscription &&
+        subscription.transaction.status === TransactionStatus.Paid
+        //TODO: add subscription type check
+      ) {
+        if (subscription.trainingType?.id !== tariff.type?.id) {
+          throw new ApiException(
+            HttpStatus.BAD_REQUEST,
+            'SubscriptionExceptions',
+            SubscriptionExceptions.WrongTrainingType,
           );
         }
-      } catch (error) {
-        // await this.removeOne(training);
-        throw error;
+
+        if (subscription.category?.id !== tariff.category?.id) {
+          throw new ApiException(
+            HttpStatus.BAD_REQUEST,
+            'SubscriptionExceptions',
+            SubscriptionExceptions.WrongTrainingType,
+          );
+        }
       }
 
-      if (createTrainingDto.isRepeated) {
-        existingTrainingsDates = await this.createRepeatedTrainings(
-          new Date(createTrainingDto.date),
-          slot.id,
-          club.id,
-          client.id,
-          trainerId,
-          tariff.id,
-          clientIds,
-          trainingsIds,
-        );
+      let transaction: Transaction | undefined;
+      let paymentURL: string | undefined;
+      if (
+        !subscription ||
+        subscription.transaction.status !== TransactionStatus.Paid
+      ) {
+        transaction = await this.transactionsService.save({
+          client: { id: client.id },
+          trainer: { id: trainerId },
+          tariff: tariff,
+          cost: createTrainingDto.isPaymentForTwo
+            ? !invitingClient
+              ? tariff.cost
+              : 0
+            : tariff.cost / tariff.clientsAmount,
+          createdDate: new Date(),
+          status:
+            createTrainingDto.payVia === TransactionPaidVia.CashBox
+              ? TransactionStatus.Paid
+              : TransactionStatus.Unpaid,
+          paidVia: createTrainingDto.payVia,
+          relatedTransaction: relatedTransaction,
+        });
+
+        relatedTransaction ??= transaction;
+
+        if (!createTrainingDto.isPaymentForTwo || !invitingClient) {
+          paymentURL = await this.tinkoffPaymentsService
+            .createPayment({
+              transactionId: transaction.id,
+              amount: transaction.cost,
+              quantity: 1,
+              user: {
+                id: client.id,
+                phone: client.phone,
+              },
+              metadata: {
+                name: tariff.name,
+                description: `Заказ №${transaction.id}`,
+              },
+            })
+            .catch(async () => {
+              // await this.transactionsService.removeOne(transaction);
+              return null;
+            });
+
+          if (!paymentURL) {
+            throw new ApiException(
+              HttpStatus.BAD_REQUEST,
+              'PaymentExceptions',
+              PaymentExceptions.FailedToCreatePayment,
+            );
+          }
+
+          invitingClient ??= client;
+        }
       }
+
+      const trainingPayload = new CreateTrainingPayload(
+        createTrainingDto,
+        client,
+        trainer,
+        slot,
+        tariff,
+        club,
+        clientIds,
+        i,
+        paymentURL,
+        transaction,
+        invitingClient,
+      );
+
+      const { training, existingTrainingDates } = await this.createTraining(
+        trainingPayload,
+        trainingsIds,
+      );
+
+      subscription.trainings ??= [];
+      subscription.trainings.push(training);
+      await this.subscriptionsService.save(subscription);
+
+      existingTrainingsDates ??= existingTrainingDates;
     }
 
     return new GetCreatedTrainingsRdo(
@@ -578,7 +665,7 @@ export class TrainingsService extends BaseEntityService<
       );
     }
 
-    return await this.create(
+    return await this.purchaseTraining(
       createTrainingViaClientDto,
       createTrainingViaClientDto.trainerId,
       clients,

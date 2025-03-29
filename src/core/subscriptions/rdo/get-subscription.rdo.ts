@@ -30,7 +30,7 @@ export class GetSubscriptionRdo {
         'trainerProfile',
       ]),
   })
-  client: GetUserRdo;
+  client: GetUserRdo & { phone: string };
 
   trainer: GetUserRdo;
 
@@ -50,6 +50,8 @@ export class GetSubscriptionRdo {
 
   isFinished: boolean;
 
+  paymentURL?: string;
+
   constructor(subscription: Subscription, extraInfo = true) {
     this.id = subscription.id;
 
@@ -58,7 +60,10 @@ export class GetSubscriptionRdo {
       : undefined;
 
     this.client = subscription.client
-      ? new GetUserRdo(subscription.client)
+      ? {
+          ...new GetUserRdo(subscription.client),
+          phone: subscription.client.phone,
+        }
       : undefined;
 
     this.trainer = subscription.trainer

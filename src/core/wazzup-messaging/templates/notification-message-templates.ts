@@ -16,11 +16,13 @@ export const notificationMessageTemplates = {
     return `${trainerName}, отмена тренировки на ${date} в ${time}, клиент ${clientName}`;
   },
   'subscription-purchased': (
-    trainerName: string,
     clientName: string,
     tariffName: string,
+    trainerName?: string,
   ) => {
-    return `${trainerName}, приобретён абонемент по тарифу ${tariffName}, клиент ${clientName}`;
+    return trainerName
+      ? `${trainerName}, приобретён абонемент по тарифу ${tariffName}, клиент ${clientName}`
+      : `Приобретён абонемент по тарифу ${tariffName}, клиент ${clientName}`;
   },
   'subscription-cancellation': (
     trainerName: string,

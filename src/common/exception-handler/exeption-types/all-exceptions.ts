@@ -79,6 +79,10 @@ export namespace AllExceptions {
     NotFound = 'Уведомленеие не найдено',
   }
 
+  export enum MessageExceptions {
+    ErrorOnSend = 'Сообщение не удалось доставить',
+  }
+
   export enum TrainingExceptions {
     NotFound = 'Тренировка не найдена',
     ClientsAmountError = 'Тариф подразумевает другое кол-во клиентов',
@@ -90,6 +94,8 @@ export namespace AllExceptions {
     NotFound = 'Entity is not found',
     TrainingAmountErr = 'tariff.trainingAmount != trainings.length',
     CancelingForbidden = 'Нельзя вернуть деньги за абонемент, тренировки по которому частично или полностью использованы.',
+    WrongTrainingType = 'Неверный тип тренеровки для оплаты абонементом',
+    WrongTrainerCategory = 'Неверная квалификация тренера для оплаты абонементом',
   }
 
   export enum StorageExceptions {

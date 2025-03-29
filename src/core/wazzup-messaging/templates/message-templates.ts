@@ -253,9 +253,12 @@ export const messageTemplates = {
     },
   },
   subscriptionBooking: {
-    viaCashBox: (trainerName: string) => {
+    viaCashBox: (trainerName?: string) => {
+      const firstString = trainerName
+        ? `Благодарим вас за бронирование абонемента на 5 тренировок у тренера ${trainerName},`
+        : 'Благодарим вас за бронирование абонемента на 5 тренировок,';
       return (
-        `Благодарим вас за покупку абонемента на 5 тренировок у тренера ${trainerName}.` +
+        firstString +
         '\n' +
         `Срок действия абонемента 25 дней с даты покупки.` +
         '\n' +
@@ -264,9 +267,12 @@ export const messageTemplates = {
         `Если возникли вопросы, напишите нам!`
       );
     },
-    viaOnlineService: (trainerName: string, paymentURL: string) => {
+    viaOnlineService: (paymentURL: string, trainerName?: string) => {
+      const firstString = trainerName
+        ? `Благодарим вас за бронирование абонемента на 5 тренировок у тренера ${trainerName},`
+        : 'Благодарим вас за бронирование абонемента на 5 тренировок,';
       return (
-        `Благодарим вас за бронирование абонемента на 5 тренировок у тренера ${trainerName},` +
+        firstString +
         '\n' +
         `оплатить его можно по ссылке: ${paymentURL}.` +
         '\n' +
@@ -275,6 +281,21 @@ export const messageTemplates = {
         `По истечению срока абонемента, тренировки сгорают.` +
         '\n' +
         `Если возникли вопросы, напишите нам!`
+      );
+    },
+    viaClientCard: (trainingsAmount: number, subExpireAtDays: number) => {
+      return (
+        'Здравствуйте,' +
+        '\n' +
+        `Поздравляем с покупкой абонемента на ${trainingsAmount} тренировок! Теперь вы можете записываться на занятия через наш сайт. Ваш абонемент действует в течение ${subExpireAtDays} дней с момента покупки.` +
+        '\n' +
+        '\n' +
+        `Для записи на тренировку, пожалуйста, выберите нужное занятие на сайте и укажите номер вашего телефона. ` +
+        '\n' +
+        `Каждый раз при записи, количество занятий на вашем абонементе будет автоматически уменьшаться.` +
+        '\n' +
+        '\n' +
+        `Ваш абонемент привязан к номеру телефона.`
       );
     },
   },

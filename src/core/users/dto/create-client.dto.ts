@@ -21,7 +21,7 @@ export class CreateClientDto implements IUser {
   @IsOptional()
   password?: string;
 
-  @Matches(new RegExp('^\\+7\\d{10}$'), {
+  @Matches(new RegExp('^7\\d{10}$'), {
     message: 'Некорректный номер телефона',
   })
   @IsString()

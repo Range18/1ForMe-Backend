@@ -47,7 +47,7 @@ export class TrainingsController {
     @Body() createTrainingDto: CreateTrainingDto,
     @User() user: UserRequest,
   ): Promise<GetCreatedTrainingsRdo> {
-    return await this.trainingsService.create(
+    return await this.trainingsService.purchaseTraining(
       createTrainingDto,
       user.id,
       createTrainingDto.client,

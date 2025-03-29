@@ -278,12 +278,11 @@ export class SubscriptionsService extends BaseEntityService<
 
     this.eventEmitter.emit('subscription.created', subscription);
 
-    await this.wazzupMessagingService.sendMessageAfterSubscriptionPurchased(
+    await this.wazzupMessagingService.sendMessageAfterSubscriptionViaClientCardPurchased(
       subscription,
-      paymentURL,
     );
 
-    return subscription;
+    return { subscription, paymentURL };
   }
 
   async cancelSubscription(id: number, userId: number): Promise<void> {
