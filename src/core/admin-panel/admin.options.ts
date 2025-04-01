@@ -19,6 +19,7 @@ import { Slot } from '#src/core/trainer-slots/entities/slot.entity';
 import { ChatTypes } from '#src/core/chat-types/entities/chat-type.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import { GiftCard } from '#src/core/gift-cards/entities/gift-card.entity';
+import { SubscriptionCard } from '#src/core/subscription-cards/entities/subscription-card.entity';
 
 export const adminOptions = {
   adminJsOptions: {
@@ -44,6 +45,7 @@ export const adminOptions = {
       ChatTypes,
       Notification,
       GiftCard,
+      SubscriptionCard,
     ],
   },
   auth: {

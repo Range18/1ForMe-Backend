@@ -129,11 +129,12 @@ export class WazzupMessagingService
     userPhone: string,
     message: string,
     notificationMessage?: string,
+    username?: string,
   ): Promise<void> {
     chatType = String(chatType).toLowerCase() as NormalizedChatType;
 
     if (chatType === 'telegram') {
-      await this.sendTelegramMessage(userPhone, message);
+      await this.sendTelegramMessage(userPhone, message, username);
     } else {
       await this.sendWhatsAppMessage(userPhone, message);
     }
@@ -145,6 +146,7 @@ export class WazzupMessagingService
   private async sendTelegramMessage(
     userPhone: string,
     message: string,
+    username?: string,
   ): Promise<void> {
     await this.httpClient
       .post('message', {
@@ -152,6 +154,7 @@ export class WazzupMessagingService
         chatType: 'telegram',
         text: message,
         phone: userPhone,
+        username: username,
       })
       .catch((err: AxiosError) => {
         console.log(err?.response?.data);
@@ -314,6 +317,8 @@ export class WazzupMessagingService
             dateToRecordString(new Date(date), slot.beginning),
             paymentURL,
           ),
+          null,
+          client.userNameInMessenger,
         );
 
         if (
@@ -333,6 +338,8 @@ export class WazzupMessagingService
             transaction.cost,
             dateToRecordString(new Date(date), slot.beginning),
           ),
+          null,
+          client.userNameInMessenger,
         );
         break;
     }
@@ -384,6 +391,8 @@ export class WazzupMessagingService
               dateToRecordString(new Date(date), slot.beginning),
               paymentURL,
             ),
+            null,
+            client.userNameInMessenger,
           );
         } else if (isPaymentForTwo) {
           await this.sendMessage(
@@ -394,6 +403,8 @@ export class WazzupMessagingService
               club.studio.address,
               dateToRecordString(new Date(date), slot.beginning),
             ),
+            null,
+            client.userNameInMessenger,
           );
         } else {
           await this.sendMessage(
@@ -406,6 +417,8 @@ export class WazzupMessagingService
               dateToRecordString(new Date(date), slot.beginning),
               paymentURL,
             ),
+            null,
+            client.userNameInMessenger,
           );
         }
 
@@ -427,6 +440,8 @@ export class WazzupMessagingService
               club.studio.address,
               dateToRecordString(new Date(date), slot.beginning),
             ),
+            null,
+            client.userNameInMessenger,
           );
         } else {
           await this.sendMessage(
@@ -437,6 +452,8 @@ export class WazzupMessagingService
               club.studio.address,
               dateToRecordString(new Date(date), slot.beginning),
             ),
+            null,
+            client.userNameInMessenger,
           );
         }
         break;
@@ -558,6 +575,8 @@ export class WazzupMessagingService
         club.studio.address,
         dateToRecordString(new Date(date), slot.beginning),
       ),
+      null,
+      subscription.client.userNameInMessenger,
     );
   }
 

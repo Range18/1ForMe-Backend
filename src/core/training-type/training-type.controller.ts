@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TrainingTypeService } from '#src/core/training-type/training-type.service';
 import { Training } from '#src/core/trainings/entities/training.entity';
 import { CreateTrainingTypeDto } from '#src/core/training-type/dto/create-tr-type.dto';
+import { TrainingTypeQueryDto } from '#src/core/training-type/dto/training-type-query.dto';
+import { In } from 'typeorm';
 
 @ApiTags('Training Types')
 @Controller('api/trainings/types')
@@ -17,8 +19,10 @@ export class TrainingTypeController {
 
   @ApiOkResponse({ type: [Training] })
   @Get()
-  async getAll() {
-    return await this.typesService.find({});
+  async getAll(@Query() query: TrainingTypeQueryDto) {
+    return await this.typesService.find({
+      where: { id: query.ids ? In(query.ids) : undefined },
+    });
   }
 
   @ApiOkResponse({ type: Training })

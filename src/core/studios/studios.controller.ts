@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { StudiosService } from './studios.service';
 import { CreateStudioDto } from './dto/create-studio.dto';
@@ -18,6 +19,7 @@ import { type UserRequest } from '#src/common/types/user-request.type';
 import { UserService } from '#src/core/users/user.service';
 import { AuthGuard } from '#src/common/decorators/guards/authGuard.decorator';
 import { In } from 'typeorm';
+import { StudiosQueryDto } from '#src/core/studios/dto/studios-query.dto';
 
 @ApiTags('Studios')
 @Controller('api/studios')
@@ -40,8 +42,9 @@ export class StudiosController {
 
   @ApiOkResponse({ type: [GetStudioRdo] })
   @Get()
-  async findAll() {
+  async findAll(@Query() query: StudiosQueryDto) {
     const studios = await this.studiosService.find({
+      where: { city: query.city ? { name: query.city } : undefined },
       relations: {
         trainers: { category: true, avatar: true, role: true },
         clubs: { city: true },

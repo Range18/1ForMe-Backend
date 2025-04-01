@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export class TariffQueryDto {
@@ -14,4 +14,8 @@ export class TariffQueryDto {
   @Transform(({ value }) => value == 'true')
   @IsOptional()
   isPublic?: boolean;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
 }

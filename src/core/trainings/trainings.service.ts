@@ -206,45 +206,44 @@ export class TrainingsService extends BaseEntityService<
     let existingTrainingDates: Date[] = [];
     const dto = payload.dto;
 
-    if (!isCreateFromSubscription) {
-      try {
-        if (payload.tariff.type.name === TrainingTypes.Split) {
-          await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
-            payload.client,
-            payload.trainer,
-            new Date(dto.date),
-            payload.slot,
-            payload.transaction,
-            payload.paymentURL,
-            payload.club,
-            payload.clientOrder === 0 ? 'creator' : 'invited',
-            dto.isPaymentForTwo,
-            payload.invitingClient,
-          );
-        } else {
-          await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
-            payload.client,
-            payload.trainer,
-            new Date(dto.date),
-            payload.slot,
-            payload.transaction,
-            payload.paymentURL,
-            payload.club,
-          );
-        }
-      } catch (error) {
-        throw new ApiException(
-          HttpStatus.BAD_REQUEST,
-          'MessageExceptions',
-          MessageExceptions.ErrorOnSend,
+    try {
+      if (isCreateFromSubscription) {
+        await this.wazzupMessagingService.sendMessageAfterTrainingViaSubscriptionCreated(
+          payload.subscription,
+          payload.dto.date,
+          payload.slot,
+          payload.club,
+        );
+      } else if (payload.tariff.type.name === TrainingTypes.Split) {
+        await this.wazzupMessagingService.sendMessagesAfterSplitTrainingCreated(
+          payload.client,
+          payload.trainer,
+          new Date(dto.date),
+          payload.slot,
+          payload.transaction,
+          payload.paymentURL,
+          payload.club,
+          payload.clientOrder === 0 ? 'creator' : 'invited',
+          dto.isPaymentForTwo,
+          payload.invitingClient,
+        );
+      } else {
+        await this.wazzupMessagingService.sendMessagesAfterPersonalTrainingCreated(
+          payload.client,
+          payload.trainer,
+          new Date(dto.date),
+          payload.slot,
+          payload.transaction,
+          payload.paymentURL,
+          payload.club,
         );
       }
-    } else {
-      await this.wazzupMessagingService.sendMessageAfterTrainingViaSubscriptionCreated(
-        payload.subscription,
-        payload.dto.date,
-        payload.slot,
-        payload.club,
+    } catch (error) {
+      console.log(error);
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'MessageExceptions',
+        MessageExceptions.ErrorOnSend,
       );
     }
 
@@ -978,7 +977,7 @@ export class TrainingsService extends BaseEntityService<
 
     //TODO: Log Error
     if (
-      training.tariff.type.id === TrainingTypeIds.Split &&
+      training.transaction?.tariff?.type?.id === TrainingTypeIds.Split &&
       training.transaction.relatedTransaction &&
       training.transaction.relatedTransaction.training
     ) {

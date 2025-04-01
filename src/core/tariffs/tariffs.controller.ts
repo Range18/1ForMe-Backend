@@ -20,6 +20,7 @@ export class TariffsController {
       where: {
         isForSubscription: query.isForSubscription,
         isPublic: query.isPublic,
+        studio: { city: query.city ? { name: query.city } : undefined },
       },
       relations: {
         studio: true,

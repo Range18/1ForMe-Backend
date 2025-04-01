@@ -37,6 +37,6 @@ export class CreateClientDto implements IUser {
   })
   @MinLength(6)
   @IsString()
-  @IsNotEmpty()
-  userNameInMessenger: string;
+  @IsOptional()
+  userNameInMessenger?: string;
 }

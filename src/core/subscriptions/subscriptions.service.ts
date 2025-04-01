@@ -238,6 +238,13 @@ export class SubscriptionsService extends BaseEntityService<
       userNameInMessenger: dto.username,
     });
 
+    // Update existing client
+    await this.userService.updateOne(client, {
+      chatType: { id: dto.chatTypeId },
+      userNameInMessenger: dto.username,
+      name: dto.name,
+    });
+
     const giftCard = await this.subscriptionCardsService.findOne({
       where: { id: dto.giftCardId },
       relations: { tariff: { type: true, category: true } },
